@@ -5,7 +5,7 @@ const Hero = () => {
   return (
     <section className="relative min-h-screen overflow-hidden flex items-center justify-center">
       <iframe
-        src="https://www.youtube.com/embed/nBQKMPWrUgc?autoplay=1&mute=1&loop=1&playlist=nBQKMPWrUgc&controls=0&showinfo=0&modestbranding=1"
+        src="https://www.youtube.com/embed/nBQKMPWrUgc?autoplay=1&loop=1&playlist=nBQKMPWrUgc&controls=0&showinfo=0&modestbranding=1"
         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         frameBorder="0"
         allow="autoplay; fullscreen"
