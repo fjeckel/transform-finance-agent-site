@@ -5,10 +5,12 @@ const Hero = () => {
   return (
     <section className="relative min-h-screen overflow-hidden flex items-center justify-center">
       <iframe
-        src="https://www.youtube.com/embed/nBQKMPWrUgc?autoplay=1&mute=1&loop=1&playlist=nBQKMPWrUgc&controls=0&showinfo=0&modestbranding=1"
+        src="https://www.youtube.com/embed/nBQKMPWrUgc?autoplay=1&mute=0&loop=1&playlist=nBQKMPWrUgc&controls=0&showinfo=0&modestbranding=1"
         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         frameBorder="0"
+        allowFullScreen
         allow="autoplay; fullscreen"
+        title="Background video"
       />
       
       <div className="text-center z-10 px-4 max-w-4xl mx-auto">
