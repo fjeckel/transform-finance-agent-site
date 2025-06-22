@@ -9,35 +9,35 @@ const SocialHandlesSection = () => {
       icon: <LinkedinIcon className="w-8 h-8" />,
       url: '#',
       color: 'bg-[#0077B5] hover:bg-[#005885]',
-      description: 'Professional insights and industry discussions'
+      description: 'Professionelle Einblicke und Branchendiskussionen'
     },
     {
       name: 'X (Twitter)',
       icon: <TwitterIcon className="w-8 h-8" />,
       url: '#',
       color: 'bg-black hover:bg-gray-800',
-      description: 'Real-time thoughts and quick takes'
+      description: 'Aktuelle Gedanken und schnelle Takes'
     },
     {
       name: 'YouTube',
       icon: <div className="w-8 h-8 text-white font-bold flex items-center justify-center">YT</div>,
       url: 'https://www.youtube.com/channel/UC2sXuBElJDyzxKv3J8kmyng',
       color: 'bg-[#FF0000] hover:bg-[#CC0000]',
-      description: 'Video content and podcast episodes'
+      description: 'Video-Content und Podcast-Episoden'
     },
     {
       name: 'Instagram',
       icon: <InstagramIcon className="w-8 h-8" />,
       url: '#',
       color: 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600',
-      description: 'Behind-the-scenes and visual storytelling'
+      description: 'Behind-the-Scenes und visuelles Storytelling'
     },
     {
       name: 'TikTok',
       icon: <div className="w-8 h-8 text-white font-bold flex items-center justify-center">TT</div>,
       url: '#',
       color: 'bg-black hover:bg-gray-800',
-      description: 'Quick finance tips and trends'
+      description: 'Schnelle Finanztipps und Trends'
     }
   ];
 
@@ -46,11 +46,11 @@ const SocialHandlesSection = () => {
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 uppercase tracking-tight">
-            Follow the <span className="text-[#13B87B]">Transformation</span>
+            Folgen Sie der <span className="text-[#13B87B]">Transformation</span>
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Join our community across platforms for daily insights, behind-the-scenes content, 
-            and real-time discussions about the future of finance.
+            Werden Sie Teil unserer Community auf verschiedenen Plattformen für tägliche Einblicke, 
+            Behind-the-Scenes-Content und Echtzeitdiskussionen über die Zukunft des Finanzwesens.
           </p>
         </div>
 
@@ -83,7 +83,7 @@ const SocialHandlesSection = () => {
 
         <div className="text-center">
           <div className="inline-flex items-center space-x-4 bg-white/10 backdrop-blur-sm rounded-full px-8 py-4 border border-white/20">
-            <span className="text-white font-medium">Stay Connected:</span>
+            <span className="text-white font-medium">Verbunden bleiben:</span>
             <div className="flex space-x-3">
               {socialLinks.slice(0, 3).map((social, index) => (
                 <a

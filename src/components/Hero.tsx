@@ -49,7 +49,7 @@ const Hero = () => {
         frameBorder="0"
         allowFullScreen
         allow="autoplay; fullscreen"
-        title="Background video"
+        title="Hintergrund-Video"
       />
       <button
         onClick={toggleMute}
@@ -71,7 +71,7 @@ const Hero = () => {
         </h1>
         
         <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-          Provocative thought leadership for finance professionals ready to embrace the future
+          Provokante Thought Leadership für Finanzprofis, die bereit sind, die Zukunft zu gestalten
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -79,13 +79,13 @@ const Hero = () => {
             href="#wtf" 
             className="bg-[#13B87B] text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-[#0FA66A] transition-colors duration-300 transform hover:scale-105"
           >
-            START THE TRANSFORMATION
+            TRANSFORMATION STARTEN
           </a>
           <a 
             href="#cfo-memo" 
             className="border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-gray-900 transition-all duration-300"
           >
-            GET THE CFO MEMO
+            DAS CFO MEMO ERHALTEN
           </a>
         </div>
       </div>

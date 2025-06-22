@@ -12,8 +12,8 @@ const CFOMemoSection = () => {
     
     if (!email || !email.includes('@')) {
       toast({
-        title: "Invalid Email",
-        description: "Please enter a valid email address",
+        title: "Ungültige E-Mail",
+        description: "Bitte geben Sie eine gültige E-Mail-Adresse ein",
         variant: "destructive",
       });
       return;
@@ -26,15 +26,15 @@ const CFOMemoSection = () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
-        title: "Welcome to The CFO Memo!",
-        description: "You'll receive your first memo within 24 hours.",
+        title: "Willkommen beim CFO Memo!",
+        description: "Sie erhalten Ihr erstes Memo innerhalb von 24 Stunden.",
       });
       
       setEmail('');
     } catch (error) {
       toast({
-        title: "Subscription Failed",
-        description: "Please try again later or contact support.",
+        title: "Anmeldung fehlgeschlagen",
+        description: "Bitte versuchen Sie es später erneut oder kontaktieren Sie den Support.",
         variant: "destructive",
       });
     } finally {
@@ -45,18 +45,18 @@ const CFOMemoSection = () => {
   const benefits = [
     {
       icon: <TrendingUp className="w-6 h-6" />,
-      title: "Strategic Insights",
-      description: "Weekly analysis of finance trends that matter to your bottom line"
+      title: "Strategische Einblicke",
+      description: "Wöchentliche Analyse von Finanztrends, die für Ihr Ergebnis wichtig sind"
     },
     {
       icon: <Shield className="w-6 h-6" />,
-      title: "Risk Intelligence",
-      description: "Early warnings on market shifts and regulatory changes"
+      title: "Risiko-Intelligence",
+      description: "Frühwarnungen zu Marktveränderungen und regulatorischen Änderungen"
     },
     {
       icon: <Zap className="w-6 h-6" />,
-      title: "Transformation Tools",
-      description: "Practical frameworks for modernizing your finance function"
+      title: "Transformations-Tools",
+      description: "Praktische Frameworks zur Modernisierung Ihrer Finanzfunktion"
     }
   ];
 
@@ -65,11 +65,11 @@ const CFOMemoSection = () => {
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 uppercase tracking-tight">
-            The <span className="text-[#FBF4EB]">CFO Memo</span>
+            Das <span className="text-[#FBF4EB]">CFO Memo</span>
           </h2>
           <p className="text-xl text-green-100 max-w-3xl mx-auto">
-            Cut through the noise. Get the insights that matter. 
-            Weekly intelligence for finance leaders who refuse to be left behind.
+            Durchschneiden Sie das Rauschen. Erhalten Sie die Einblicke, die wirklich zählen. 
+            Wöchentliche Intelligence für Finanzführungskräfte, die sich nicht abhängen lassen.
           </p>
         </div>
 
@@ -92,7 +92,7 @@ const CFOMemoSection = () => {
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
               <h3 className="text-2xl font-bold text-white mb-4 flex items-center">
                 <Mail className="w-6 h-6 mr-2" />
-                Join 10,000+ Finance Leaders
+                Schließen Sie sich 100+ Finanzführungskräften an
               </h3>
               
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -101,7 +101,7 @@ const CFOMemoSection = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email address"
+                    placeholder="Geben Sie Ihre E-Mail-Adresse ein"
                     className="w-full px-4 py-3 rounded-lg bg-white/90 text-gray-900 placeholder-gray-600 focus:outline-none focus:ring-4 focus:ring-white/30 font-medium"
                     required
                   />
@@ -117,14 +117,14 @@ const CFOMemoSection = () => {
                   ) : (
                     <>
                       <CheckCircle className="w-5 h-5" />
-                      <span>GET THE CFO MEMO</span>
+                      <span>DAS CFO MEMO ERHALTEN</span>
                     </>
                   )}
                 </button>
               </form>
               
               <p className="text-green-100 text-sm mt-3 text-center">
-                No spam. Unsubscribe anytime. Weekly delivery every Tuesday.
+                Kein Spam. Jederzeit abbestellbar. Wöchentliche Zustellung jeden Dienstag.
               </p>
             </div>
           </div>
@@ -135,19 +135,19 @@ const CFOMemoSection = () => {
                 <div className="w-16 h-16 bg-[#13B87B] rounded-full flex items-center justify-center mx-auto mb-6">
                   <Mail className="w-8 h-8 text-white" />
                 </div>
-                <h4 className="text-2xl font-bold text-gray-900 mb-4">This Week's Memo</h4>
+                <h4 className="text-2xl font-bold text-gray-900 mb-4">Das Memo dieser Woche</h4>
                 <div className="text-left space-y-3 text-gray-700">
                   <div className="flex items-start space-x-2">
                     <div className="w-2 h-2 bg-[#13B87B] rounded-full mt-2 flex-shrink-0"></div>
-                    <span>AI-Powered Financial Planning: Hype vs Reality</span>
+                    <span>KI-gestützte Finanzplanung: Hype vs. Realität</span>
                   </div>
                   <div className="flex items-start space-x-2">
                     <div className="w-2 h-2 bg-[#D0840E] rounded-full mt-2 flex-shrink-0"></div>
-                    <span>Q1 2025 Risk Assessment Framework</span>
+                    <span>Q1 2025 Risikobewertungs-Framework</span>
                   </div>
                   <div className="flex items-start space-x-2">
                     <div className="w-2 h-2 bg-[#003FA5] rounded-full mt-2 flex-shrink-0"></div>
-                    <span>Case Study: Digital Finance Transformation</span>
+                    <span>Case Study: Digitale Finance-Transformation</span>
                   </div>
                 </div>
               </div>

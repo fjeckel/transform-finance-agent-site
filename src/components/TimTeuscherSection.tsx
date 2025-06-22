@@ -9,22 +9,22 @@ const TimTeuscherSection = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="order-2 lg:order-1">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 uppercase tracking-tight">
-              More About<br />
+              Mehr über<br />
               <span className="text-[#D0840E]">Tim Teuscher</span>
             </h2>
             
             <div className="prose prose-lg text-gray-700 mb-8">
               <p className="text-lg leading-relaxed">
-                Tim is a seasoned finance transformation consultant with over 15 years of experience 
-                helping Fortune 500 companies modernize their financial operations. As the founder of 
-                Teuscher Consulting, he specializes in digital finance strategy, process automation, 
-                and organizational change management.
+                Tim ist ein erfahrener Finance-Transformationsberater mit über 15 Jahren Erfahrung 
+                dabei, Fortune-500-Unternehmen bei der Modernisierung ihrer Finanzoperationen zu helfen. 
+                Als Gründer von Teuscher Consulting spezialisiert er sich auf digitale Finanzstrategie, 
+                Prozessautomatisierung und organisatorisches Change Management.
               </p>
               <p>
-                His provocative approach challenges traditional finance thinking while delivering 
-                measurable results. Tim has led transformations at companies across Europe and 
-                North America, earning recognition as a thought leader in the intersection of 
-                finance and technology.
+                Sein provokanter Ansatz stellt traditionelles Finanzdenken in Frage und liefert 
+                gleichzeitig messbare Ergebnisse. Tim hat Transformationen in Unternehmen in ganz 
+                Europa und Nordamerika geleitet und sich als Thought Leader an der Schnittstelle 
+                von Finanzen und Technologie einen Namen gemacht.
               </p>
             </div>
 
@@ -35,7 +35,7 @@ const TimTeuscherSection = () => {
                 rel="noopener noreferrer"
                 className="flex items-center justify-center space-x-2 bg-[#003FA5] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#002080] transition-colors duration-300"
               >
-                <span>Visit Website</span>
+                <span>Website besuchen</span>
                 <ExternalLink size={16} />
               </a>
               <a
@@ -58,7 +58,7 @@ const TimTeuscherSection = () => {
                     <span className="text-white text-4xl font-bold">TT</span>
                   </div>
                   <div className="text-xl font-bold">Tim Teuscher</div>
-                  <div className="text-sm">Finance Transformation Expert</div>
+                  <div className="text-sm">Finance-Transformations-Experte</div>
                 </div>
               </div>
               
@@ -68,13 +68,13 @@ const TimTeuscherSection = () => {
               
               {/* Achievement badges */}
               <div className="absolute top-4 left-4 bg-white rounded-lg px-3 py-2 shadow-lg">
-                <div className="text-xs font-bold text-gray-800">15+ Years</div>
-                <div className="text-xs text-gray-600">Experience</div>
+                <div className="text-xs font-bold text-gray-800">15+ Jahre</div>
+                <div className="text-xs text-gray-600">Erfahrung</div>
               </div>
               
               <div className="absolute bottom-4 right-4 bg-white rounded-lg px-3 py-2 shadow-lg">
-                <div className="text-xs font-bold text-gray-800">50+ Projects</div>
-                <div className="text-xs text-gray-600">Completed</div>
+                <div className="text-xs font-bold text-gray-800">50+ Projekte</div>
+                <div className="text-xs text-gray-600">Abgeschlossen</div>
               </div>
             </div>
           </div>

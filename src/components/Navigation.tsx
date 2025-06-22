@@ -15,12 +15,12 @@ const Navigation = () => {
   }, []);
 
   const navItems = [
-    { label: 'WTF?! WHY TRANSFORM FINANCE', href: '#wtf' },
+    { label: 'WTF?! WARUM FINANCE TRANSFORMIEREN', href: '#wtf' },
     { label: 'FINANCE TRANSFORMERS', href: '#finance-transformers' },
-    { label: 'THE CFO MEMO', href: '#cfo-memo' },
-    { label: 'MORE ABOUT TIM TEUSCHER', href: '#tim-teuscher' },
-    { label: 'MORE ABOUT FABIAN JECKEL', href: '#fabian-jeckel' },
-    { label: 'SOCIAL HANDLES', href: '#social' },
+    { label: 'DAS CFO MEMO', href: '#cfo-memo' },
+    { label: 'MEHR ÜBER TIM TEUSCHER', href: '#tim-teuscher' },
+    { label: 'MEHR ÜBER FABIAN JECKEL', href: '#fabian-jeckel' },
+    { label: 'SOCIAL MEDIA', href: '#social' },
   ];
 
   const scrollToSection = (href: string) => {

@@ -17,24 +17,25 @@ const WTFSection = () => {
           <div className="order-2 lg:order-1">
             <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-8 uppercase tracking-tight">
               WTF?!<br />
-              <span className="text-[#D0840E]">Why Transform Finance</span>
+              <span className="text-[#D0840E]">Warum Finance transformieren</span>
             </h2>
             
             <div className="prose prose-lg text-gray-700 mb-8">
               <p className="text-xl leading-relaxed">
-                Finance is broken. Spreadsheets from the 1980s. Manual processes that kill creativity. 
-                Risk-averse cultures that stifle innovation. It's time to stop being the "Department of No" 
-                and start being the catalyst for transformation.
+                Das Finanzwesen ist kaputt. Spreadsheets aus den 1980ern. Manuelle Prozesse, die 
+                Kreativität töten. Risikoaverse Kulturen, die Innovation ersticken. Es ist Zeit, 
+                aufzuhören, das "Nein-Ministerium" zu sein und stattdessen zum Katalysator der 
+                Transformation zu werden.
               </p>
               <p className="text-lg">
-                Join Tim and Fabian as they challenge conventional finance wisdom, explore cutting-edge 
-                technology, and share provocative insights that will transform how you think about money, 
-                operations, and leadership in the digital age.
+                Begleite Tim und Fabian dabei, wie sie konventionelle Finanzweisheiten herausfordern, 
+                modernste Technologien erkunden und provokante Einsichten teilen, die deine 
+                Denkweise über Geld, Betrieb und Führung im digitalen Zeitalter transformieren werden.
               </p>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-xl font-bold text-gray-900 uppercase tracking-wide">Listen Now:</h3>
+              <h3 className="text-xl font-bold text-gray-900 uppercase tracking-wide">Jetzt anhören:</h3>
               <div className="grid grid-cols-2 gap-3">
                 {podcastLinks.map((link) => (
                   <a
@@ -58,7 +59,7 @@ const WTFSection = () => {
               <div className="aspect-square bg-gradient-to-br from-[#13B87B] to-[#0FA66A] rounded-2xl flex items-center justify-center shadow-2xl">
                 <div className="text-center text-white p-8">
                   <div className="text-6xl font-bold mb-4">WTF?!</div>
-                  <div className="text-xl font-medium">Why Transform Finance</div>
+                  <div className="text-xl font-medium">Warum Finance transformieren</div>
                   <div className="mt-6 w-16 h-1 bg-white mx-auto rounded"></div>
                 </div>
               </div>
