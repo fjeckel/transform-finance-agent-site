@@ -1,17 +1,62 @@
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Volume2, VolumeX } from 'lucide-react';
 
 const Hero = () => {
+  const [isMuted, setIsMuted] = useState(false);
+  const playerRef = useRef<any>(null);
+
+  useEffect(() => {
+    const onReady = () => {
+      if (playerRef.current && isMuted) {
+        playerRef.current.mute();
+      }
+    };
+
+    const onYouTubeIframeAPIReady = () => {
+      playerRef.current = new (window as any).YT.Player('hero-video', {
+        events: { onReady }
+      });
+    };
+
+    if (!(window as any).YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      document.body.appendChild(tag);
+      (window as any).onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+    } else {
+      onYouTubeIframeAPIReady();
+    }
+  }, []);
+
+  const toggleMute = () => {
+    if (playerRef.current) {
+      if (isMuted) {
+        playerRef.current.unMute();
+      } else {
+        playerRef.current.mute();
+      }
+    }
+    setIsMuted((prev) => !prev);
+  };
+
   return (
     <section className="relative min-h-screen overflow-hidden flex items-center justify-center">
       <iframe
-        src="https://www.youtube.com/embed/nBQKMPWrUgc?autoplay=1&mute=0&loop=1&playlist=nBQKMPWrUgc&controls=0&showinfo=0&modestbranding=1"
+        id="hero-video"
+        src="https://www.youtube.com/embed/nBQKMPWrUgc?autoplay=1&mute=0&loop=1&playlist=nBQKMPWrUgc&controls=0&showinfo=0&modestbranding=1&enablejsapi=1"
         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         frameBorder="0"
         allowFullScreen
         allow="autoplay; fullscreen"
         title="Background video"
       />
+      <button
+        onClick={toggleMute}
+        className="absolute top-4 right-4 z-10 bg-white/70 hover:bg-white text-gray-800 p-2 rounded-full transition"
+      >
+        {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+      </button>
       
       <div className="text-center z-10 px-4 max-w-4xl mx-auto">
         <div className="mb-8">
