@@ -5,9 +5,7 @@ const FabianJeckelSection = () => {
   return <section id="fabian-jeckel" className="py-20 bg-white">
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div>
-
-            <div className="relative">
+          <div className="relative">
 
               <div className="aspect-square bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden">
                 <div className="text-center text-gray-600">
@@ -33,7 +31,6 @@ const FabianJeckelSection = () => {
                 <div className="text-xs font-bold text-gray-800">International Sales</div>
                 <div className="text-xs text-gray-600">Wien • Global</div>
               </div>
-            </div>
           </div>
           
           <div>
