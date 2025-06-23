@@ -96,7 +96,19 @@ const FinanceTransformersSection = () => {
             </button>
             
             <div className="flex space-x-2">
-              {episodes.map((_, index) => <button key={index} onClick={() => setCurrentEpisode(index)} className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentEpisode ? 'bg-[#003FA5] scale-125' : 'bg-gray-300 hover:bg-gray-400'}`} />)}
+              {episodes.map((episode, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentEpisode(index)}
+                  className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all duration-300 ${index === currentEpisode ? 'border-[#003FA5] scale-105' : 'border-transparent hover:border-gray-300'}`}
+                >
+                  <img
+                    src={episode.image}
+                    alt={episode.alt}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
             </div>
             
             <button onClick={nextEpisode} className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110">
