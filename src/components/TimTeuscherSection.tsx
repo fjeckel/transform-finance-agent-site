@@ -55,7 +55,7 @@ const TimTeuscherSection = () => {
               <div className="aspect-square bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden">
                 <div className="text-center text-gray-600">
                   <img
-                    src="/assets/tim-teuscher.jpg"
+                    src="/src/components/tim-teuscher.jpg"
                     alt="Tim Teuscher"
                     className="w-32 h-32 rounded-full object-cover mx-auto mb-4"
                   />
