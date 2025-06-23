@@ -1,50 +1,36 @@
-
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
-
 const FinanceTransformersSection = () => {
   const [currentEpisode, setCurrentEpisode] = useState(0);
-  
-  const episodes = [
-    {
-      title: "The Future of Financial Planning",
-      description: "How AI and automation are revolutionizing FP&A processes",
-      duration: "28 min",
-      date: "Dec 2024"
-    },
-    {
-      title: "Digital Transformation in Finance",
-      description: "Breaking down silos and building integrated financial ecosystems",
-      duration: "35 min",
-      date: "Nov 2024"
-    },
-    {
-      title: "The CFO as Chief Transformation Officer",
-      description: "Evolving the finance leader's role in the digital age",
-      duration: "42 min",
-      date: "Nov 2024"
-    }
-  ];
-
+  const episodes = [{
+    title: "The Future of Financial Planning",
+    description: "How AI and automation are revolutionizing FP&A processes",
+    duration: "28 min",
+    date: "Dec 2024"
+  }, {
+    title: "Digital Transformation in Finance",
+    description: "Breaking down silos and building integrated financial ecosystems",
+    duration: "35 min",
+    date: "Nov 2024"
+  }, {
+    title: "The CFO as Chief Transformation Officer",
+    description: "Evolving the finance leader's role in the digital age",
+    duration: "42 min",
+    date: "Nov 2024"
+  }];
   const nextEpisode = () => {
-    setCurrentEpisode((prev) => (prev + 1) % episodes.length);
+    setCurrentEpisode(prev => (prev + 1) % episodes.length);
   };
-
   const prevEpisode = () => {
-    setCurrentEpisode((prev) => (prev - 1 + episodes.length) % episodes.length);
+    setCurrentEpisode(prev => (prev - 1 + episodes.length) % episodes.length);
   };
-
-  return (
-    <section id="finance-transformers" className="py-20 bg-white">
+  return <section id="finance-transformers" className="py-20 bg-white">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 uppercase tracking-tight">
             Finance <span className="text-[#003FA5]">Transformers</span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Deep-dive conversations with industry leaders, innovators, and disruptors 
-            who are reshaping the finance function for the digital age.
-          </p>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">Finance Transformers ist das „halb-seriöse“ Schwester­format von WTF?! – Why Transform Finance. Statt Tim &amp; Fabians lockerem After-Work-Talk rückten hier Tim und Fabian mit wechselnden Gästen ins Studio. Im Fokus stehen echte Praxis­geschichten rund um Finance- &amp; Digital-Transformation – vom globalen Konzern bis zum Scale-up.</p>
         </div>
 
         <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 shadow-xl">
@@ -70,21 +56,11 @@ const FinanceTransformersSection = () => {
               </div>
               
               <div className="flex space-x-4">
-                <a
-                  href="https://open.spotify.com/show/1gLtus1YpWX23MIWat9IfG"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 bg-[#1DB954] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#1AA34A] transition-colors"
-                >
+                <a href="https://open.spotify.com/show/1gLtus1YpWX23MIWat9IfG" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 bg-[#1DB954] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#1AA34A] transition-colors">
                   <span>Spotify</span>
                   <ExternalLink size={16} />
                 </a>
-                <a
-                  href="https://podcasts.apple.com/us/podcast/wtf-why-transform-finance/id1649119685"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 bg-[#A855F7] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#9333EA] transition-colors"
-                >
+                <a href="https://podcasts.apple.com/us/podcast/wtf-why-transform-finance/id1649119685" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 bg-[#A855F7] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#9333EA] transition-colors">
                   <span>Apple</span>
                   <ExternalLink size={16} />
                 </a>
@@ -104,36 +80,20 @@ const FinanceTransformersSection = () => {
           
           {/* Episode Navigation */}
           <div className="flex justify-center items-center space-x-4 mt-8">
-            <button
-              onClick={prevEpisode}
-              className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
-            >
+            <button onClick={prevEpisode} className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110">
               <ChevronLeft size={24} className="text-gray-700" />
             </button>
             
             <div className="flex space-x-2">
-              {episodes.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentEpisode(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    index === currentEpisode ? 'bg-[#003FA5] scale-125' : 'bg-gray-300 hover:bg-gray-400'
-                  }`}
-                />
-              ))}
+              {episodes.map((_, index) => <button key={index} onClick={() => setCurrentEpisode(index)} className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentEpisode ? 'bg-[#003FA5] scale-125' : 'bg-gray-300 hover:bg-gray-400'}`} />)}
             </div>
             
-            <button
-              onClick={nextEpisode}
-              className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
-            >
+            <button onClick={nextEpisode} className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110">
               <ChevronRight size={24} className="text-gray-700" />
             </button>
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default FinanceTransformersSection;
