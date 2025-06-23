@@ -15,7 +15,8 @@ const FabianJeckelSection = () => {
                     <span className="text-white text-4xl font-bold">FJ</span>
                   </div>
                   <div className="text-xl font-bold">Fabian Jeckel</div>
-                  <div className="text-sm">Digital Finance Stratege</div>
+                  <div className="text-sm">Presales Solution Consultant</div>
+                  <div className="text-xs text-gray-500 mt-1">Amerikanischer Software-Konzern</div>
                 </div>
               </div>
               
@@ -25,13 +26,13 @@ const FabianJeckelSection = () => {
               
               {/* Achievement badges */}
               <div className="absolute top-4 right-4 bg-white rounded-lg px-3 py-2 shadow-lg">
-                <div className="text-xs font-bold text-gray-800">Tech-Pionier</div>
-                <div className="text-xs text-gray-600">KI & Automatisierung</div>
+                <div className="text-xs font-bold text-gray-800">Presales Expert</div>
+                <div className="text-xs text-gray-600">Software Solutions</div>
               </div>
               
               <div className="absolute bottom-4 left-4 bg-white rounded-lg px-3 py-2 shadow-lg">
-                <div className="text-xs font-bold text-gray-800">Globale Reichweite</div>
-                <div className="text-xs text-gray-600">3 Kontinente</div>
+                <div className="text-xs font-bold text-gray-800">International Sales</div>
+                <div className="text-xs text-gray-600">Wien • Global</div>
               </div>
             </div>
           </div>
@@ -44,16 +45,17 @@ const FabianJeckelSection = () => {
             
             <div className="prose prose-lg text-gray-700 mb-8">
               <p className="text-lg leading-relaxed">
-                Fabian bringt eine einzigartige Mischung aus Finanzexpertise und Technologie-Innovation 
-                ins Finance Transformers Team. Mit einem Hintergrund sowohl in Corporate Finance als 
-                auch in Fintech-Startups versteht er die Herausforderungen und Chancen moderner 
-                Finanzprofessionals aus verschiedenen Blickwinkeln.
+                Fabian ist "der Mann zwischen Finance und Tech" – als Presales Solution Consultant 
+                bei einem amerikanischen Software-Konzern bringt er komplexe Technologie-Lösungen 
+                und Finance-Anforderungen zusammen. Deutscher in Wien, moderiert er zusätzlich 
+                das Interview-Spin-off "Finance Transformers".
               </p>
               <p>
-                Als Digital Finance Stratege hilft Fabian Organisationen dabei, die komplexe 
-                Landschaft von KI, Blockchain und Automatisierung im Finanzwesen zu navigieren. 
-                Sein praktischer Ansatz kombiniert modernste Technologie mit soliden Finanzprinzipien, 
-                um nachhaltige Transformation voranzutreiben.
+                Vom klassischen Controlling entwickelte sich Fabian zum "Digital Finance Craftsman". 
+                Seine Expertise liegt darin, internationale Software-Lösungen für Finance-Teams 
+                verständlich zu machen und dabei provokante Thesen ("Schlagbohrer ist kein Bohrhammer") 
+                mit gesundem Realitätssinn zu verbinden. Sein Faible für KI-Tools bringt er 
+                pragmatisch in den Corporate-Alltag ein.
               </p>
             </div>
 
