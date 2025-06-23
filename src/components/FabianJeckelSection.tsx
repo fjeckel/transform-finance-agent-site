@@ -11,9 +11,11 @@ const FabianJeckelSection = () => {
             <div className="relative">
               <div className="aspect-square bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden">
                 <div className="text-center text-gray-600">
-                  <div className="w-32 h-32 bg-[#13B87B] rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-white text-4xl font-bold">FJ</span>
-                  </div>
+                  <img
+                    src="/src/components/fabian-jeckel.jpg"
+                    alt="Fabian Jeckel"
+                    className="w-32 h-32 rounded-full object-cover mx-auto mb-4"
+                  />
                   <div className="text-xl font-bold">Fabian Jeckel</div>
                   <div className="text-sm">Presales Solution Consultant</div>
                   <div className="text-xs text-gray-500 mt-1">Amerikanischer Software-Konzern</div>
