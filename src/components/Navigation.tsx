@@ -40,21 +40,34 @@ const Navigation = () => {
 
   return (
     <>
-      {/* Desktop Navigation */}
-      <nav className={`fixed top-0 right-8 z-50 hidden lg:block transition-all duration-300 ${isScrolled ? 'top-4' : 'top-8'}`}>
-        <div className={`bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-4 transition-all duration-300 ${isScrolled ? 'scale-95' : 'scale-100'}`}>
-          <ul className="space-y-2">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <button
-                  onClick={() => scrollToSection(item.href)}
-                  className="block w-full text-left text-sm font-bold text-gray-800 hover:text-[#13B87B] transition-colors duration-200 py-2 px-3 rounded hover:bg-gray-50 uppercase tracking-wide"
-                >
-                  {item.label}
-                </button>
-              </li>
-            ))}
-          </ul>
+      {/* Desktop Navigation - Horizontal at top */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 hidden lg:block transition-all duration-300 ${isScrolled ? 'py-2' : 'py-4'}`}>
+        <div className={`bg-white/95 backdrop-blur-sm shadow-lg transition-all duration-300 ${isScrolled ? 'scale-98' : 'scale-100'}`}>
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex items-center justify-between">
+              {/* Logo/Brand */}
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-[#13B87B] rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">FT</span>
+                </div>
+                <span className="font-bold text-xl text-gray-800">Finance Transformers</span>
+              </div>
+              
+              {/* Menu Items */}
+              <ul className="flex items-center space-x-8">
+                {navItems.map((item) => (
+                  <li key={item.href}>
+                    <button
+                      onClick={() => scrollToSection(item.href)}
+                      className="text-xs font-bold text-gray-800 hover:text-[#13B87B] transition-colors duration-200 py-2 px-3 rounded hover:bg-gray-50 uppercase tracking-wide whitespace-nowrap"
+                    >
+                      {item.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
       </nav>
 
