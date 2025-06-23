@@ -1,22 +1,14 @@
-
 import React from 'react';
-import { LinkedinIcon, TwitterIcon, InstagramIcon } from 'lucide-react';
+import { LinkedinIcon } from 'lucide-react';
 
 const SocialHandlesSection = () => {
   const socialLinks = [
     {
       name: 'LinkedIn',
       icon: <LinkedinIcon className="w-8 h-8" />,
-      url: '#',
+      url: 'https://www.linkedin.com/company/86932507/admin/dashboard/',
       color: 'bg-[#0077B5] hover:bg-[#005885]',
       description: 'Professionelle Einblicke und Branchendiskussionen'
-    },
-    {
-      name: 'X (Twitter)',
-      icon: <TwitterIcon className="w-8 h-8" />,
-      url: '#',
-      color: 'bg-black hover:bg-gray-800',
-      description: 'Aktuelle Gedanken und schnelle Takes'
     },
     {
       name: 'YouTube',
@@ -25,20 +17,6 @@ const SocialHandlesSection = () => {
       color: 'bg-[#FF0000] hover:bg-[#CC0000]',
       description: 'Video-Content und Podcast-Episoden'
     },
-    {
-      name: 'Instagram',
-      icon: <InstagramIcon className="w-8 h-8" />,
-      url: '#',
-      color: 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600',
-      description: 'Behind-the-Scenes und visuelles Storytelling'
-    },
-    {
-      name: 'TikTok',
-      icon: <div className="w-8 h-8 text-white font-bold flex items-center justify-center">TT</div>,
-      url: '#',
-      color: 'bg-black hover:bg-gray-800',
-      description: 'Schnelle Finanztipps und Trends'
-    }
   ];
 
   return (
