@@ -7,6 +7,8 @@ const FinanceTransformersSection = () => {
       title: "Dr. Veronika von Heise-Rotenburg",
       description:
         "Dr. Veronika von Heise-Rotenburg erläutert, wie zukunftsfähige Finanzorganisationen aufgebaut werden und welche Rolle Technologie dabei spielt.",
+      image: "/img/veronika.jpg",
+      alt: "Foto von Dr. Veronika von Heise-Rotenburg",
       duration: "",
       date: ""
     },
@@ -14,6 +16,8 @@ const FinanceTransformersSection = () => {
       title: "Lisa Emme",
       description:
         "Gemeinsam mit Lisa Emme sprechen wir über erfolgreiche Automatisierungsprojekte und die Bedeutung von Change Management im Finance-Bereich.",
+      image: "/img/lisa.jpg",
+      alt: "Foto von Lisa Emme",
       duration: "",
       date: ""
     },
@@ -21,6 +25,8 @@ const FinanceTransformersSection = () => {
       title: "Katharina Herzog",
       description:
         "Katharina Herzog teilt Einblicke in die digitale Transformation eines globalen Konzerns und wie Finanzteams dabei neu zusammenarbeiten.",
+      image: "/img/katharina.jpg",
+      alt: "Foto von Katharina Herzog",
       duration: "",
       date: ""
     }
@@ -75,13 +81,11 @@ const FinanceTransformersSection = () => {
             </div>
             
             <div className="relative">
-              <div className="aspect-square bg-gradient-to-br from-[#003FA5] to-[#002080] rounded-xl flex items-center justify-center text-white shadow-lg">
-                <div className="text-center">
-                  <div className="text-4xl font-bold mb-2">🎙️</div>
-                  <div className="text-lg font-bold">Finance Transformers</div>
-                  <div className="text-sm opacity-80">Podcast Series</div>
-                </div>
-              </div>
+              <img
+                src={episodes[currentEpisode].image}
+                alt={episodes[currentEpisode].alt}
+                className="aspect-square object-cover w-full h-full rounded-xl shadow-lg"
+              />
             </div>
           </div>
           
