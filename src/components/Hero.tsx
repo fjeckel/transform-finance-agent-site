@@ -56,7 +56,7 @@ const Hero = () => {
       />
       <button
         onClick={toggleMute}
-        className="absolute top-4 right-4 z-10 bg-white/70 hover:bg-white text-gray-800 p-2 rounded-full transition"
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-white/70 hover:bg-white text-gray-800 p-2 rounded-full transition"
       >
         {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
       </button>
