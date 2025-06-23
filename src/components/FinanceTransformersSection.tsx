@@ -2,22 +2,29 @@ import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 const FinanceTransformersSection = () => {
   const [currentEpisode, setCurrentEpisode] = useState(0);
-  const episodes = [{
-    title: "The Future of Financial Planning",
-    description: "How AI and automation are revolutionizing FP&A processes",
-    duration: "28 min",
-    date: "Dec 2024"
-  }, {
-    title: "Digital Transformation in Finance",
-    description: "Breaking down silos and building integrated financial ecosystems",
-    duration: "35 min",
-    date: "Nov 2024"
-  }, {
-    title: "The CFO as Chief Transformation Officer",
-    description: "Evolving the finance leader's role in the digital age",
-    duration: "42 min",
-    date: "Nov 2024"
-  }];
+  const episodes = [
+    {
+      title: "Dr. Veronika von Heise-Rotenburg",
+      description:
+        "Dr. Veronika von Heise-Rotenburg erläutert, wie zukunftsfähige Finanzorganisationen aufgebaut werden und welche Rolle Technologie dabei spielt.",
+      duration: "",
+      date: ""
+    },
+    {
+      title: "Lisa Emme",
+      description:
+        "Gemeinsam mit Lisa Emme sprechen wir über erfolgreiche Automatisierungsprojekte und die Bedeutung von Change Management im Finance-Bereich.",
+      duration: "",
+      date: ""
+    },
+    {
+      title: "Katharina Herzog",
+      description:
+        "Katharina Herzog teilt Einblicke in die digitale Transformation eines globalen Konzerns und wie Finanzteams dabei neu zusammenarbeiten.",
+      duration: "",
+      date: ""
+    }
+  ];
   const nextEpisode = () => {
     setCurrentEpisode(prev => (prev + 1) % episodes.length);
   };
