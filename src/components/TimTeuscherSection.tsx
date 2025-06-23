@@ -54,9 +54,11 @@ const TimTeuscherSection = () => {
             <div className="relative">
               <div className="aspect-square bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden">
                 <div className="text-center text-gray-600">
-                  <div className="w-32 h-32 bg-[#D0840E] rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-white text-4xl font-bold">TT</span>
-                  </div>
+                  <img
+                    src="/src/components/tim-teuscher.jpg"
+                    alt="Tim Teuscher"
+                    className="w-32 h-32 rounded-full object-cover mx-auto mb-4"
+                  />
                   <div className="text-xl font-bold">Tim Teuscher</div>
                   <div className="text-sm">Finance-Transformations-Experte</div>
                 </div>
