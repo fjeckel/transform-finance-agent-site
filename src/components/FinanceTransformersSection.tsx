@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 const FinanceTransformersSection = () => {
   const [currentEpisode, setCurrentEpisode] = useState(0);
@@ -37,6 +37,28 @@ const FinanceTransformersSection = () => {
   const prevEpisode = () => {
     setCurrentEpisode(prev => (prev - 1 + episodes.length) % episodes.length);
   };
+
+  const touchStartX = useRef<number | null>(null);
+
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    touchStartX.current = event.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (touchStartX.current === null) {
+      return;
+    }
+    const diff = event.changedTouches[0].clientX - touchStartX.current;
+    const threshold = 50; // swipe distance in px to trigger navigation
+    if (Math.abs(diff) > threshold) {
+      if (diff < 0) {
+        nextEpisode();
+      } else {
+        prevEpisode();
+      }
+    }
+    touchStartX.current = null;
+  };
   return <section id="finance-transformers" className="py-20 bg-white">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
@@ -46,7 +68,11 @@ const FinanceTransformersSection = () => {
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">Finance Transformers ist das „halb-seriöse“ Schwester­format von WTF?! – Why Transform Finance. Statt Tim &amp; Fabians lockerem After-Work-Talk rückten hier Tim und Fabian mit wechselnden Gästen ins Studio. Im Fokus stehen echte Praxis­geschichten rund um Finance- &amp; Digital-Transformation – vom globalen Konzern bis zum Scale-up.</p>
         </div>
 
-        <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 shadow-xl">
+        <div
+          className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 shadow-xl"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className="grid lg:grid-cols-2 gap-8 items-center">
             <div>
               <div className="mb-4">
