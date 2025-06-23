@@ -60,6 +60,21 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Working with images
+
+Place image files inside `src/assets/`.
+Import them into your components and use them like any other module:
+
+```tsx
+import exampleImg from '../assets/placeholder.svg';
+
+export default function Example() {
+  return <img src={exampleImg} alt="Example" />;
+}
+```
+
+The `TimTeuscherSection` component demonstrates this pattern with a profile picture.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/1477f6a5-aad6-4cab-b15a-ed0a8f7e8aec) and click on Share -> Publish.
