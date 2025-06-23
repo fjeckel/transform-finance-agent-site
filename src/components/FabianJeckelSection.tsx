@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { LinkedinIcon } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const FabianJeckelSection = () => {
   return (
@@ -8,34 +9,14 @@ const FabianJeckelSection = () => {
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <div className="relative">
-              <div className="aspect-square bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden">
-                <div className="text-center text-gray-600">
-                  <img
-                    src="/src/components/fabian-jeckel.jpg"
-                    alt="Fabian Jeckel"
-                    className="w-32 h-32 rounded-full object-cover mx-auto mb-4"
-                  />
-                  <div className="text-xl font-bold">Fabian Jeckel</div>
-                  <div className="text-sm">Presales Solution Consultant</div>
-                  <div className="text-xs text-gray-500 mt-1">Amerikanischer Software-Konzern</div>
-                </div>
-              </div>
-              
-              {/* Decorative rings */}
-              <div className="absolute -top-4 -left-4 w-20 h-20 border-4 border-[#D0840E] rounded-full opacity-60"></div>
-              <div className="absolute -bottom-4 -right-4 w-16 h-16 border-4 border-[#003FA5] rounded-full opacity-60"></div>
-              
-              {/* Achievement badges */}
-              <div className="absolute top-4 right-4 bg-white rounded-lg px-3 py-2 shadow-lg">
-                <div className="text-xs font-bold text-gray-800">Presales Expert</div>
-                <div className="text-xs text-gray-600">Software Solutions</div>
-              </div>
-              
-              <div className="absolute bottom-4 left-4 bg-white rounded-lg px-3 py-2 shadow-lg">
-                <div className="text-xs font-bold text-gray-800">International Sales</div>
-                <div className="text-xs text-gray-600">Wien • Global</div>
-              </div>
+            <div className="flex flex-col items-center text-center space-y-2">
+              <Avatar className="w-32 h-32">
+                <AvatarImage src="/img/fabian-jeckel.jpg" alt="Fabian Jeckel" />
+                <AvatarFallback>FJ</AvatarFallback>
+              </Avatar>
+              <div className="text-xl font-bold">Fabian Jeckel</div>
+              <div className="text-sm">Presales Solution Consultant</div>
+              <div className="text-xs text-gray-500">Amerikanischer Software-Konzern</div>
             </div>
           </div>
           
