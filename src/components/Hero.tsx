@@ -3,16 +3,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 
 const Hero = () => {
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const playerRef = useRef<any>(null);
 
   useEffect(() => {
     const onReady = () => {
-      if (playerRef.current) {
-        if (isMuted) {
-          playerRef.current.mute();
-        }
-        playerRef.current.playVideo();
+      if (playerRef.current && isMuted) {
+        playerRef.current.mute();
       }
     };
 
@@ -47,7 +44,7 @@ const Hero = () => {
     <section className="relative min-h-screen overflow-hidden flex items-center justify-center">
       <iframe
         id="hero-video"
-        src="https://www.youtube.com/embed/nBQKMPWrUgc?autoplay=1&mute=1&loop=1&playlist=nBQKMPWrUgc&controls=0&showinfo=0&modestbranding=1&enablejsapi=1"
+        src="https://www.youtube.com/embed/nBQKMPWrUgc?autoplay=1&mute=0&loop=1&playlist=nBQKMPWrUgc&controls=0&showinfo=0&modestbranding=1&enablejsapi=1"
         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         frameBorder="0"
         allowFullScreen
