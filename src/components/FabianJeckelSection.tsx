@@ -1,7 +1,6 @@
 import React from 'react';
 import { LinkedinIcon } from 'lucide-react';
 
- main
 const FabianJeckelSection = () => {
   return <section id="fabian-jeckel" className="py-20 bg-white">
       <div className="max-w-6xl mx-auto px-4">
@@ -11,7 +10,7 @@ const FabianJeckelSection = () => {
             <div className="relative">
               <div className="aspect-square bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden">
                 <div className="text-center text-gray-600">
-                  <img src="/src/components/fabian-jeckel.jpg" alt="Fabian Jeckel" className="w-32 h-32 rounded-full object-cover mx-auto mb-4" />
+                  <img src="/img/fabian-jeckel.jpg" alt="Fabian Jeckel" className="w-32 h-32 rounded-full object-cover mx-auto mb-4" />
                   <div className="text-xl font-bold">Fabian Jeckel</div>
                   <div className="text-sm">Presales Solution Consultant</div>
                   <div className="text-xs text-gray-500 mt-1">Amerikanischer Software-Konzern</div>
@@ -32,7 +31,6 @@ const FabianJeckelSection = () => {
                 <div className="text-xs font-bold text-gray-800">International Sales</div>
                 <div className="text-xs text-gray-600">Wien • Global</div>
               </div>
- main
             </div>
           </div>
           
