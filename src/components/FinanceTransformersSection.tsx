@@ -101,6 +101,6 @@ const FinanceTransformersSection = () => {
           </div>
         </div>
       </div>
-    </section>;
+    </section>
 };
 export default FinanceTransformersSection;
