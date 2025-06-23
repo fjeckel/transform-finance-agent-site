@@ -71,3 +71,16 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Updating Profile Pictures
+
+Profile photos used in the Fabian Jeckel and Tim Teuscher sections are stored under `public/img/`.
+To replace an image, copy your new file into this folder using the same filename.
+
+Components reference the images with a leading `/img/` path. Example:
+
+```tsx
+<AvatarImage src="/img/fabian-jeckel.jpg" alt="Fabian Jeckel" />
+```
+
+After adding your image, restart the dev server (`npm run dev`) to preview the update.
