@@ -40,7 +40,7 @@ const TimTeuscherSection = () => {
                 <ExternalLink size={16} />
               </a>
               <a
-                href="#"
+                href="https://www.linkedin.com/in/timteuscher1/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center space-x-2 border-2 border-[#0077B5] text-[#0077B5] px-6 py-3 rounded-lg font-bold hover:bg-[#0077B5] hover:text-white transition-all duration-300"

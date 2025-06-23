@@ -51,7 +51,7 @@ const FabianJeckelSection = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <a href="#" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center space-x-2 bg-[#0077B5] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#005885] transition-colors duration-300">
+              <a href="https://www.linkedin.com/in/fabianjeckel/" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center space-x-2 bg-[#0077B5] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#005885] transition-colors duration-300">
                 <LinkedinIcon size={16} />
                 <span>Auf LinkedIn vernetzen</span>
               </a>
