@@ -36,6 +36,14 @@ npm i
 npm run dev
 ```
 
+### Building for production
+
+To generate the optimized output in the `dist/` folder run:
+
+```sh
+npm run build
+```
+
 **Edit a file directly in GitHub**
 
 - Navigate to the desired file(s).
