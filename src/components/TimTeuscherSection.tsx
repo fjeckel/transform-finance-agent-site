@@ -53,7 +53,7 @@ const TimTeuscherSection = () => {
           
           <div className="order-1 lg:order-2">
             <div className="flex flex-col items-center text-center space-y-2">
-              <Avatar className="w-40 h-40 rounded-none">
+              <Avatar className="w-32 h-32">
                 <AvatarImage src="/img/tim-teuscher.jpg" alt="Tim Teuscher" />
                 <AvatarFallback>TT</AvatarFallback>
               </Avatar>
