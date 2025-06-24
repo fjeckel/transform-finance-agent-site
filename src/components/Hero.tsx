@@ -65,20 +65,19 @@ const Hero = () => {
       <div className="text-center z-20 px-4 max-w-4xl mx-auto">
         
         <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 tracking-tight font-cooper">
-          FINANCE<br />
-          <span className="text-[#13B87B]">TRANSFORMERS</span>
+          Finance Transformers - <span className="text-[#13B87B]">Podcasts, die Finance auf links drehen</span>
         </h1>
-        
+
         <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-          Provokante Thought Leadership für Finanzprofis, die bereit sind, die Zukunft zu gestalten
+          Wir sprechen über Transformation, wie sie wirklich passiert – ehrlich, unterhaltsam und relevant.
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <a 
-            href="#wtf" 
+          <a
+            href="#wtf"
             className="bg-[#13B87B] text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-[#0FA66A] transition-colors duration-300 transform hover:scale-105"
           >
-            TRANSFORMATION STARTEN
+            GEHE ZUR AKTUELLEN FOLGE
           </a>
           <a 
             href="#cfo-memo" 
@@ -93,6 +92,11 @@ const Hero = () => {
         <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center">
           <div className="w-1 h-3 bg-white rounded-full mt-2 animate-pulse"></div>
         </div>
+      </div>
+
+      <div className="absolute bottom-4 left-4 z-20 flex items-center space-x-3">
+        <img src="/placeholder.svg" alt="Credential" className="w-12 h-12" />
+        <span className="text-white font-medium">Über 1.000 Zuhörer jede Woche!</span>
       </div>
     </section>
   );
