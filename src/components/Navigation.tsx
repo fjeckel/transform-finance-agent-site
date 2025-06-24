@@ -47,9 +47,11 @@ const Navigation = () => {
             <div className="flex items-center justify-between">
               {/* Logo/Brand */}
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-[#13B87B] rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">FT</span>
-                </div>
+                <img
+                  src="/img/Finance%20Transformers.png"
+                  alt="Finance Transformers Logo"
+                  className="w-10 h-10 rounded-full"
+                />
                 <span className="font-bold text-xl text-gray-800">Finance Transformers</span>
               </div>
               
@@ -76,9 +78,11 @@ const Navigation = () => {
         <div className={`bg-white/95 backdrop-blur-sm shadow-lg transition-all duration-300 ${isScrolled ? 'py-2' : 'py-4'}`}>
           <div className="flex justify-between items-center px-4">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-[#13B87B] rounded-full flex items-center justify-center">
-                <span className="text-white text-xs font-bold">FT</span>
-              </div>
+              <img
+                src="/img/Finance%20Transformers.png"
+                alt="Finance Transformers Logo"
+                className="w-8 h-8 rounded-full"
+              />
               <span className="font-bold text-gray-800">Finance Transformers</span>
             </div>
             <button
