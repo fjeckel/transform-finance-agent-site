@@ -63,13 +63,6 @@ const Hero = () => {
       </button>
       
       <div className="text-center z-20 px-4 max-w-4xl mx-auto">
-        <div className="mb-8">
-          <img
-            src="/img/Finance_Transformers.png"
-            alt="Finance Transformers Logo"
-            className="w-20 h-20 mx-auto mb-6 rounded-full"
-          />
-        </div>
         
         <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 tracking-tight">
           FINANCE<br />
