@@ -65,7 +65,7 @@ const FinanceTransformersSection = () => {
   return <section id="finance-transformers" className="py-20 bg-white">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 uppercase tracking-tight">
+          <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 uppercase tracking-tight font-cooper">
             Finance <span className="text-[#003FA5]">Transformers</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">Finance Transformers ist das „halb-seriöse“ Schwester­format von WTF?! – Why Transform Finance. Statt Tim &amp; Fabians lockerem After-Work-Talk rückten hier Tim und Fabian mit wechselnden Gästen ins Studio. Im Fokus stehen echte Praxis­geschichten rund um Finance- &amp; Digital-Transformation – vom globalen Konzern bis zum Scale-up.</p>

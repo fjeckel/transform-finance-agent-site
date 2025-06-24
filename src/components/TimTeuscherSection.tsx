@@ -9,7 +9,7 @@ const TimTeuscherSection = () => {
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="order-2 lg:order-1">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 uppercase tracking-tight">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 uppercase tracking-tight font-cooper">
               Mehr über<br />
               <span className="text-[#D0840E]">Tim Teuscher</span>
             </h2>
