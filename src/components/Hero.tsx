@@ -65,27 +65,31 @@ const Hero = () => {
       <div className="text-center z-20 px-4 max-w-4xl mx-auto">
         
         <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 tracking-tight font-cooper">
-          FINANCE<br />
-          <span className="text-[#13B87B]">TRANSFORMERS</span>
+          Finance Transformers - <span className="text-[#13B87B]">Podcasts, die Finance auf links drehen</span>
         </h1>
-        
+
         <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-          Provokante Thought Leadership für Finanzprofis, die bereit sind, die Zukunft zu gestalten
+          Wir sprechen über Transformation, wie sie wirklich passiert – ehrlich, unterhaltsam und relevant.
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <a 
-            href="#wtf" 
+          <a
+            href="#wtf"
             className="bg-[#13B87B] text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-[#0FA66A] transition-colors duration-300 transform hover:scale-105"
           >
-            TRANSFORMATION STARTEN
+            GEHE ZUR AKTUELLEN FOLGE
           </a>
-          <a 
-            href="#cfo-memo" 
-            className="border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-gray-900 transition-all duration-300"
-          >
-            DAS CFO MEMO ERHALTEN
-          </a>
+        </div>
+
+        <div className="mt-8 flex items-center justify-center space-x-4">
+          <img
+            src="/placeholder.svg"
+            alt="Credential"
+            className="w-16 h-16 md:w-20 md:h-20"
+          />
+          <span className="text-white font-medium text-xl md:text-2xl">
+            Über 1.000 Zuhörer jede Woche!
+          </span>
         </div>
       </div>
       
@@ -94,6 +98,7 @@ const Hero = () => {
           <div className="w-1 h-3 bg-white rounded-full mt-2 animate-pulse"></div>
         </div>
       </div>
+
     </section>
   );
 };
