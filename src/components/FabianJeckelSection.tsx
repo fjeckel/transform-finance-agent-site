@@ -19,7 +19,7 @@ const FabianJeckelSection = () => {
           </div>
 
           <div className="order-2 lg:order-1">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 uppercase tracking-tight">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 uppercase tracking-tight font-cooper">
               Mehr über<br />
               <span className="text-[#13B87B]">Fabian Jeckel</span>
             </h2>

@@ -23,7 +23,7 @@ const SocialHandlesSection = () => {
     <section id="social" className="py-20 bg-gradient-to-br from-gray-900 to-black">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 uppercase tracking-tight">
+          <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 uppercase tracking-tight font-cooper">
             Folgen Sie der <span className="text-[#13B87B]">Transformation</span>
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
