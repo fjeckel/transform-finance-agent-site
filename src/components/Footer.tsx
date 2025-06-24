@@ -7,12 +7,14 @@ const Footer = () => {
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           <div>
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-[#13B87B] rounded-full flex items-center justify-center">
-                <span className="text-white text-xs font-bold">FT</span>
-              </div>
-              <span className="font-bold text-lg">Finance Transformers</span>
-            </div>
+          <div className="flex items-center space-x-2 mb-4">
+            <img
+              src="/img/Finance%20Transformers.png"
+              alt="Finance Transformers Logo"
+              className="w-8 h-8 rounded-full"
+            />
+            <span className="font-bold text-lg">Finance Transformers</span>
+          </div>
             <p className="text-gray-400 leading-relaxed">
               Transformation des Finanzwesens durch provokante Thought Leadership, 
               praktische Einblicke und mutige Gespräche.

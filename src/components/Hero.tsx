@@ -63,9 +63,11 @@ const Hero = () => {
       
       <div className="text-center z-10 px-4 max-w-4xl mx-auto">
         <div className="mb-8">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#13B87B] flex items-center justify-center">
-            <span className="text-white text-2xl font-bold">FT</span>
-          </div>
+          <img
+            src="/img/Finance%20Transformers.png"
+            alt="Finance Transformers Logo"
+            className="w-20 h-20 mx-auto mb-6 rounded-full"
+          />
         </div>
         
         <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 tracking-tight">
