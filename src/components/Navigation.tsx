@@ -46,9 +46,7 @@ const Navigation = () => {
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex items-center justify-between">
               {/* Logo/Brand */}
-              <div className="flex items-center">
-                <span className="font-bold text-xl text-gray-800">Finance Transformers</span>
-              </div>
+              <div className="flex items-center"></div>
               
               {/* Menu Items */}
               <ul className="flex items-center space-x-8">
@@ -72,9 +70,7 @@ const Navigation = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 lg:hidden">
         <div className={`bg-white/95 backdrop-blur-sm shadow-lg transition-all duration-300 ${isScrolled ? 'py-2' : 'py-4'}`}>
           <div className="flex justify-between items-center px-4">
-            <div className="flex items-center">
-              <span className="font-bold text-gray-800">Finance Transformers</span>
-            </div>
+            <div className="flex items-center"></div>
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="p-2 text-gray-800 hover:text-[#13B87B] transition-colors"

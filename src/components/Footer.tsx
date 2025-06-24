@@ -29,7 +29,7 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-lg mb-4 uppercase tracking-wide">Kontakt</h3>
             <ul className="space-y-2 text-gray-400">
-              <li>hello@financetransformers.com</li>
+              <li>contact@financetransformers.ai</li>
               <li>
                 <a 
                   href="https://teuscherconsulting.de" 

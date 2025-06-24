@@ -41,7 +41,7 @@ const FabianJeckelSection = () => {
                 <LinkedinIcon size={16} />
                 <span>Auf LinkedIn vernetzen</span>
               </a>
-              <a href="mailto:fabian@financetransformers.com" className="flex items-center justify-center space-x-2 border-2 border-[#13B87B] text-[#13B87B] px-6 py-3 rounded-lg font-bold hover:bg-[#13B87B] hover:text-white transition-all duration-300">
+              <a href="mailto:fabian@financetransformers.ai" className="flex items-center justify-center space-x-2 border-2 border-[#13B87B] text-[#13B87B] px-6 py-3 rounded-lg font-bold hover:bg-[#13B87B] hover:text-white transition-all duration-300">
                 <span>Kontakt aufnehmen</span>
               </a>
             </div>
