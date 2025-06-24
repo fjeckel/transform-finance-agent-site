@@ -2,6 +2,7 @@
 import React from 'react';
 import Hero from '../components/Hero';
 import Navigation from '../components/Navigation';
+import BoringFormatsSection from '../components/BoringFormatsSection';
 import WTFSection from '../components/WTFSection';
 import FinanceTransformersSection from '../components/FinanceTransformersSection';
 import CFOMemoSection from '../components/CFOMemoSection';
@@ -15,6 +16,7 @@ const Index = () => {
     <div className="min-h-screen bg-[#FBF4EB]">
       <Navigation />
       <Hero />
+      <BoringFormatsSection />
       <WTFSection />
       <FinanceTransformersSection />
       <CFOMemoSection />
