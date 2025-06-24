@@ -78,6 +78,7 @@ const Hero = () => {
             className="bg-[#13B87B] text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-[#0FA66A] transition-colors duration-300 transform hover:scale-105"
           >
             GEHE ZUR AKTUELLEN FOLGE
+
           </a>
         </div>
 
@@ -91,6 +92,12 @@ const Hero = () => {
         <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center">
           <div className="w-1 h-3 bg-white rounded-full mt-2 animate-pulse"></div>
         </div>
+      </div>
+
+
+      <div className="absolute bottom-4 left-4 z-20 flex items-center space-x-3">
+        <img src="/placeholder.svg" alt="Credential" className="w-12 h-12" />
+        <span className="text-white font-medium">Über 1.000 Zuhörer jede Woche!</span>
       </div>
 
     </section>
