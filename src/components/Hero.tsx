@@ -64,7 +64,7 @@ const Hero = () => {
       <div className="text-center z-10 px-4 max-w-4xl mx-auto">
         <div className="mb-8">
           <img
-            src="/img/Finance%20Transformers.png"
+            src="/img/Finance_Transformers.png"
             alt="Finance Transformers Logo"
             className="w-20 h-20 mx-auto mb-6 rounded-full"
           />

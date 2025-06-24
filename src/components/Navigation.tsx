@@ -48,7 +48,7 @@ const Navigation = () => {
               {/* Logo/Brand */}
               <div className="flex items-center space-x-3">
                 <img
-                  src="/img/Finance%20Transformers.png"
+                  src="/img/Finance_Transformers.png"
                   alt="Finance Transformers Logo"
                   className="w-10 h-10 rounded-full"
                 />
@@ -79,7 +79,7 @@ const Navigation = () => {
           <div className="flex justify-between items-center px-4">
             <div className="flex items-center space-x-2">
               <img
-                src="/img/Finance%20Transformers.png"
+                src="/img/Finance_Transformers.png"
                 alt="Finance Transformers Logo"
                 className="w-8 h-8 rounded-full"
               />
