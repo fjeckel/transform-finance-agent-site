@@ -46,12 +46,7 @@ const Navigation = () => {
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex items-center justify-between">
               {/* Logo/Brand */}
-              <div className="flex items-center space-x-3">
-                <img
-                  src="/img/Finance_Transformers.png"
-                  alt="Finance Transformers Logo"
-                  className="w-10 h-10 rounded-full"
-                />
+              <div className="flex items-center">
                 <span className="font-bold text-xl text-gray-800">Finance Transformers</span>
               </div>
               
@@ -77,12 +72,7 @@ const Navigation = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 lg:hidden">
         <div className={`bg-white/95 backdrop-blur-sm shadow-lg transition-all duration-300 ${isScrolled ? 'py-2' : 'py-4'}`}>
           <div className="flex justify-between items-center px-4">
-            <div className="flex items-center space-x-2">
-              <img
-                src="/img/Finance_Transformers.png"
-                alt="Finance Transformers Logo"
-                className="w-8 h-8 rounded-full"
-              />
+            <div className="flex items-center">
               <span className="font-bold text-gray-800">Finance Transformers</span>
             </div>
             <button
