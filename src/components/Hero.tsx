@@ -64,7 +64,7 @@ const Hero = () => {
       
       <div className="text-center z-20 px-4 max-w-4xl mx-auto">
         
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 tracking-tight">
+        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 tracking-tight font-cooper">
           FINANCE<br />
           <span className="text-[#13B87B]">TRANSFORMERS</span>
         </h1>
