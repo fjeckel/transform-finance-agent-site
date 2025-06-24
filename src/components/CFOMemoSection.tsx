@@ -49,7 +49,7 @@ const CFOMemoSection = () => {
   return <section id="cfo-memo" className="py-20 bg-gradient-to-br from-[#13B87B] to-[#0FA66A]">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 uppercase tracking-tight">
+          <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 uppercase tracking-tight font-cooper">
             Das <span className="text-[#FBF4EB]">CFO Memo</span>
           </h2>
           <p className="text-xl text-green-100 max-w-3xl mx-auto">
