@@ -10,7 +10,8 @@ const FinanceTransformersSection = () => {
       image: "/img/veronika.jpg",
       alt: "Foto von Dr. Veronika von Heise-Rotenburg",
       duration: "",
-      date: ""
+      date: "",
+      comingSoon: false
     },
     {
       title: "Lisa Emme",
@@ -19,7 +20,8 @@ const FinanceTransformersSection = () => {
       image: "/img/lisa.jpg",
       alt: "Foto von Lisa Emme",
       duration: "",
-      date: ""
+      date: "",
+      comingSoon: true
     },
     {
       title: "Katharina Herzog",
@@ -28,7 +30,8 @@ const FinanceTransformersSection = () => {
       image: "/img/katharina.jpg",
       alt: "Foto von Katharina Herzog",
       duration: "",
-      date: ""
+      date: "",
+      comingSoon: true
     }
   ];
   const nextEpisode = () => {
@@ -110,8 +113,13 @@ const FinanceTransformersSection = () => {
               <img
                 src={episodes[currentEpisode].image}
                 alt={episodes[currentEpisode].alt}
-                className="aspect-square object-cover w-full h-full rounded-xl shadow-lg"
+                className={`aspect-square object-cover w-full h-full rounded-xl shadow-lg ${episodes[currentEpisode].comingSoon ? 'grayscale' : ''}`}
               />
+              {episodes[currentEpisode].comingSoon && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/50 text-white text-2xl font-bold">
+                  Coming Soon!
+                </div>
+              )}
             </div>
           </div>
           
@@ -126,13 +134,18 @@ const FinanceTransformersSection = () => {
                 <button
                   key={index}
                   onClick={() => setCurrentEpisode(index)}
-                  className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all duration-300 ${index === currentEpisode ? 'border-[#003FA5] scale-105' : 'border-transparent hover:border-gray-300'}`}
+                  className={`relative w-10 h-10 rounded-full overflow-hidden border-2 transition-all duration-300 ${index === currentEpisode ? 'border-[#003FA5] scale-105' : 'border-transparent hover:border-gray-300'}`}
                 >
                   <img
                     src={episode.image}
                     alt={episode.alt}
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full object-cover ${episode.comingSoon ? 'grayscale' : ''}`}
                   />
+                  {episode.comingSoon && (
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-[10px] font-bold">
+                      Coming Soon!
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
