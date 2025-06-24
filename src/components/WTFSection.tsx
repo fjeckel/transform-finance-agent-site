@@ -55,19 +55,11 @@ const WTFSection = () => {
           </div>
           
           <div className="order-1 lg:order-2">
-            <div className="relative">
-              <div className="aspect-square bg-gradient-to-br from-[#13B87B] to-[#0FA66A] rounded-2xl flex items-center justify-center shadow-2xl">
-                <div className="text-center text-white p-8">
-                  <div className="text-6xl font-bold mb-4">WTF?!</div>
-                  <div className="text-xl font-medium">Warum Finance transformieren</div>
-                  <div className="mt-6 w-16 h-1 bg-white mx-auto rounded"></div>
-                </div>
-              </div>
-              
-              {/* Decorative rings */}
-              <div className="absolute -top-4 -right-4 w-20 h-20 border-4 border-[#D0840E] rounded-full opacity-60"></div>
-              <div className="absolute -bottom-4 -left-4 w-16 h-16 border-4 border-[#003FA5] rounded-full opacity-60"></div>
-            </div>
+            <img
+              src="/img/wtf-cover.png"
+              alt="WTF?! Podcast Cover"
+              className="aspect-square w-full h-full object-cover rounded-2xl shadow-2xl"
+            />
           </div>
         </div>
       </div>
