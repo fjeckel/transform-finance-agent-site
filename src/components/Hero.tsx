@@ -54,14 +54,15 @@ const Hero = () => {
         allow="autoplay; fullscreen"
         title="Hintergrund-Video"
       />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-transparent pointer-events-none z-10" />
       <button
         onClick={toggleMute}
-        className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-white/70 hover:bg-white text-gray-800 p-2 rounded-full transition"
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-white/70 hover:bg-white text-gray-800 p-2 rounded-full transition"
       >
         {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
       </button>
       
-      <div className="text-center z-10 px-4 max-w-4xl mx-auto">
+      <div className="text-center z-20 px-4 max-w-4xl mx-auto">
         <div className="mb-8">
           <img
             src="/img/Finance_Transformers.png"
@@ -95,7 +96,7 @@ const Hero = () => {
         </div>
       </div>
       
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce z-20">
         <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center">
           <div className="w-1 h-3 bg-white rounded-full mt-2 animate-pulse"></div>
         </div>
