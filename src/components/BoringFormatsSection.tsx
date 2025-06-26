@@ -5,9 +5,12 @@ const BoringFormatsSection = () => {
     <section className="py-20 bg-white">
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="bg-gray-200 rounded-2xl aspect-square flex items-center justify-center text-gray-500">
-            {/* Bild Platzhalter */}
-            <span>Bild</span>
+          <div>
+            <img
+              src="/img/boring.png"
+              alt="Illustration eines langweiligen Formats"
+              className="aspect-square w-full h-full object-cover rounded-2xl shadow-2xl"
+            />
           </div>
           <div>
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 font-cooper">
