@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ArrowLeft, ExternalLink, Play, Pause, Clock, Calendar, Download, Share2, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -9,7 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 const Episode = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
-  const [showNotes, setShowNotes] = useState(true);
+  const [showNotesSection, setShowNotesSection] = useState(true);
 
   const episodeData = {
     title: "Dr. Veronika von Heise-Rotenburg: Zukunftsfähige Finanzorganisationen",
@@ -24,7 +23,7 @@ const Episode = () => {
     youtubeUrl: "https://youtube.com/watch?v=example"
   };
 
-  const showNotes = [
+  const showNotesData = [
     {
       timestamp: "00:00",
       title: "Einführung",
@@ -207,19 +206,19 @@ Dr. Veronika: Technologie ist definitiv ein Enabler, aber sie ist nicht die Lös
         {/* Show Notes */}
         <Card className="mb-8">
           <CardHeader>
-            <Collapsible open={showNotes} onOpenChange={setShowNotes}>
+            <Collapsible open={showNotesSection} onOpenChange={setShowNotesSection}>
               <CollapsibleTrigger className="w-full">
                 <CardTitle className="flex items-center justify-between">
                   Show Notes
                   <span className="text-sm font-normal">
-                    {showNotes ? 'Ausblenden' : 'Anzeigen'}
+                    {showNotesSection ? 'Ausblenden' : 'Anzeigen'}
                   </span>
                 </CardTitle>
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <CardContent className="pt-4">
                   <div className="space-y-4">
-                    {showNotes.map((note, index) => (
+                    {showNotesData.map((note, index) => (
                       <div key={index} className="border-l-4 border-[#13B87B] pl-4">
                         <div className="flex items-center space-x-3 mb-2">
                           <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm font-mono">
