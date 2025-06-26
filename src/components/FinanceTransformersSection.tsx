@@ -1,5 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
 const FinanceTransformersSection = () => {
   const [currentEpisode, setCurrentEpisode] = useState(0);
   const episodes = [{
@@ -84,14 +86,23 @@ const FinanceTransformersSection = () => {
               </div>
               
               <div className="flex space-x-4">
-                <a href="https://open.spotify.com/show/1gLtus1YpWX23MIWat9IfG" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 bg-[#1DB954] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#1AA34A] transition-colors">
-                  <span>Spotify</span>
-                  <ExternalLink size={16} />
-                </a>
-                <a href="https://podcasts.apple.com/us/podcast/wtf-why-transform-finance/id1649119685" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 bg-[#A855F7] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#9333EA] transition-colors">
-                  <span>Apple</span>
-                  <ExternalLink size={16} />
-                </a>
+                {!episodes[currentEpisode].comingSoon && currentEpisode === 0 ? (
+                  <Link to="/episode" className="flex items-center space-x-2 bg-[#13B87B] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#0F9A6A] transition-colors">
+                    <span>Zur Episode</span>
+                    <ExternalLink size={16} />
+                  </Link>
+                ) : (
+                  <>
+                    <a href="https://open.spotify.com/show/1gLtus1YpWX23MIWat9IfG" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 bg-[#1DB954] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#1AA34A] transition-colors">
+                      <span>Spotify</span>
+                      <ExternalLink size={16} />
+                    </a>
+                    <a href="https://podcasts.apple.com/us/podcast/wtf-why-transform-finance/id1649119685" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 bg-[#A855F7] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#9333EA] transition-colors">
+                      <span>Apple</span>
+                      <ExternalLink size={16} />
+                    </a>
+                  </>
+                )}
               </div>
             </div>
             
@@ -126,4 +137,5 @@ const FinanceTransformersSection = () => {
       </div>
     </section>;
 };
+
 export default FinanceTransformersSection;
