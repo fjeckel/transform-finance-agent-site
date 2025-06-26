@@ -90,18 +90,7 @@ const Hero = () => {
         </div>
       </div>
       
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce z-20">
-        <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center">
-          <div className="w-1 h-3 bg-white rounded-full mt-2 animate-pulse"></div>
-        </div>
-      </div>
 
-
-
-      <div className="absolute bottom-4 left-4 z-20 flex items-center space-x-3">
-        <img src="/placeholder.svg" alt="Credential" className="w-12 h-12" />
-        <span className="text-white font-medium">Über 1.000 Zuhörer jede Woche!</span>
-      </div>
 
 
     </section>
