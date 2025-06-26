@@ -13,7 +13,7 @@ const WTFSection = () => {
   return (
     <section id="wtf" className="py-20 bg-[#FBF4EB]">
       <div className="max-w-6xl mx-auto px-4">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 items-start">
           <div className="order-2 lg:order-1">
             <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-8 uppercase tracking-tight font-cooper">
               WTF?!<br />
