@@ -16,8 +16,7 @@ const WTFSection = () => {
         <div className="grid md:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start">
           <div className="order-2 lg:order-1 max-w-2xl md:max-w-lg lg:max-w-xl">
             <h2 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 lg:mb-8 uppercase tracking-tight font-cooper">
-              WTF?!<br />
-              <span className="text-[#D0840E]">Warum Finance transformieren</span>
+              WTF?!
             </h2>
             
             <div className="prose prose-lg text-gray-700 mb-6 lg:mb-8">
