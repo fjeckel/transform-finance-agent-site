@@ -12,9 +12,9 @@ const WTFSection = () => {
 
   return (
     <section id="wtf" className="py-20 bg-[#FBF4EB]">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="grid lg:grid-cols-2 gap-20 items-start">
-          <div className="order-2 lg:order-1 max-w-none lg:max-w-lg xl:max-w-xl">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
+        <div className="grid md:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start">
+          <div className="order-2 lg:order-1 max-w-2xl md:max-w-lg lg:max-w-xl">
             <h2 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 lg:mb-8 uppercase tracking-tight font-cooper">
               WTF?!<br />
               <span className="text-[#D0840E]">Warum Finance transformieren</span>
