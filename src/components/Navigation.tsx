@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,25 +17,26 @@ const Navigation = () => {
   }, []);
 
   const navItems = [
-    { label: 'WTF?! WARUM FINANCE TRANSFORMIEREN', href: '#wtf' },
-    { label: 'FINANCE TRANSFORMERS', href: '#finance-transformers' },
-    { label: 'DAS CFO MEMO', href: '#cfo-memo' },
-    { label: 'MEHR ÜBER TIM TEUSCHER', href: '#tim-teuscher' },
-    { label: 'MEHR ÜBER FABIAN JECKEL', href: '#fabian-jeckel' },
-    { label: 'SOCIAL MEDIA', href: '#social' },
+    { label: 'WTF?! WARUM FINANCE TRANSFORMIEREN', href: '#wtf', type: 'section' },
+    { label: 'FINANCE TRANSFORMERS', href: '#finance-transformers', type: 'section' },
+    { label: 'ALLE EPISODEN', href: '/episodes', type: 'route' },
   ];
 
-  const scrollToSection = (href: string) => {
-    const element = document.querySelector(href);
-    if (element) {
-      const offset = 80;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
+  const handleNavClick = (item: typeof navItems[0]) => {
+    if (item.type === 'route') {
+      navigate(item.href);
+    } else {
+      const element = document.querySelector(item.href);
+      if (element) {
+        const offset = 80;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
     }
     setIsOpen(false);
   };
@@ -53,7 +56,7 @@ const Navigation = () => {
                 {navItems.map((item) => (
                   <li key={item.href}>
                     <button
-                      onClick={() => scrollToSection(item.href)}
+                      onClick={() => handleNavClick(item)}
                       className="text-xs font-bold text-gray-800 hover:text-[#13B87B] transition-colors duration-200 py-2 px-3 rounded hover:bg-gray-50 uppercase tracking-wide whitespace-nowrap"
                     >
                       {item.label}
@@ -86,7 +89,7 @@ const Navigation = () => {
               {navItems.map((item) => (
                 <li key={item.href}>
                   <button
-                    onClick={() => scrollToSection(item.href)}
+                    onClick={() => handleNavClick(item)}
                     className="block w-full text-left text-sm font-bold text-gray-800 hover:text-[#13B87B] transition-colors duration-200 py-3 px-6 hover:bg-gray-50 uppercase tracking-wide"
                   >
                     {item.label}
