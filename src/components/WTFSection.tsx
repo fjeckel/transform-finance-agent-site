@@ -13,21 +13,21 @@ const WTFSection = () => {
   return (
     <section id="wtf" className="py-20 bg-[#FBF4EB]">
       <div className="max-w-6xl mx-auto px-4">
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
-          <div className="order-2 lg:order-1">
-            <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-8 uppercase tracking-tight font-cooper">
+        <div className="grid lg:grid-cols-2 gap-20 items-start">
+          <div className="order-2 lg:order-1 max-w-none lg:max-w-lg xl:max-w-xl">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 lg:mb-8 uppercase tracking-tight font-cooper">
               WTF?!<br />
               <span className="text-[#D0840E]">Warum Finance transformieren</span>
             </h2>
             
-            <div className="prose prose-lg text-gray-700 mb-8">
-              <p className="text-xl leading-relaxed">
+            <div className="prose prose-lg text-gray-700 mb-6 lg:mb-8">
+              <p className="text-lg lg:text-xl leading-relaxed mb-4">
                 Das Finanzwesen ist kaputt. Spreadsheets aus den 1980ern. Manuelle Prozesse, die 
                 Kreativität töten. Risikoaverse Kulturen, die Innovation ersticken. Es ist Zeit, 
                 aufzuhören, das "Nein-Ministerium" zu sein und stattdessen zum Katalysator der 
                 Transformation zu werden.
               </p>
-              <p className="text-lg">
+              <p className="text-base lg:text-lg">
                 Begleite Tim und Fabian dabei, wie sie konventionelle Finanzweisheiten herausfordern, 
                 modernste Technologien erkunden und provokante Einsichten teilen, die deine 
                 Denkweise über Geld, Betrieb und Führung im digitalen Zeitalter transformieren werden.
@@ -35,7 +35,7 @@ const WTFSection = () => {
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-xl font-bold text-gray-900 uppercase tracking-wide">Jetzt anhören:</h3>
+              <h3 className="text-lg lg:text-xl font-bold text-gray-900 uppercase tracking-wide">Jetzt anhören:</h3>
               <div className="grid grid-cols-2 gap-3">
                 {podcastLinks.map((link) => (
                   <a
@@ -54,12 +54,14 @@ const WTFSection = () => {
             </div>
           </div>
           
-          <div className="order-1 lg:order-2">
-            <img
-              src="/img/wtf-cover.png"
-              alt="WTF?! Podcast Cover"
-              className="aspect-square w-full h-full object-cover rounded-2xl shadow-2xl"
-            />
+          <div className="order-1 lg:order-2 flex justify-center lg:justify-end">
+            <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
+              <img
+                src="/img/wtf-cover.png"
+                alt="WTF?! Podcast Cover"
+                className="aspect-square w-full object-cover rounded-2xl shadow-2xl"
+              />
+            </div>
           </div>
         </div>
       </div>
