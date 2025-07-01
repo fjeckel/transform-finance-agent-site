@@ -13,7 +13,7 @@ import Episode from "./pages/Episode";
 import Episodes from "./pages/Episodes";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
-
+import AdminAnalytics from "./pages/AdminAnalytics";
 import NewEpisode from "./pages/NewEpisode";
 import Legal from "./pages/Legal";
 
@@ -61,6 +61,7 @@ const App = () => {
               <Route path="/auth" element={<Auth />} />
               <Route path="/legal" element={<Legal />} />
               <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+              <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
               <Route path="/admin/episodes/new" element={<AdminRoute><NewEpisode /></AdminRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
