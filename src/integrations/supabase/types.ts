@@ -9,16 +9,282 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      episode_guests: {
+        Row: {
+          created_at: string | null
+          episode_id: string
+          guest_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          episode_id: string
+          guest_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          episode_id?: string
+          guest_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "episode_guests_episode_id_fkey"
+            columns: ["episode_id"]
+            isOneToOne: false
+            referencedRelation: "episodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "episode_guests_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      episode_platforms: {
+        Row: {
+          created_at: string | null
+          episode_id: string
+          id: string
+          platform_name: string
+          platform_url: string
+        }
+        Insert: {
+          created_at?: string | null
+          episode_id: string
+          id?: string
+          platform_name: string
+          platform_url: string
+        }
+        Update: {
+          created_at?: string | null
+          episode_id?: string
+          id?: string
+          platform_name?: string
+          platform_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "episode_platforms_episode_id_fkey"
+            columns: ["episode_id"]
+            isOneToOne: false
+            referencedRelation: "episodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      episodes: {
+        Row: {
+          audio_url: string | null
+          content: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          duration: string | null
+          episode_number: number
+          id: string
+          image_url: string | null
+          publish_date: string | null
+          season: number | null
+          slug: string
+          status: Database["public"]["Enums"]["episode_status"] | null
+          title: string
+          transcript: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          audio_url?: string | null
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          duration?: string | null
+          episode_number: number
+          id?: string
+          image_url?: string | null
+          publish_date?: string | null
+          season?: number | null
+          slug: string
+          status?: Database["public"]["Enums"]["episode_status"] | null
+          title: string
+          transcript?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          audio_url?: string | null
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          duration?: string | null
+          episode_number?: number
+          id?: string
+          image_url?: string | null
+          publish_date?: string | null
+          season?: number | null
+          slug?: string
+          status?: Database["public"]["Enums"]["episode_status"] | null
+          title?: string
+          transcript?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "episodes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guests: {
+        Row: {
+          bio: string | null
+          created_at: string | null
+          id: string
+          image_url: string | null
+          name: string
+          social_links: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          social_links?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          social_links?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      show_notes: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          episode_id: string
+          id: string
+          sort_order: number | null
+          timestamp: string
+          title: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          episode_id: string
+          id?: string
+          sort_order?: number | null
+          timestamp: string
+          title: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          episode_id?: string
+          id?: string
+          sort_order?: number | null
+          timestamp?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "show_notes_episode_id_fkey"
+            columns: ["episode_id"]
+            isOneToOne: false
+            referencedRelation: "episodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "member" | "guest"
+      episode_status: "draft" | "published" | "archived" | "scheduled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +399,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "member", "guest"],
+      episode_status: ["draft", "published", "archived", "scheduled"],
+    },
   },
 } as const
