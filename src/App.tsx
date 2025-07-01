@@ -72,6 +72,5 @@ const App = () => {
     </QueryClientProvider>
   );
 };
-main
 
 export default App;
