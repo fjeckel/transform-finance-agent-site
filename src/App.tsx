@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import AdminRoute from "./components/AdminRoute";
 import CookieConsent from "./components/CookieConsent";
 import Index from "./pages/Index";
@@ -23,12 +24,21 @@ const getCookie = (name: string) => {
 
 const App = () => {
   useEffect(() => {
-    if (getCookie('cookieConsent')) {
-      const count = parseInt(getCookie('visitCount') ?? '0', 10) || 0;
-      const newCount = count + 1;
-      const oneYear = 60 * 60 * 24 * 365;
-      document.cookie = `visitCount=${newCount}; path=/; max-age=${oneYear}`;
-    }
+    const logVisit = async () => {
+      if (getCookie('cookieConsent')) {
+        const count = parseInt(getCookie('visitCount') ?? '0', 10) || 0;
+        const newCount = count + 1;
+        const oneYear = 60 * 60 * 24 * 365;
+        document.cookie = `visitCount=${newCount}; path=/; max-age=${oneYear}`;
+
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.from('page_visit_logs').insert({
+          page: window.location.pathname,
+          user_id: user?.id ?? null,
+        });
+      }
+    };
+    logVisit();
   }, []);
 
   return (
