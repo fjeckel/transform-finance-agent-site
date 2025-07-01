@@ -10,6 +10,7 @@ import Episode from "./pages/Episode";
 import Episodes from "./pages/Episodes";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import NewEpisode from "./pages/NewEpisode";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/episodes" element={<Episodes />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+            <Route path="/admin/episodes/new" element={<AdminRoute><NewEpisode /></AdminRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
