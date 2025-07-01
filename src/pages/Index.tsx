@@ -7,7 +7,6 @@ import WTFSection from '@/components/WTFSection';
 import FinanceTransformersSection from '@/components/FinanceTransformersSection';
 import TimTeuscherSection from '@/components/TimTeuscherSection';
 import FabianJeckelSection from '@/components/FabianJeckelSection';
-import CFOMemoSection from '@/components/CFOMemoSection';
 import SocialHandlesSection from '@/components/SocialHandlesSection';
 import Footer from '@/components/Footer';
 
@@ -37,8 +36,6 @@ const Index = () => {
         {/* Fabian Jeckel Section */}
         <FabianJeckelSection />
 
-        {/* CFO Memo Section */}
-        <CFOMemoSection />
 
         {/* Social Handles Section */}
         <SocialHandlesSection />
