@@ -1,5 +1,6 @@
+
 import React from 'react';
-import Hero from '@/components/HeroSection';
+import Hero from '@/components/Hero';
 import BoringFormatsSection from '@/components/BoringFormatsSection';
 import WTFSection from '@/components/WTFSection';
 import FinanceTransformersSection from '@/components/FinanceTransformersSection';
