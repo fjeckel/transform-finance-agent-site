@@ -49,9 +49,12 @@ const Footer = () => {
               © 2024 Finance Transformers. Alle Rechte vorbehalten.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#" className="text-gray-400 hover:text-[#13B87B] transition-colors text-sm">Datenschutzerklärung</a>
-              <a href="#" className="text-gray-400 hover:text-[#13B87B] transition-colors text-sm">Nutzungsbedingungen</a>
-              <a href="#" className="text-gray-400 hover:text-[#13B87B] transition-colors text-sm">Cookie-Richtlinie</a>
+              <a
+                href="/legal"
+                className="text-gray-400 hover:text-[#13B87B] transition-colors text-sm"
+              >
+                Impressum &amp; Rechtliches
+              </a>
             </div>
           </div>
         </div>
