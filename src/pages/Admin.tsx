@@ -86,6 +86,9 @@ const Admin = () => {
               <Badge variant="secondary">Admin</Badge>
             </div>
             <div className="flex items-center space-x-4">
+              <Link to="/admin/analytics" className="text-sm text-gray-600 hover:text-[#13B87B]">
+                Analytics
+              </Link>
               <span className="text-sm text-gray-600">Welcome, {user?.email}</span>
               <Button variant="outline" onClick={handleLogout}>
                 Logout
