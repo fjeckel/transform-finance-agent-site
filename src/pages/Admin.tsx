@@ -61,6 +61,33 @@ const Admin = () => {
     }
   };
 
+  const handleDelete = async (episodeId: string, title: string) => {
+    if (window.confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
+      try {
+        const { error } = await supabase
+          .from('episodes')
+          .delete()
+          .eq('id', episodeId);
+
+        if (error) throw error;
+
+        toast({
+          title: "Episode Deleted",
+          description: `"${title}" has been deleted successfully.`,
+        });
+        
+        fetchEpisodes(); // Refresh the list
+      } catch (error) {
+        console.error('Error deleting episode:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete episode",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const handleLogout = async () => {
     await signOut();
   };
@@ -179,15 +206,23 @@ const Admin = () => {
                     )}
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Eye size={14} className="mr-1" />
-                      View
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Edit size={14} className="mr-1" />
-                      Edit
-                    </Button>
-                    <Button variant="outline" size="sm">
+                    <Link to={`/episode?slug=${episode.slug}`}>
+                      <Button variant="outline" size="sm">
+                        <Eye size={14} className="mr-1" />
+                        View
+                      </Button>
+                    </Link>
+                    <Link to={`/admin/episodes/${episode.id}/edit`}>
+                      <Button variant="outline" size="sm">
+                        <Edit size={14} className="mr-1" />
+                        Edit
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleDelete(episode.id, episode.title)}
+                    >
                       <Trash2 size={14} className="mr-1" />
                       Delete
                     </Button>
