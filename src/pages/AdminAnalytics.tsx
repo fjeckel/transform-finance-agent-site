@@ -23,10 +23,17 @@ const AdminAnalytics = () => {
   const fetchStats = async () => {
     const { data, error } = await supabase
       .from('page_visit_logs')
-      .select('page, count(*)', { group: 'page' });
+      .select('page');
 
     if (!error && data) {
-      setStats(data as unknown as PageStat[]);
+      // Group by page and count manually since Supabase doesn't support SQL GROUP BY in select
+      const grouped = data.reduce((acc: Record<string, number>, item) => {
+        acc[item.page] = (acc[item.page] || 0) + 1;
+        return acc;
+      }, {});
+      
+      const stats = Object.entries(grouped).map(([page, count]) => ({ page, count }));
+      setStats(stats);
     }
     setLoading(false);
   };
