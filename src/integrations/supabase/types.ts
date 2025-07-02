@@ -202,35 +202,6 @@ export type Database = {
         }
         Relationships: []
       }
-      page_visit_logs: {
-        Row: {
-          id: string
-          page: string
-          visited_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          id?: string
-          page: string
-          visited_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          id?: string
-          page?: string
-          visited_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "page_visit_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       show_notes: {
         Row: {
           content: string | null
