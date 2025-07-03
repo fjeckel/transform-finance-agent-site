@@ -11,6 +11,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ImageUpload } from '@/components/ui/image-upload';
+import { AudioUpload } from '@/components/ui/audio-upload';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -231,41 +233,40 @@ const EditEpisode = () => {
                   placeholder="Episode content/notes..."
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="audioUrl" className="block text-sm font-medium mb-1">
-                    Audio URL
-                  </label>
-                  <Input
-                    id="audioUrl"
-                    type="url"
-                    value={audioUrl}
-                    onChange={(e) => setAudioUrl(e.target.value)}
-                    placeholder="https://..."
-                  />
-                </div>
-                <div>
-                  <label htmlFor="duration" className="block text-sm font-medium mb-1">
-                    Duration
-                  </label>
-                  <Input
-                    id="duration"
-                    value={duration}
-                    onChange={(e) => setDuration(e.target.value)}
-                    placeholder="e.g., 45:30"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Cover Image
+                </label>
+                <ImageUpload
+                  value={imageUrl}
+                  onChange={(url) => setImageUrl(url || '')}
+                  episodeId={id}
+                  disabled={loading}
+                />
               </div>
               <div>
-                <label htmlFor="imageUrl" className="block text-sm font-medium mb-1">
-                  Cover Image URL
+                <label className="block text-sm font-medium mb-1">
+                  Audio File
+                </label>
+                <AudioUpload
+                  value={audioUrl}
+                  onChange={(url, extractedDuration) => {
+                    setAudioUrl(url || '');
+                    if (extractedDuration) setDuration(extractedDuration);
+                  }}
+                  episodeId={id}
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label htmlFor="duration" className="block text-sm font-medium mb-1">
+                  Duration
                 </label>
                 <Input
-                  id="imageUrl"
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://..."
+                  id="duration"
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  placeholder="e.g., 45:30"
                 />
               </div>
               <div className="flex gap-2">

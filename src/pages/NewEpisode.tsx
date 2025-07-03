@@ -11,6 +11,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ImageUpload } from '@/components/ui/image-upload';
+import { AudioUpload } from '@/components/ui/audio-upload';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,8 +34,12 @@ const NewEpisode = () => {
   const [season, setSeason] = useState(1);
   const [episodeNumber, setEpisodeNumber] = useState(1);
   const [description, setDescription] = useState('');
+  const [content, setContent] = useState('');
   const [publishDate, setPublishDate] = useState('');
   const [status, setStatus] = useState<'draft' | 'published' | 'scheduled' | 'archived'>('draft');
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const [audioUrl, setAudioUrl] = useState<string>('');
+  const [duration, setDuration] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -48,10 +54,14 @@ const NewEpisode = () => {
         title,
         slug,
         description,
+        content,
         season,
         episode_number: episodeNumber,
         publish_date: publishDate ? new Date(publishDate).toISOString() : null,
         status,
+        image_url: imageUrl || null,
+        audio_url: audioUrl || null,
+        duration: duration || null,
         created_by: user?.id || null,
       });
 
@@ -154,7 +164,42 @@ const NewEpisode = () => {
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  className="min-h-[80px]"
+                />
+              </div>
+              <div>
+                <label htmlFor="content" className="block text-sm font-medium mb-1">
+                  Content
+                </label>
+                <Textarea
+                  id="content"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
                   className="min-h-[120px]"
+                  placeholder="Episode content/notes..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Cover Image
+                </label>
+                <ImageUpload
+                  value={imageUrl}
+                  onChange={(url) => setImageUrl(url || '')}
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Audio File
+                </label>
+                <AudioUpload
+                  value={audioUrl}
+                  onChange={(url, extractedDuration) => {
+                    setAudioUrl(url || '');
+                    if (extractedDuration) setDuration(extractedDuration);
+                  }}
+                  disabled={loading}
                 />
               </div>
               <Button type="submit" className="bg-[#13B87B] hover:bg-[#0F9A6A]" disabled={loading}>
