@@ -11,8 +11,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { AudioUpload } from '@/components/ui/audio-upload';
+import { ShowNotesManager } from '@/components/ui/show-notes-manager';
+import { GuestManager } from '@/components/ui/guest-manager';
+import { PlatformLinksManager } from '@/components/ui/platform-links-manager';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,6 +45,9 @@ const EditEpisode = () => {
   const [audioUrl, setAudioUrl] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [duration, setDuration] = useState('');
+  const [showNotes, setShowNotes] = useState<any[]>([]);
+  const [guests, setGuests] = useState<any[]>([]);
+  const [platformLinks, setPlatformLinks] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
 
@@ -52,9 +59,32 @@ const EditEpisode = () => {
 
   const fetchEpisode = async () => {
     try {
+      // Fetch episode with related data
       const { data, error } = await supabase
         .from('episodes')
-        .select('*')
+        .select(`
+          *,
+          show_notes (
+            id,
+            timestamp,
+            title,
+            content,
+            sort_order
+          ),
+          episode_guests (
+            guests (
+              id,
+              name,
+              bio,
+              image_url
+            )
+          ),
+          episode_platforms (
+            id,
+            platform_name,
+            platform_url
+          )
+        `)
         .eq('id', id)
         .single();
 
@@ -72,6 +102,11 @@ const EditEpisode = () => {
         setAudioUrl(data.audio_url || '');
         setImageUrl(data.image_url || '');
         setDuration(data.duration || '');
+        
+        // Set related data
+        setShowNotes(data.show_notes || []);
+        setGuests(data.episode_guests?.map((eg: any) => eg.guests) || []);
+        setPlatformLinks(data.episode_platforms || []);
       }
     } catch (err) {
       console.error('Error fetching episode:', err);
@@ -85,7 +120,8 @@ const EditEpisode = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase
+      // Update episode
+      const { error: episodeError } = await supabase
         .from('episodes')
         .update({
           title,
@@ -103,7 +139,47 @@ const EditEpisode = () => {
         })
         .eq('id', id);
 
-      if (error) throw error;
+      if (episodeError) throw episodeError;
+
+      // Update show notes
+      await supabase.from('show_notes').delete().eq('episode_id', id);
+      if (showNotes.length > 0) {
+        const { error: notesError } = await supabase.from('show_notes').insert(
+          showNotes.map((note, index) => ({
+            episode_id: id,
+            timestamp: note.timestamp,
+            title: note.title,
+            content: note.content || null,
+            sort_order: index,
+          }))
+        );
+        if (notesError) console.error('Error updating show notes:', notesError);
+      }
+
+      // Update episode guests
+      await supabase.from('episode_guests').delete().eq('episode_id', id);
+      if (guests.length > 0) {
+        const { error: guestsError } = await supabase.from('episode_guests').insert(
+          guests.map(guest => ({
+            episode_id: id,
+            guest_id: guest.id,
+          }))
+        );
+        if (guestsError) console.error('Error updating guests:', guestsError);
+      }
+
+      // Update platform links
+      await supabase.from('episode_platforms').delete().eq('episode_id', id);
+      if (platformLinks.length > 0) {
+        const { error: linksError } = await supabase.from('episode_platforms').insert(
+          platformLinks.map(link => ({
+            episode_id: id,
+            platform_name: link.platform_name,
+            platform_url: link.platform_url,
+          }))
+        );
+        if (linksError) console.error('Error updating platform links:', linksError);
+      }
 
       toast({ title: 'Episode Updated', description: 'Episode has been updated successfully.' });
       navigate('/admin');
@@ -136,7 +212,16 @@ const EditEpisode = () => {
             <CardTitle>Edit Episode</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <Tabs defaultValue="basic" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                  <TabsTrigger value="media">Media</TabsTrigger>
+                  <TabsTrigger value="content">Content</TabsTrigger>
+                  <TabsTrigger value="advanced">Advanced</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="basic" className="space-y-4 mt-6">
               <div>
                 <label htmlFor="title" className="block text-sm font-medium mb-1">
                   Title
@@ -221,55 +306,82 @@ const EditEpisode = () => {
                   className="min-h-[80px]"
                 />
               </div>
-              <div>
-                <label htmlFor="content" className="block text-sm font-medium mb-1">
-                  Content
-                </label>
-                <Textarea
-                  id="content"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="min-h-[120px]"
-                  placeholder="Episode content/notes..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Cover Image
-                </label>
-                <ImageUpload
-                  value={imageUrl}
-                  onChange={(url) => setImageUrl(url || '')}
-                  episodeId={id}
-                  disabled={loading}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Audio File
-                </label>
-                <AudioUpload
-                  value={audioUrl}
-                  onChange={(url, extractedDuration) => {
-                    setAudioUrl(url || '');
-                    if (extractedDuration) setDuration(extractedDuration);
-                  }}
-                  episodeId={id}
-                  disabled={loading}
-                />
-              </div>
-              <div>
-                <label htmlFor="duration" className="block text-sm font-medium mb-1">
-                  Duration
-                </label>
-                <Input
-                  id="duration"
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  placeholder="e.g., 45:30"
-                />
-              </div>
-              <div className="flex gap-2">
+                </TabsContent>
+
+                <TabsContent value="media" className="space-y-4 mt-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Cover Image
+                    </label>
+                    <ImageUpload
+                      value={imageUrl}
+                      onChange={(url) => setImageUrl(url || '')}
+                      episodeId={id}
+                      disabled={loading}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Audio File
+                    </label>
+                    <AudioUpload
+                      value={audioUrl}
+                      onChange={(url, extractedDuration) => {
+                        setAudioUrl(url || '');
+                        if (extractedDuration) setDuration(extractedDuration);
+                      }}
+                      episodeId={id}
+                      disabled={loading}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="duration" className="block text-sm font-medium mb-1">
+                      Duration
+                    </label>
+                    <Input
+                      id="duration"
+                      value={duration}
+                      onChange={(e) => setDuration(e.target.value)}
+                      placeholder="e.g., 45:30"
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="content" className="space-y-4 mt-6">
+                  <div>
+                    <label htmlFor="content" className="block text-sm font-medium mb-1">
+                      Episode Content
+                    </label>
+                    <Textarea
+                      id="content"
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      className="min-h-[120px]"
+                      placeholder="Episode content, summary, and notes..."
+                    />
+                  </div>
+                  <ShowNotesManager
+                    value={showNotes}
+                    onChange={setShowNotes}
+                    disabled={loading}
+                  />
+                </TabsContent>
+
+                <TabsContent value="advanced" className="space-y-4 mt-6">
+                  <GuestManager
+                    value={guests}
+                    onChange={setGuests}
+                    disabled={loading}
+                  />
+                  <PlatformLinksManager
+                    value={platformLinks}
+                    onChange={setPlatformLinks}
+                    disabled={loading}
+                  />
+                </TabsContent>
+              </Tabs>
+
+              <div className="pt-4 border-t flex gap-2">
                 <Button type="submit" className="bg-[#13B87B] hover:bg-[#0F9A6A]" disabled={loading}>
                   {loading ? 'Updating...' : 'Update Episode'}
                 </Button>

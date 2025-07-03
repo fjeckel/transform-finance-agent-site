@@ -11,8 +11,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { AudioUpload } from '@/components/ui/audio-upload';
+import { ShowNotesManager } from '@/components/ui/show-notes-manager';
+import { GuestManager } from '@/components/ui/guest-manager';
+import { PlatformLinksManager } from '@/components/ui/platform-links-manager';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -40,6 +44,9 @@ const NewEpisode = () => {
   const [imageUrl, setImageUrl] = useState<string>('');
   const [audioUrl, setAudioUrl] = useState<string>('');
   const [duration, setDuration] = useState<string>('');
+  const [showNotes, setShowNotes] = useState<any[]>([]);
+  const [guests, setGuests] = useState<any[]>([]);
+  const [platformLinks, setPlatformLinks] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -50,24 +57,66 @@ const NewEpisode = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.from('episodes').insert({
-        title,
-        slug,
-        description,
-        content,
-        season,
-        episode_number: episodeNumber,
-        publish_date: publishDate ? new Date(publishDate).toISOString() : null,
-        status,
-        image_url: imageUrl || null,
-        audio_url: audioUrl || null,
-        duration: duration || null,
-        created_by: user?.id || null,
-      });
+      // Create episode first
+      const { data: episode, error: episodeError } = await supabase
+        .from('episodes')
+        .insert({
+          title,
+          slug,
+          description,
+          content,
+          season,
+          episode_number: episodeNumber,
+          publish_date: publishDate ? new Date(publishDate).toISOString() : null,
+          status,
+          image_url: imageUrl || null,
+          audio_url: audioUrl || null,
+          duration: duration || null,
+          created_by: user?.id || null,
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (episodeError) throw episodeError;
 
-      toast({ title: 'Episode Created', description: 'New episode has been created.' });
+      // Add show notes
+      if (showNotes.length > 0) {
+        const { error: notesError } = await supabase.from('show_notes').insert(
+          showNotes.map((note, index) => ({
+            episode_id: episode.id,
+            timestamp: note.timestamp,
+            title: note.title,
+            content: note.content || null,
+            sort_order: index,
+          }))
+        );
+        if (notesError) console.error('Error creating show notes:', notesError);
+      }
+
+      // Add episode guests
+      if (guests.length > 0) {
+        const { error: guestsError } = await supabase.from('episode_guests').insert(
+          guests.map(guest => ({
+            episode_id: episode.id,
+            guest_id: guest.id,
+          }))
+        );
+        if (guestsError) console.error('Error adding guests:', guestsError);
+      }
+
+      // Add platform links
+      if (platformLinks.length > 0) {
+        const { error: linksError } = await supabase.from('episode_platforms').insert(
+          platformLinks.map(link => ({
+            episode_id: episode.id,
+            platform_name: link.platform_name,
+            platform_url: link.platform_url,
+          }))
+        );
+        if (linksError) console.error('Error adding platform links:', linksError);
+      }
+
+      toast({ title: 'Episode Created', description: 'New episode has been created with all content.' });
       navigate('/admin');
     } catch (err) {
       console.error('Error creating episode:', err);
@@ -90,7 +139,16 @@ const NewEpisode = () => {
             <CardTitle>Create New Episode</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <Tabs defaultValue="basic" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                  <TabsTrigger value="media">Media</TabsTrigger>
+                  <TabsTrigger value="content">Content</TabsTrigger>
+                  <TabsTrigger value="advanced">Advanced</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="basic" className="space-y-4 mt-6">
               <div>
                 <label htmlFor="title" className="block text-sm font-medium mb-1">
                   Title
@@ -167,44 +225,73 @@ const NewEpisode = () => {
                   className="min-h-[80px]"
                 />
               </div>
-              <div>
-                <label htmlFor="content" className="block text-sm font-medium mb-1">
-                  Content
-                </label>
-                <Textarea
-                  id="content"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="min-h-[120px]"
-                  placeholder="Episode content/notes..."
-                />
+                </TabsContent>
+
+                <TabsContent value="media" className="space-y-4 mt-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Cover Image
+                    </label>
+                    <ImageUpload
+                      value={imageUrl}
+                      onChange={(url) => setImageUrl(url || '')}
+                      disabled={loading}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Audio File
+                    </label>
+                    <AudioUpload
+                      value={audioUrl}
+                      onChange={(url, extractedDuration) => {
+                        setAudioUrl(url || '');
+                        if (extractedDuration) setDuration(extractedDuration);
+                      }}
+                      disabled={loading}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="content" className="space-y-4 mt-6">
+                  <div>
+                    <label htmlFor="content" className="block text-sm font-medium mb-1">
+                      Episode Content
+                    </label>
+                    <Textarea
+                      id="content"
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      className="min-h-[120px]"
+                      placeholder="Episode content, summary, and notes..."
+                    />
+                  </div>
+                  <ShowNotesManager
+                    value={showNotes}
+                    onChange={setShowNotes}
+                    disabled={loading}
+                  />
+                </TabsContent>
+
+                <TabsContent value="advanced" className="space-y-4 mt-6">
+                  <GuestManager
+                    value={guests}
+                    onChange={setGuests}
+                    disabled={loading}
+                  />
+                  <PlatformLinksManager
+                    value={platformLinks}
+                    onChange={setPlatformLinks}
+                    disabled={loading}
+                  />
+                </TabsContent>
+              </Tabs>
+
+              <div className="pt-4 border-t">
+                <Button type="submit" className="bg-[#13B87B] hover:bg-[#0F9A6A]" disabled={loading}>
+                  {loading ? 'Creating...' : 'Create Episode'}
+                </Button>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Cover Image
-                </label>
-                <ImageUpload
-                  value={imageUrl}
-                  onChange={(url) => setImageUrl(url || '')}
-                  disabled={loading}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Audio File
-                </label>
-                <AudioUpload
-                  value={audioUrl}
-                  onChange={(url, extractedDuration) => {
-                    setAudioUrl(url || '');
-                    if (extractedDuration) setDuration(extractedDuration);
-                  }}
-                  disabled={loading}
-                />
-              </div>
-              <Button type="submit" className="bg-[#13B87B] hover:bg-[#0F9A6A]" disabled={loading}>
-                {loading ? 'Creating...' : 'Create Episode'}
-              </Button>
             </form>
           </CardContent>
         </Card>
