@@ -17,9 +17,15 @@ import { AudioUpload } from '@/components/ui/audio-upload';
 import { ShowNotesManager } from '@/components/ui/show-notes-manager';
 import { GuestManager } from '@/components/ui/guest-manager';
 import { PlatformLinksManager } from '@/components/ui/platform-links-manager';
+import { PreviewModal } from '@/components/ui/preview-modal';
+import { FormFieldError, AutoSaveIndicator } from '@/components/ui/form-field-error';
+import { FormSkeleton } from '@/components/ui/loading-skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { useAutoSave } from '@/hooks/useAutoSave';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { episodeSchema } from '@/lib/validation';
+import { z } from 'zod';
 
 const slugify = (text: string) =>
   text
@@ -50,6 +56,20 @@ const EditEpisode = () => {
   const [platformLinks, setPlatformLinks] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Auto-save functionality
+  const formData = {
+    title, slug, season, episodeNumber, description, content, publishDate, status,
+    audioUrl, imageUrl, duration, showNotes, guests, platformLinks
+  };
+  
+  const { lastSaved, isSaving } = useAutoSave({
+    key: `edit-episode-${id}`,
+    data: formData,
+    enabled: !initialLoading,
+  });
 
   useEffect(() => {
     if (id) {
@@ -193,8 +213,15 @@ const EditEpisode = () => {
 
   if (initialLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#13B87B]"></div>
+      <div className="min-h-screen bg-gray-50 py-8 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-4">
+            <Link to="/admin" className="text-sm text-[#13B87B] hover:underline">
+              &larr; Back to Admin
+            </Link>
+          </div>
+          <FormSkeleton />
+        </div>
       </div>
     );
   }

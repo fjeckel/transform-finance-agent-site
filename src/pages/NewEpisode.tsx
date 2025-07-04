@@ -17,9 +17,14 @@ import { AudioUpload } from '@/components/ui/audio-upload';
 import { ShowNotesManager } from '@/components/ui/show-notes-manager';
 import { GuestManager } from '@/components/ui/guest-manager';
 import { PlatformLinksManager } from '@/components/ui/platform-links-manager';
+import { PreviewModal } from '@/components/ui/preview-modal';
+import { FormFieldError, AutoSaveIndicator } from '@/components/ui/form-field-error';
 import { useToast } from '@/hooks/use-toast';
+import { useAutoSave } from '@/hooks/useAutoSave';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { episodeSchema } from '@/lib/validation';
+import { z } from 'zod';
 
 const slugify = (text: string) =>
   text
@@ -48,13 +53,64 @@ const NewEpisode = () => {
   const [guests, setGuests] = useState<any[]>([]);
   const [platformLinks, setPlatformLinks] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Auto-save functionality
+  const formData = {
+    title, slug, season, episodeNumber, description, content, publishDate, status,
+    imageUrl, audioUrl, duration, showNotes, guests, platformLinks
+  };
+  
+  const { lastSaved, isSaving } = useAutoSave({
+    key: 'new-episode',
+    data: formData,
+    enabled: true,
+  });
 
   useEffect(() => {
     setSlug(slugify(title));
   }, [title]);
 
+  const validateForm = () => {
+    try {
+      episodeSchema.parse({
+        title,
+        slug,
+        season,
+        episode_number: episodeNumber,
+        description,
+        content,
+        status,
+        publish_date: publishDate,
+        duration,
+        image_url: imageUrl,
+        audio_url: audioUrl,
+      });
+      setValidationErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path.length > 0) {
+            errors[err.path[0] as string] = err.message;
+          }
+        });
+        setValidationErrors(errors);
+      }
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast({ title: 'Validation Error', description: 'Please fix the errors below', variant: 'destructive' });
+      return;
+    }
+    
     setLoading(true);
     try {
       // Create episode first
@@ -117,6 +173,10 @@ const NewEpisode = () => {
       }
 
       toast({ title: 'Episode Created', description: 'New episode has been created with all content.' });
+      
+      // Clear auto-save data
+      localStorage.removeItem('autosave_new-episode');
+      
       navigate('/admin');
     } catch (err) {
       console.error('Error creating episode:', err);
@@ -136,7 +196,20 @@ const NewEpisode = () => {
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Create New Episode</CardTitle>
+            <div className="flex justify-between items-center">
+              <CardTitle>Create New Episode</CardTitle>
+              <div className="flex items-center gap-4">
+                <AutoSaveIndicator lastSaved={lastSaved} isSaving={isSaving} />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowPreview(true)}
+                  disabled={!title}
+                >
+                  Preview
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -154,12 +227,14 @@ const NewEpisode = () => {
                   Title
                 </label>
                 <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                <FormFieldError error={validationErrors.title} />
               </div>
               <div>
                 <label htmlFor="slug" className="block text-sm font-medium mb-1">
                   Slug
                 </label>
                 <Input id="slug" value={slug} onChange={(e) => setSlug(e.target.value)} required />
+                <FormFieldError error={validationErrors.slug} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -295,6 +370,26 @@ const NewEpisode = () => {
             </form>
           </CardContent>
         </Card>
+
+        <PreviewModal
+          open={showPreview}
+          onOpenChange={setShowPreview}
+          episode={{
+            title,
+            description,
+            content,
+            season,
+            episode_number: episodeNumber,
+            publish_date: publishDate,
+            duration,
+            status,
+            image_url: imageUrl,
+            audio_url: audioUrl,
+          }}
+          showNotes={showNotes}
+          guests={guests}
+          platformLinks={platformLinks}
+        />
       </div>
     </div>
   );

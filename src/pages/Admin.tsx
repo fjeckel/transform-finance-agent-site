@@ -5,9 +5,12 @@ import { Plus, Edit, Trash2, Eye, Calendar, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { BulkActions } from '@/components/ui/bulk-actions';
+import { EpisodeListSkeleton, StatsSkeleton } from '@/components/ui/loading-skeleton';
 
 interface AdminEpisode {
   id: string;
@@ -23,6 +26,8 @@ interface AdminEpisode {
 const Admin = () => {
   const [episodes, setEpisodes] = useState<AdminEpisode[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedEpisodes, setSelectedEpisodes] = useState<string[]>([]);
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const { user, signOut } = useAuth();
   const { toast } = useToast();
 
@@ -88,14 +93,99 @@ const Admin = () => {
     }
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    setSelectedEpisodes(checked ? episodes.map(e => e.id) : []);
+  };
+
+  const handleSelectEpisode = (episodeId: string, checked: boolean) => {
+    setSelectedEpisodes(prev => 
+      checked 
+        ? [...prev, episodeId]
+        : prev.filter(id => id !== episodeId)
+    );
+  };
+
+  const handleBulkAction = async (action: string, episodeIds: string[]) => {
+    setBulkActionLoading(true);
+    try {
+      let updateData: any = {};
+      
+      switch (action) {
+        case 'publish':
+          updateData = { status: 'published' };
+          break;
+        case 'archive':
+          updateData = { status: 'archived' };
+          break;
+        case 'delete':
+          const { error: deleteError } = await supabase
+            .from('episodes')
+            .delete()
+            .in('id', episodeIds);
+          
+          if (deleteError) throw deleteError;
+          
+          toast({
+            title: 'Episodes Deleted',
+            description: `${episodeIds.length} episode${episodeIds.length > 1 ? 's' : ''} deleted successfully.`,
+          });
+          
+          setSelectedEpisodes([]);
+          fetchEpisodes();
+          return;
+        default:
+          return;
+      }
+
+      const { error } = await supabase
+        .from('episodes')
+        .update(updateData)
+        .in('id', episodeIds);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Episodes Updated',
+        description: `${episodeIds.length} episode${episodeIds.length > 1 ? 's' : ''} updated successfully.`,
+      });
+      
+      setSelectedEpisodes([]);
+      fetchEpisodes();
+    } catch (error) {
+      console.error('Bulk action error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to perform bulk action',
+        variant: 'destructive',
+      });
+    } finally {
+      setBulkActionLoading(false);
+    }
+  };
+
   const handleLogout = async () => {
     await signOut();
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#13B87B]"></div>
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-white border-b">
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-4">
+                <Link to="/" className="text-2xl font-bold text-gray-900">
+                  Finance Transformers
+                </Link>
+                <Badge variant="secondary">Admin</Badge>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <StatsSkeleton />
+          <EpisodeListSkeleton />
+        </div>
       </div>
     );
   }
@@ -185,25 +275,41 @@ const Admin = () => {
             </div>
           </CardHeader>
           <CardContent>
+            <BulkActions
+              selectedItems={selectedEpisodes}
+              allItems={episodes.map(e => e.id)}
+              onSelectAll={handleSelectAll}
+              onSelectItem={handleSelectEpisode}
+              onBulkAction={handleBulkAction}
+              disabled={bulkActionLoading}
+            />
+            
             <div className="space-y-4">
               {episodes.map((episode) => (
                 <div key={episode.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="font-medium">{episode.title}</h3>
-                      <Badge className={getStatusColor(episode.status)}>
-                        {episode.status}
-                      </Badge>
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      Season {episode.season}, Episode {episode.episode_number}
-                    </div>
-                    {episode.publish_date && (
-                      <div className="text-sm text-gray-500 flex items-center mt-1">
-                        <Calendar size={14} className="mr-1" />
-                        {new Date(episode.publish_date).toLocaleDateString()}
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      checked={selectedEpisodes.includes(episode.id)}
+                      onCheckedChange={(checked) => handleSelectEpisode(episode.id, !!checked)}
+                      disabled={bulkActionLoading}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <h3 className="font-medium">{episode.title}</h3>
+                        <Badge className={getStatusColor(episode.status)}>
+                          {episode.status}
+                        </Badge>
                       </div>
-                    )}
+                      <div className="text-sm text-gray-600">
+                        Season {episode.season}, Episode {episode.episode_number}
+                      </div>
+                      {episode.publish_date && (
+                        <div className="text-sm text-gray-500 flex items-center mt-1">
+                          <Calendar size={14} className="mr-1" />
+                          {new Date(episode.publish_date).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="flex space-x-2">
                     <Link to={`/episode?slug=${episode.slug}`}>
@@ -222,6 +328,7 @@ const Admin = () => {
                       variant="outline" 
                       size="sm"
                       onClick={() => handleDelete(episode.id, episode.title)}
+                      disabled={bulkActionLoading}
                     >
                       <Trash2 size={14} className="mr-1" />
                       Delete
