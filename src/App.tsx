@@ -57,7 +57,7 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/episode" element={<Episode />} />
+              <Route path="/episode/:slug" element={<Episode />} />
               <Route path="/episodes" element={<Episodes />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/legal" element={<Legal />} />

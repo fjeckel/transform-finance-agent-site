@@ -312,7 +312,7 @@ const Admin = () => {
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <Link to={`/episode?slug=${episode.slug}`}>
+                    <Link to={`/episode/${episode.slug}`}>
                       <Button variant="outline" size="sm">
                         <Eye size={14} className="mr-1" />
                         View
