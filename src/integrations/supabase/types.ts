@@ -90,6 +90,7 @@ export type Database = {
           image_url: string | null
           publish_date: string | null
           season: number | null
+          series: Database["public"]["Enums"]["podcast_series"] | null
           slug: string
           status: Database["public"]["Enums"]["episode_status"] | null
           title: string
@@ -108,6 +109,7 @@ export type Database = {
           image_url?: string | null
           publish_date?: string | null
           season?: number | null
+          series?: Database["public"]["Enums"]["podcast_series"] | null
           slug: string
           status?: Database["public"]["Enums"]["episode_status"] | null
           title: string
@@ -126,6 +128,7 @@ export type Database = {
           image_url?: string | null
           publish_date?: string | null
           season?: number | null
+          series?: Database["public"]["Enums"]["podcast_series"] | null
           slug?: string
           status?: Database["public"]["Enums"]["episode_status"] | null
           title?: string
@@ -314,6 +317,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "member" | "guest"
       episode_status: "draft" | "published" | "archived" | "scheduled"
+      podcast_series: "wtf" | "finance_transformers" | "cfo_memo"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -431,6 +435,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "member", "guest"],
       episode_status: ["draft", "published", "archived", "scheduled"],
+      podcast_series: ["wtf", "finance_transformers", "cfo_memo"],
     },
   },
 } as const

@@ -9,6 +9,7 @@ export const episodeSchema = z.object({
   description: z.string().max(1000, 'Description must be less than 1000 characters').optional(),
   content: z.string().max(10000, 'Content must be less than 10000 characters').optional(),
   status: z.enum(['draft', 'published', 'scheduled', 'archived']),
+  series: z.enum(['wtf', 'finance_transformers', 'cfo_memo']).default('wtf'),
   publish_date: z.string().optional(),
   duration: z.string().optional(),
   image_url: z.string().url('Invalid image URL').optional().or(z.literal('')),

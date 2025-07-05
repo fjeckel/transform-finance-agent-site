@@ -84,9 +84,7 @@ const Hero = () => {
         </div>
 
         <div className="mt-6 flex items-center justify-center space-x-3">
-          <img src="/placeholder.svg" alt="Credential" className="w-12 h-12" />
           <span className="text-white font-medium">Über 1.000 Zuhörer jede Woche!</span>
-
         </div>
       </div>
       

@@ -7,7 +7,7 @@ import WTFSection from '@/components/WTFSection';
 import FinanceTransformersSection from '@/components/FinanceTransformersSection';
 import TimTeuscherSection from '@/components/TimTeuscherSection';
 import FabianJeckelSection from '@/components/FabianJeckelSection';
-import SocialHandlesSection from '@/components/SocialHandlesSection';
+import SocialHandlesSection from '@/components/DynamicSocialHandlesSection';
 import Footer from '@/components/Footer';
 
 const Index = () => {

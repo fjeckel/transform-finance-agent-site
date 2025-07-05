@@ -81,3 +81,25 @@ export const StatsSkeleton = () => (
     ))}
   </div>
 );
+
+export const LoadingSkeleton = () => (
+  <div className="min-h-screen bg-gray-50 p-8">
+    <div className="max-w-4xl mx-auto">
+      <Skeleton className="h-8 w-48 mb-8" />
+      <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="grid lg:grid-cols-3 gap-8">
+          <Skeleton className="aspect-square w-full rounded-xl" />
+          <div className="lg:col-span-2 space-y-4">
+            <Skeleton className="h-6 w-24" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-20 w-full" />
+            <div className="flex space-x-4">
+              <Skeleton className="h-10 w-32" />
+              <Skeleton className="h-10 w-24" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
