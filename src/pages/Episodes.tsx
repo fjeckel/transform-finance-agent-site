@@ -131,10 +131,10 @@ const Episodes = () => {
                           </a>
                         ))
                       ) : (
-                        <Link to={`/episode`} className="flex-1">
+                        <Link to={`/episode/${episode.slug}`} className="flex-1">
                           <Button className="w-full bg-[#13B87B] hover:bg-[#0F9A6A] text-white">
                             <Play size={16} className="mr-2" />
-                            Anhören
+                            Zur Episode
                           </Button>
                         </Link>
                       )}
