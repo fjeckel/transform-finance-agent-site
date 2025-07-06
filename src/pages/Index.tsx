@@ -2,7 +2,6 @@
 import React from 'react';
 import Navigation from '@/components/Navigation';
 import Hero from '@/components/Hero';
-import BoringFormatsSection from '@/components/BoringFormatsSection';
 import WTFSection from '@/components/WTFSection';
 import FinanceTransformersSection from '@/components/FinanceTransformersSection';
 import TimTeuscherSection from '@/components/TimTeuscherSection';
@@ -22,7 +21,6 @@ const Index = () => {
         <Hero />
 
         {/* Langweilige Formate Section */}
-        <BoringFormatsSection />
 
         {/* WTF Section */}
         <WTFSection />
