@@ -1,11 +1,8 @@
-
 import React from 'react';
 import { ExternalLink, LinkedinIcon } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-
 const TimTeuscherSection = () => {
-  return (
-    <section id="tim-teuscher" className="py-20 bg-[#FBF4EB]">
+  return <section id="tim-teuscher" className="py-20 bg-[#FBF4EB]">
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="order-2 lg:order-1">
@@ -15,36 +12,18 @@ const TimTeuscherSection = () => {
             </h2>
             
             <div className="prose prose-lg text-gray-700 mb-8">
-              <p className="text-lg leading-relaxed">
-                Tim ist ein erfahrener Finance-Transformationsberater mit über 15 Jahren Erfahrung 
-                dabei, Fortune-500-Unternehmen bei der Modernisierung ihrer Finanzoperationen zu helfen. 
-                Als Gründer von Teuscher Consulting spezialisiert er sich auf digitale Finanzstrategie, 
-                Prozessautomatisierung und organisatorisches Change Management.
-              </p>
-              <p>
-                Sein provokanter Ansatz stellt traditionelles Finanzdenken in Frage und liefert 
-                gleichzeitig messbare Ergebnisse. Tim hat Transformationen in Unternehmen in ganz 
-                Europa und Nordamerika geleitet und sich als Thought Leader an der Schnittstelle 
-                von Finanzen und Technologie einen Namen gemacht.
-              </p>
+              <p className="text-lg leading-relaxed">Tim ist ein erfahrener Finance-Transformationsberater mit über 15 Jahren Erfahrung,, Fortune-500-Unternehmen bei der Modernisierung ihrer Finanzoperationen zu helfen. Als Gründer von Teuscher Consulting spezialisiert er sich auf digitale Finanzstrategie, Prozessautomatisierung und organisatorisches Change Management.
+            </p>
+              <p>Sein innovativer Ansatz stellt traditionelles Finanzdenken in Frage und liefert gleichzeitig messbare Ergebnisse. Tim hat Transformationsprozesse in Unternehmen in ganz Europa und Nordamerika geleitet und sich als Thought Leader an der Schnittstelle von Finanzen und Technologie einen Namen gemacht.
+            </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <a
-                href="https://teuscherconsulting.de"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center space-x-2 bg-[#003FA5] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#002080] transition-colors duration-300"
-              >
+              <a href="https://teuscherconsulting.de" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center space-x-2 bg-[#003FA5] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#002080] transition-colors duration-300">
                 <span>Website besuchen</span>
                 <ExternalLink size={16} />
               </a>
-              <a
-                href="https://www.linkedin.com/in/timteuscher1/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center space-x-2 border-2 border-[#0077B5] text-[#0077B5] px-6 py-3 rounded-lg font-bold hover:bg-[#0077B5] hover:text-white transition-all duration-300"
-              >
+              <a href="https://www.linkedin.com/in/timteuscher1/" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center space-x-2 border-2 border-[#0077B5] text-[#0077B5] px-6 py-3 rounded-lg font-bold hover:bg-[#0077B5] hover:text-white transition-all duration-300">
                 <LinkedinIcon size={16} />
                 <span>LinkedIn</span>
               </a>
@@ -65,8 +44,6 @@ const TimTeuscherSection = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default TimTeuscherSection;

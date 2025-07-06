@@ -1,10 +1,8 @@
 import React from 'react';
 import { LinkedinIcon } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-
 const FabianJeckelSection = () => {
-  return (
-    <section id="fabian-jeckel" className="py-20 bg-white">
+  return <section id="fabian-jeckel" className="py-20 bg-white">
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="order-1 lg:order-2">
@@ -25,15 +23,8 @@ const FabianJeckelSection = () => {
             </h2>
             
             <div className="prose prose-lg text-gray-700 mb-8">
-              <p className="text-lg leading-relaxed">Fabian ist &quot;der Mann zwischen Finance und Tech&quot; – als Presales Solution Consultant bei Workday bringt er komplexe Technologie-Lösungen und Finance-Anforderungen zusammen. 
-            </p>
-              <p>
-                Vom klassischen Controlling entwickelte sich Fabian zum "Digital Finance Craftsman". 
-                Seine Expertise liegt darin, internationale Software-Lösungen für Finance-Teams 
-                verständlich zu machen und dabei provokante Thesen ("Schlagbohrer ist kein Bohrhammer") 
-                mit gesundem Realitätssinn zu verbinden. Sein Faible für KI-Tools bringt er 
-                pragmatisch in den Corporate-Alltag ein.
-              </p>
+              <p className="text-lg leading-relaxed">Fabian ist &quot;der Mann zwischen Finance und Tech&quot; – als Presales Solution Consultant bei Workday bringt er komplexe Technologie-Lösungen und Finance-Anforderungen zusammen.</p>
+              <p>Vom klassischen Controlling entwickelte sich Fabian zum &quot;Digital Finance Craftsman&quot;. Seine Expertise liegt darin, internationale Software-Lösungen für Finance-Teams verständlich zu machen. Sein Faible für KI-Tools bringt er pragmatisch in den Corporate-Alltag mit ein.</p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
@@ -48,7 +39,6 @@ const FabianJeckelSection = () => {
           </div>
         </div>
         </div>
-      </section>
-    );
+      </section>;
 };
 export default FabianJeckelSection;
