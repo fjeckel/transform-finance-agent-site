@@ -174,7 +174,7 @@ const Admin = () => {
           <div className="max-w-7xl mx-auto px-4 py-4">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-4">
-                <Link to="/" className="text-2xl font-bold text-gray-900">
+                <Link to="/" className="text-2xl font-bold text-gray-900 font-cooper">
                   Finance Transformers
                 </Link>
                 <Badge variant="secondary">Admin</Badge>
@@ -197,7 +197,7 @@ const Admin = () => {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <Link to="/" className="text-2xl font-bold text-gray-900">
+              <Link to="/" className="text-2xl font-bold text-gray-900 font-cooper">
                 Finance Transformers
               </Link>
               <Badge variant="secondary">Admin</Badge>

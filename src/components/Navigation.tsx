@@ -53,7 +53,7 @@ const Navigation = () => {
             <div className="flex items-center justify-between">
               {/* Logo/Brand */}
               <div className="flex items-center">
-                <div className="text-xl font-bold text-gray-900">
+                <div className="text-xl font-bold text-gray-900 font-cooper">
                   Finance Transformers
                 </div>
               </div>
@@ -65,7 +65,7 @@ const Navigation = () => {
                     <li key={item.href}>
                       <button
                         onClick={() => handleNavClick(item)}
-                        className="text-xs font-bold text-gray-800 hover:text-[#13B87B] transition-colors duration-200 py-2 px-3 rounded hover:bg-gray-50 uppercase tracking-wide whitespace-nowrap"
+                        className="text-xs font-bold text-gray-800 hover:text-[#13B87B] transition-colors duration-200 py-2 px-3 rounded hover:bg-gray-50 uppercase tracking-wide whitespace-nowrap font-cooper"
                       >
                         {item.label}
                       </button>
@@ -110,7 +110,7 @@ const Navigation = () => {
         <div className={`bg-white/95 backdrop-blur-sm shadow-lg transition-all duration-300 ${isScrolled ? 'py-2' : 'py-4'}`}>
           <div className="flex justify-between items-center px-4">
             <div className="flex items-center">
-              <div className="text-lg font-bold text-gray-900">
+              <div className="text-lg font-bold text-gray-900 font-cooper">
                 Finance Transformers
               </div>
             </div>
@@ -130,7 +130,7 @@ const Navigation = () => {
                 <li key={item.href}>
                   <button
                     onClick={() => handleNavClick(item)}
-                    className="block w-full text-left text-sm font-bold text-gray-800 hover:text-[#13B87B] transition-colors duration-200 py-3 px-6 hover:bg-gray-50 uppercase tracking-wide"
+                    className="block w-full text-left text-sm font-bold text-gray-800 hover:text-[#13B87B] transition-colors duration-200 py-3 px-6 hover:bg-gray-50 uppercase tracking-wide font-cooper"
                   >
                     {item.label}
                   </button>
