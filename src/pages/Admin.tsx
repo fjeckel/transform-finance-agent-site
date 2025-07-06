@@ -266,12 +266,17 @@ const Admin = () => {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Episodes</CardTitle>
-              <Link to="/admin/episodes/new">
-                <Button className="bg-[#13B87B] hover:bg-[#0F9A6A]">
-                  <Plus size={16} className="mr-2" />
-                  New Episode
-                </Button>
-              </Link>
+              <div className="flex gap-2">
+                <Link to="/admin/episodes/new">
+                  <Button className="bg-[#13B87B] hover:bg-[#0F9A6A]">
+                    <Plus size={16} className="mr-2" />
+                    New Episode
+                  </Button>
+                </Link>
+                <Link to="/admin/episodes/upload">
+                  <Button variant="outline">Bulk Upload</Button>
+                </Link>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
