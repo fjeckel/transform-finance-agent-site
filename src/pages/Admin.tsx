@@ -19,8 +19,12 @@ interface AdminEpisode {
   season: number;
   episode_number: number;
   status: 'draft' | 'published' | 'archived' | 'scheduled';
+  series: 'wtf' | 'finance_transformers' | 'cfo_memo';
   publish_date: string;
   created_at: string;
+  duration: string | null;
+  guest_count?: number;
+  platform_count?: number;
 }
 
 const Admin = () => {
@@ -28,6 +32,7 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [selectedEpisodes, setSelectedEpisodes] = useState<string[]>([]);
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
+  const [seriesFilter, setSeriesFilter] = useState<string>('all');
   const { user, signOut } = useAuth();
   const { toast } = useToast();
 
@@ -39,11 +44,22 @@ const Admin = () => {
     try {
       const { data, error } = await supabase
         .from('episodes')
-        .select('id, title, slug, season, episode_number, status, publish_date, created_at')
+        .select(`
+          id, title, slug, season, episode_number, status, series, publish_date, created_at, duration,
+          episode_guests(count),
+          episode_platforms(count)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setEpisodes(data || []);
+      
+      const formattedEpisodes = (data || []).map(episode => ({
+        ...episode,
+        guest_count: episode.episode_guests?.[0]?.count || 0,
+        platform_count: episode.episode_platforms?.[0]?.count || 0
+      }));
+      
+      setEpisodes(formattedEpisodes);
     } catch (error) {
       console.error('Error fetching episodes:', error);
       toast({
@@ -65,6 +81,28 @@ const Admin = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const getSeriesColor = (series: string) => {
+    switch (series) {
+      case 'wtf': return 'bg-purple-100 text-purple-800';
+      case 'finance_transformers': return 'bg-blue-100 text-blue-800';
+      case 'cfo_memo': return 'bg-orange-100 text-orange-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getSeriesName = (series: string) => {
+    switch (series) {
+      case 'wtf': return 'WTF?!';
+      case 'finance_transformers': return 'Finance Transformers';
+      case 'cfo_memo': return 'CFO Memo';
+      default: return series;
+    }
+  };
+
+  const filteredEpisodes = episodes.filter(episode => 
+    seriesFilter === 'all' || episode.series === seriesFilter
+  );
 
   const handleDelete = async (episodeId: string, title: string) => {
     if (window.confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
@@ -217,13 +255,46 @@ const Admin = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Dashboard Stats */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="grid md:grid-cols-5 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">Total Episodes</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{episodes.length}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">WTF?!</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-600">
+                {episodes.filter(e => e.series === 'wtf').length}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Finance Transformers</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">
+                {episodes.filter(e => e.series === 'finance_transformers').length}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">CFO Memo</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-600">
+                {episodes.filter(e => e.series === 'cfo_memo').length}
+              </div>
             </CardContent>
           </Card>
           
@@ -237,35 +308,25 @@ const Admin = () => {
               </div>
             </CardContent>
           </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Drafts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-600">
-                {episodes.filter(e => e.status === 'draft').length}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Scheduled</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {episodes.filter(e => e.status === 'scheduled').length}
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Episodes Management */}
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>Episodes</CardTitle>
+              <div className="flex items-center gap-4">
+                <CardTitle>Episodes</CardTitle>
+                <select 
+                  value={seriesFilter} 
+                  onChange={(e) => setSeriesFilter(e.target.value)}
+                  className="px-3 py-1 border rounded-md text-sm"
+                >
+                  <option value="all">All Series</option>
+                  <option value="wtf">WTF?!</option>
+                  <option value="finance_transformers">Finance Transformers</option>
+                  <option value="cfo_memo">CFO Memo</option>
+                </select>
+              </div>
               <div className="flex gap-2">
                 <Link to="/admin/episodes/new">
                   <Button className="bg-[#13B87B] hover:bg-[#0F9A6A]">
@@ -274,7 +335,7 @@ const Admin = () => {
                   </Button>
                 </Link>
                 <Link to="/admin/episodes/upload">
-                  <Button variant="outline">Bulk Upload</Button>
+                  <Button variant="outline">Enhanced Bulk Upload</Button>
                 </Link>
               </div>
             </div>
@@ -282,7 +343,7 @@ const Admin = () => {
           <CardContent>
             <BulkActions
               selectedItems={selectedEpisodes}
-              allItems={episodes.map(e => e.id)}
+              allItems={filteredEpisodes.map(e => e.id)}
               onSelectAll={handleSelectAll}
               onSelectItem={handleSelectEpisode}
               onBulkAction={handleBulkAction}
@@ -290,7 +351,7 @@ const Admin = () => {
             />
             
             <div className="space-y-4">
-              {episodes.map((episode) => (
+              {filteredEpisodes.map((episode) => (
                 <div key={episode.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center space-x-3">
                     <Checkbox
@@ -301,12 +362,18 @@ const Admin = () => {
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
                         <h3 className="font-medium">{episode.title}</h3>
+                        <Badge className={getSeriesColor(episode.series)}>
+                          {getSeriesName(episode.series)}
+                        </Badge>
                         <Badge className={getStatusColor(episode.status)}>
                           {episode.status}
                         </Badge>
                       </div>
-                      <div className="text-sm text-gray-600">
-                        Season {episode.season}, Episode {episode.episode_number}
+                      <div className="text-sm text-gray-600 flex items-center gap-4">
+                        <span>Season {episode.season}, Episode {episode.episode_number}</span>
+                        {episode.duration && <span>Duration: {episode.duration}</span>}
+                        <span>Guests: {episode.guest_count || 0}</span>
+                        <span>Platforms: {episode.platform_count || 0}</span>
                       </div>
                       {episode.publish_date && (
                         <div className="text-sm text-gray-500 flex items-center mt-1">
@@ -341,6 +408,12 @@ const Admin = () => {
                   </div>
                 </div>
               ))}
+              
+              {filteredEpisodes.length === 0 && episodes.length > 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  No episodes found for the selected series.
+                </div>
+              )}
               
               {episodes.length === 0 && (
                 <div className="text-center py-8 text-gray-500">

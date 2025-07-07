@@ -12,6 +12,7 @@ interface PreviewModalProps {
     content?: string;
     season?: number;
     episode_number: number;
+    series?: string;
     publish_date?: string;
     duration?: string;
     status: string;

@@ -46,6 +46,7 @@ const NewEpisode = () => {
   const [content, setContent] = useState('');
   const [publishDate, setPublishDate] = useState('');
   const [status, setStatus] = useState<'draft' | 'published' | 'scheduled' | 'archived'>('draft');
+  const [series, setSeries] = useState<'wtf' | 'finance_transformers' | 'cfo_memo'>('finance_transformers');
   const [imageUrl, setImageUrl] = useState<string>('');
   const [audioUrl, setAudioUrl] = useState<string>('');
   const [duration, setDuration] = useState<string>('');
@@ -58,7 +59,7 @@ const NewEpisode = () => {
 
   // Auto-save functionality
   const formData = {
-    title, slug, season, episodeNumber, description, content, publishDate, status,
+    title, slug, season, episodeNumber, description, content, publishDate, status, series,
     imageUrl, audioUrl, duration, showNotes, guests, platformLinks
   };
   
@@ -82,6 +83,7 @@ const NewEpisode = () => {
         description,
         content,
         status,
+        series,
         publish_date: publishDate,
         duration,
         image_url: imageUrl,
@@ -123,6 +125,7 @@ const NewEpisode = () => {
           content,
           season,
           episode_number: episodeNumber,
+          series,
           publish_date: publishDate ? new Date(publishDate).toISOString() : null,
           status,
           image_url: imageUrl || null,
@@ -273,21 +276,38 @@ const NewEpisode = () => {
                   onChange={(e) => setPublishDate(e.target.value)}
                 />
               </div>
-              <div>
-                <label htmlFor="status" className="block text-sm font-medium mb-1">
-                  Status
-                </label>
-                <Select value={status} onValueChange={(v) => setStatus(v as any)}>
-                  <SelectTrigger id="status">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="published">Published</SelectItem>
-                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                    <SelectItem value="archived">Archived</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="series" className="block text-sm font-medium mb-1">
+                    Podcast Series
+                  </label>
+                  <Select value={series} onValueChange={(v) => setSeries(v as any)}>
+                    <SelectTrigger id="series">
+                      <SelectValue placeholder="Select series" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="wtf">WTF?!</SelectItem>
+                      <SelectItem value="finance_transformers">Finance Transformers</SelectItem>
+                      <SelectItem value="cfo_memo">CFO Memo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label htmlFor="status" className="block text-sm font-medium mb-1">
+                    Status
+                  </label>
+                  <Select value={status} onValueChange={(v) => setStatus(v as any)}>
+                    <SelectTrigger id="status">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="scheduled">Scheduled</SelectItem>
+                      <SelectItem value="archived">Archived</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div>
                 <label htmlFor="description" className="block text-sm font-medium mb-1">
@@ -380,6 +400,7 @@ const NewEpisode = () => {
             content,
             season,
             episode_number: episodeNumber,
+            series,
             publish_date: publishDate,
             duration,
             status,
