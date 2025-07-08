@@ -1,13 +1,46 @@
 
-import React from 'react';
-import { ArrowLeft, Play, Clock, Calendar, User } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ArrowLeft, Play, Clock, Calendar, User, Filter } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useEpisodes } from '@/hooks/useEpisodes';
 
 const Episodes = () => {
   const { episodes, loading, error } = useEpisodes();
+  const [selectedSeries, setSelectedSeries] = useState<string>('all');
+
+  const seriesOptions = [
+    { value: 'all', label: 'Alle Serien', count: episodes.length },
+    { value: 'wtf', label: 'WTF', count: episodes.filter(e => e.series === 'wtf').length },
+    { value: 'finance_transformers', label: 'Finance Transformers', count: episodes.filter(e => e.series === 'finance_transformers').length },
+    { value: 'cfo_memo', label: 'CFO Memo', count: episodes.filter(e => e.series === 'cfo_memo').length }
+  ];
+
+  const filteredEpisodes = useMemo(() => {
+    if (selectedSeries === 'all') return episodes;
+    return episodes.filter(episode => episode.series === selectedSeries);
+  }, [episodes, selectedSeries]);
+
+  const getSeriesBadgeColor = (series: string) => {
+    switch (series) {
+      case 'wtf': return 'bg-purple-500 text-white';
+      case 'finance_transformers': return 'bg-[#003FA5] text-white';
+      case 'cfo_memo': return 'bg-green-500 text-white';
+      default: return 'bg-gray-500 text-white';
+    }
+  };
+
+  const getSeriesDisplayName = (series: string) => {
+    switch (series) {
+      case 'wtf': return 'WTF';
+      case 'finance_transformers': return 'Finance Transformers';
+      case 'cfo_memo': return 'CFO Memo';
+      default: return series;
+    }
+  };
 
   if (loading) {
     return (
@@ -50,11 +83,24 @@ const Episodes = () => {
             Alle Episoden
           </h1>
           <p className="text-lg text-gray-600">
-            Entdecke alle Episoden von Finance Transformers mit Experten aus der Finanzwelt
+            Entdecke alle Episoden unserer Podcast-Serien: WTF, Finance Transformers und CFO Memo
           </p>
         </div>
 
-        {episodes.length === 0 ? (
+        {/* Series Filter */}
+        <div className="mb-8">
+          <Tabs value={selectedSeries} onValueChange={setSelectedSeries} className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              {seriesOptions.map((option) => (
+                <TabsTrigger key={option.value} value={option.value} className="text-sm">
+                  {option.label} ({option.count})
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        </div>
+
+        {filteredEpisodes.length === 0 ? (
           <div className="text-center py-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Keine Episoden verfügbar</h2>
             <p className="text-gray-600">
@@ -65,7 +111,7 @@ const Episodes = () => {
           <>
             {/* Episodes Grid */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {episodes.map((episode) => (
+              {filteredEpisodes.map((episode) => (
                 <Card key={episode.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
                   <div className="aspect-square overflow-hidden">
                     <img
@@ -76,10 +122,15 @@ const Episodes = () => {
                   </div>
                   
                   <CardHeader className="pb-3">
-                    <div className="mb-2">
-                      <span className="inline-block bg-[#003FA5] text-white px-2 py-1 rounded-full text-xs font-bold">
+                    <div className="mb-2 flex items-center space-x-2">
+                      <span className="inline-block bg-gray-700 text-white px-2 py-1 rounded-full text-xs font-bold">
                         S{episode.season}E{episode.episode_number}
                       </span>
+                      {episode.series && (
+                        <Badge className={`text-xs ${getSeriesBadgeColor(episode.series)}`}>
+                          {getSeriesDisplayName(episode.series)}
+                        </Badge>
+                      )}
                     </div>
                     
                     <CardTitle className="text-lg leading-tight mb-2">

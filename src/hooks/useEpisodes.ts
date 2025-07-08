@@ -15,6 +15,7 @@ export interface Episode {
   image_url: string;
   audio_url: string;
   status: 'draft' | 'published' | 'archived' | 'scheduled';
+  series?: 'wtf' | 'finance_transformers' | 'cfo_memo';
   guests: Array<{
     id: string;
     name: string;

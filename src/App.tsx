@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import AdminRoute from "./components/AdminRoute";
 import CookieConsent from "./components/CookieConsent";
 import Index from "./pages/Index";
-import Episode from "./pages/Episode";
+import DynamicEpisode from "./components/DynamicEpisode";
 import Episodes from "./pages/Episodes";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
@@ -58,7 +58,7 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/episode/:slug" element={<Episode />} />
+              <Route path="/episode/:slug" element={<DynamicEpisode />} />
               <Route path="/episodes" element={<Episodes />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/legal" element={<Legal />} />
