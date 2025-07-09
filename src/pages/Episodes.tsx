@@ -165,29 +165,32 @@ const Episodes = () => {
                       {episode.description}
                     </p>
                     
-                    <div className="flex space-x-2">
-                      {episode.platforms.length > 0 ? (
-                        episode.platforms.slice(0, 2).map((platform) => (
-                          <a
-                            key={platform.platform_name}
-                            href={platform.platform_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-1"
-                          >
-                            <Button className="w-full bg-[#13B87B] hover:bg-[#0F9A6A] text-white text-xs">
-                              <Play size={14} className="mr-1" />
-                              {platform.platform_name}
-                            </Button>
-                          </a>
-                        ))
-                      ) : (
-                        <Link to={`/episode/${episode.slug}`} className="flex-1">
-                          <Button className="w-full bg-[#13B87B] hover:bg-[#0F9A6A] text-white">
-                            <Play size={16} className="mr-2" />
-                            Zur Episode
-                          </Button>
-                        </Link>
+                    <div className="flex flex-col space-y-2">
+                      {/* Always show "View Episode" button */}
+                      <Link to={`/episode/${episode.slug}`} className="w-full">
+                        <Button className="w-full bg-[#13B87B] hover:bg-[#0F9A6A] text-white">
+                          <Play size={16} className="mr-2" />
+                          Episode ansehen
+                        </Button>
+                      </Link>
+                      
+                      {/* Show platform links if available */}
+                      {episode.platforms.length > 0 && (
+                        <div className="flex space-x-2">
+                          {episode.platforms.slice(0, 2).map((platform) => (
+                            <a
+                              key={platform.platform_name}
+                              href={platform.platform_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex-1"
+                            >
+                              <Button variant="outline" className="w-full text-xs">
+                                {platform.platform_name}
+                              </Button>
+                            </a>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </CardContent>
