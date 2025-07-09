@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ExternalLink, Play, Pause, Clock, Calendar, Download, Share2, Heart } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Play, Pause, Clock, Calendar, Download, Share2, Heart, Copy } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useEpisodeBySlug } from '@/hooks/useEpisodeBySlug';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { toast } from '@/hooks/use-toast';
 
 const DynamicEpisode = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -13,6 +14,20 @@ const DynamicEpisode = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
   const [showNotesSection, setShowNotesSection] = useState(true);
+
+  const handleCopyTranscript = async () => {
+    if (!episode?.transcript) return;
+    try {
+      await navigator.clipboard.writeText(episode.transcript);
+      toast({ title: 'Transkript kopiert' });
+    } catch (err) {
+      toast({
+        title: 'Kopieren fehlgeschlagen',
+        description: 'Bitte versuchen Sie es erneut.',
+        variant: 'destructive'
+      });
+    }
+  };
 
   if (isLoading) {
     return <LoadingSkeleton />;
@@ -254,25 +269,36 @@ const DynamicEpisode = () => {
         {episode.transcript && (
           <Card>
             <CardHeader>
-              <Collapsible open={showTranscript} onOpenChange={setShowTranscript}>
-                <CollapsibleTrigger className="w-full">
-                  <CardTitle className="flex items-center justify-between">
-                    Vollständiges Transkript
-                    <span className="text-sm font-normal">
-                      {showTranscript ? 'Ausblenden' : 'Anzeigen'}
-                    </span>
-                  </CardTitle>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <CardContent className="pt-4">
-                    <div className="bg-gray-50 rounded-lg p-6">
-                      <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-sans">
-                        {episode.transcript}
-                      </pre>
-                    </div>
-                  </CardContent>
-                </CollapsibleContent>
-              </Collapsible>
+              <div className="flex items-start justify-between">
+                <Collapsible open={showTranscript} onOpenChange={setShowTranscript} className="flex-1">
+                  <CollapsibleTrigger className="w-full">
+                    <CardTitle className="flex items-center justify-between">
+                      Vollständiges Transkript
+                      <span className="text-sm font-normal">
+                        {showTranscript ? 'Ausblenden' : 'Anzeigen'}
+                      </span>
+                    </CardTitle>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CardContent className="pt-4">
+                      <div className="bg-gray-50 rounded-lg p-6">
+                        <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-sans">
+                          {episode.transcript}
+                        </pre>
+                      </div>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyTranscript}
+                  className="ml-2 mt-1"
+                >
+                  <Copy size={14} className="mr-1" />
+                  Kopieren
+                </Button>
+              </div>
             </CardHeader>
           </Card>
         )}
@@ -280,5 +306,4 @@ const DynamicEpisode = () => {
     </div>
   );
 };
-
 export default DynamicEpisode;
