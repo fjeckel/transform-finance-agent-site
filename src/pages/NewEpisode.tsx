@@ -44,6 +44,7 @@ const NewEpisode = () => {
   const [episodeNumber, setEpisodeNumber] = useState(1);
   const [description, setDescription] = useState('');
   const [content, setContent] = useState('');
+  const [transcript, setTranscript] = useState('');
   const [publishDate, setPublishDate] = useState('');
   const [status, setStatus] = useState<'draft' | 'published' | 'scheduled' | 'archived'>('draft');
   const [series, setSeries] = useState<'wtf' | 'finance_transformers' | 'cfo_memo'>('finance_transformers');
@@ -59,7 +60,7 @@ const NewEpisode = () => {
 
   // Auto-save functionality
   const formData = {
-    title, slug, season, episodeNumber, description, content, publishDate, status, series,
+    title, slug, season, episodeNumber, description, content, transcript, publishDate, status, series,
     imageUrl, audioUrl, duration, showNotes, guests, platformLinks
   };
   
@@ -123,6 +124,7 @@ const NewEpisode = () => {
           slug,
           description,
           content,
+          transcript: transcript || null,
           season,
           episode_number: episodeNumber,
           series,
@@ -359,6 +361,18 @@ const NewEpisode = () => {
                       onChange={(e) => setContent(e.target.value)}
                       className="min-h-[120px]"
                       placeholder="Episode content, summary, and notes..."
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="transcript" className="block text-sm font-medium mb-1">
+                      Episode Transcript
+                    </label>
+                    <Textarea
+                      id="transcript"
+                      value={transcript}
+                      onChange={(e) => setTranscript(e.target.value)}
+                      className="min-h-[200px]"
+                      placeholder="Full episode transcript..."
                     />
                   </div>
                   <ShowNotesManager

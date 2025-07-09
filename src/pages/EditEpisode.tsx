@@ -46,6 +46,7 @@ const EditEpisode = () => {
   const [episodeNumber, setEpisodeNumber] = useState(1);
   const [description, setDescription] = useState('');
   const [content, setContent] = useState('');
+  const [transcript, setTranscript] = useState('');
   const [publishDate, setPublishDate] = useState('');
   const [status, setStatus] = useState<'draft' | 'published' | 'scheduled' | 'archived'>('draft');
   const [audioUrl, setAudioUrl] = useState('');
@@ -61,7 +62,7 @@ const EditEpisode = () => {
 
   // Auto-save functionality
   const formData = {
-    title, slug, season, episodeNumber, description, content, publishDate, status,
+    title, slug, season, episodeNumber, description, content, transcript, publishDate, status,
     audioUrl, imageUrl, duration, showNotes, guests, platformLinks
   };
   
@@ -117,6 +118,7 @@ const EditEpisode = () => {
         setEpisodeNumber(data.episode_number);
         setDescription(data.description || '');
         setContent(data.content || '');
+        setTranscript(data.transcript || '');
         setPublishDate(data.publish_date ? new Date(data.publish_date).toISOString().split('T')[0] : '');
         setStatus(data.status || 'draft');
         setAudioUrl(data.audio_url || '');
@@ -148,6 +150,7 @@ const EditEpisode = () => {
           slug,
           description,
           content,
+          transcript: transcript || null,
           season,
           episode_number: episodeNumber,
           publish_date: publishDate ? new Date(publishDate).toISOString() : null,
@@ -385,6 +388,18 @@ const EditEpisode = () => {
                       onChange={(e) => setContent(e.target.value)}
                       className="min-h-[120px]"
                       placeholder="Episode content, summary, and notes..."
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="transcript" className="block text-sm font-medium mb-1">
+                      Episode Transcript
+                    </label>
+                    <Textarea
+                      id="transcript"
+                      value={transcript}
+                      onChange={(e) => setTranscript(e.target.value)}
+                      className="min-h-[200px]"
+                      placeholder="Full episode transcript..."
                     />
                   </div>
                   <ShowNotesManager
