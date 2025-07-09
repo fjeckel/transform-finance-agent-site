@@ -9,19 +9,19 @@ export const useEpisodeBySlug = (slug: string) => {
         .from('episodes')
         .select(`
           *,
-          show_notes!inner(
+          show_notes!left(
             id,
             timestamp,
             title,
             content,
             sort_order
           ),
-          episode_platforms!inner(
+          episode_platforms!left(
             platform_name,
             platform_url
           ),
-          episode_guests!inner(
-            guests!inner(
+          episode_guests!left(
+            guests!left(
               id,
               name,
               bio,
@@ -48,12 +48,12 @@ export const useEpisodesBySeriesPublished = (series: 'wtf' | 'finance_transforme
         .from('episodes')
         .select(`
           *,
-          episode_platforms!inner(
+          episode_platforms!left(
             platform_name,
             platform_url
           ),
-          episode_guests!inner(
-            guests!inner(
+          episode_guests!left(
+            guests!left(
               id,
               name,
               bio,
