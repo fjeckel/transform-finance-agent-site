@@ -9,6 +9,8 @@ import FabianJeckelSection from '@/components/FabianJeckelSection';
 import SocialHandlesSection from '@/components/DynamicSocialHandlesSection';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
+import { LazyLoad } from '@/components/ui/lazy-load';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Index = () => {
   return (
@@ -25,20 +27,29 @@ const Index = () => {
         {/* Langweilige Formate Section */}
 
         {/* WTF Section */}
-        <WTFSection />
+        <LazyLoad fallback={<div className="h-96"><Skeleton className="h-full w-full" /></div>}>
+          <WTFSection />
+        </LazyLoad>
 
         {/* Finance Transformers Section */}
-        <FinanceTransformersSection />
+        <LazyLoad fallback={<div className="h-96"><Skeleton className="h-full w-full" /></div>}>
+          <FinanceTransformersSection />
+        </LazyLoad>
 
         {/* Tim Teuscher Section */}
-        <TimTeuscherSection />
+        <LazyLoad fallback={<div className="h-96"><Skeleton className="h-full w-full" /></div>}>
+          <TimTeuscherSection />
+        </LazyLoad>
 
         {/* Fabian Jeckel Section */}
-        <FabianJeckelSection />
-
+        <LazyLoad fallback={<div className="h-96"><Skeleton className="h-full w-full" /></div>}>
+          <FabianJeckelSection />
+        </LazyLoad>
 
         {/* Social Handles Section */}
-        <SocialHandlesSection />
+        <LazyLoad fallback={<div className="h-48"><Skeleton className="h-full w-full" /></div>}>
+          <SocialHandlesSection />
+        </LazyLoad>
 
         {/* Footer */}
         <Footer />

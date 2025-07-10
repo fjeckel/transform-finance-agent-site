@@ -9,6 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import AdminRoute from "./components/AdminRoute";
 import CookieConsent from "./components/CookieConsent";
 import ErrorBoundary from "./components/ui/error-boundary";
+import { useServiceWorker } from "./hooks/useServiceWorker";
+import { usePerformanceMonitoring } from "./hooks/usePerformanceMonitoring";
+import { NetworkIndicator } from "./components/ui/network-indicator";
 import Index from "./pages/Index";
 import DynamicEpisode from "./components/DynamicEpisode";
 import Episodes from "./pages/Episodes";
@@ -22,7 +25,15 @@ import Legal from "./pages/Legal";
 
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 2,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 
 const getCookie = (name: string) => {
@@ -31,6 +42,9 @@ const getCookie = (name: string) => {
 };
 
 const App = () => {
+  useServiceWorker();
+  const performanceMetrics = usePerformanceMonitoring();
+
   useEffect(() => {
     const logVisit = async () => {
       if (getCookie('cookieConsent')) {
@@ -49,8 +63,16 @@ const App = () => {
     logVisit();
   }, []);
 
+  // Log performance metrics in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && performanceMetrics) {
+      console.log('Performance Metrics:', performanceMetrics);
+    }
+  }, [performanceMetrics]);
+
   return (
     <ErrorBoundary>
+      <NetworkIndicator />
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <CookieConsent />
