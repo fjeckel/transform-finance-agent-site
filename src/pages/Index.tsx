@@ -8,10 +8,12 @@ import TimTeuscherSection from '@/components/TimTeuscherSection';
 import FabianJeckelSection from '@/components/FabianJeckelSection';
 import SocialHandlesSection from '@/components/DynamicSocialHandlesSection';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-white">
+      <SEOHead />
       {/* Navigation */}
       <Navigation />
 

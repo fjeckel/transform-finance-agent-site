@@ -35,6 +35,16 @@
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
+    
+    /* Brand colors */
+    --brand-primary: 151 65% 39%; /* #13B87B */
+    --brand-secondary: 221 91% 36%; /* #003FA5 */
+    --brand-gradient: linear-gradient(135deg, hsl(var(--brand-primary)), hsl(var(--brand-secondary)));
+    
+    /* Performance optimizations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-elevated: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
     --sidebar-background: 0 0% 98%;
 
@@ -99,5 +109,19 @@
 
   body {
     @apply bg-background text-foreground;
+    font-display: swap;
+  }
+  
+  /* Performance optimizations */
+  img {
+    @apply transition-opacity duration-300;
+  }
+  
+  img[loading="lazy"] {
+    opacity: 0;
+  }
+  
+  img[loading="lazy"].loaded {
+    opacity: 1;
   }
 }

@@ -8,6 +8,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import AdminRoute from "./components/AdminRoute";
 import CookieConsent from "./components/CookieConsent";
+import ErrorBoundary from "./components/ui/error-boundary";
 import Index from "./pages/Index";
 import DynamicEpisode from "./components/DynamicEpisode";
 import Episodes from "./pages/Episodes";
@@ -49,31 +50,33 @@ const App = () => {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <CookieConsent />
-        <Toaster />
-        <Sonner />
-        <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/episode/:slug" element={<DynamicEpisode />} />
-              <Route path="/episodes" element={<Episodes />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/legal" element={<Legal />} />
-              <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
-              <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
-              <Route path="/admin/episodes/new" element={<AdminRoute><NewEpisode /></AdminRoute>} />
-              <Route path="/admin/episodes/upload" element={<AdminRoute><BulkUploadEpisodes /></AdminRoute>} />
-              <Route path="/admin/episodes/:id/edit" element={<AdminRoute><EditEpisode /></AdminRoute>} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <CookieConsent />
+          <Toaster />
+          <Sonner />
+          <AuthProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/episode/:slug" element={<DynamicEpisode />} />
+                <Route path="/episodes" element={<Episodes />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/legal" element={<Legal />} />
+                <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+                <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
+                <Route path="/admin/episodes/new" element={<AdminRoute><NewEpisode /></AdminRoute>} />
+                <Route path="/admin/episodes/upload" element={<AdminRoute><BulkUploadEpisodes /></AdminRoute>} />
+                <Route path="/admin/episodes/:id/edit" element={<AdminRoute><EditEpisode /></AdminRoute>} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </AuthProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

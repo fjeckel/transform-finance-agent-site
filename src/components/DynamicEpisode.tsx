@@ -7,6 +7,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { useEpisodeBySlug } from '@/hooks/useEpisodeBySlug';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { toast } from '@/hooks/use-toast';
+import SEOHead from '@/components/SEOHead';
+import ImageWithFallback from '@/components/ui/image-with-fallback';
 
 const DynamicEpisode = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -61,6 +63,19 @@ const DynamicEpisode = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEOHead 
+        title={`${episode.title} | Finance Transformers`}
+        description={episode.description || `S${episode.season}E${episode.episode_number} - ${episode.title}`}
+        image={episode.image_url || '/img/wtf-cover.png'}
+        type="article"
+        episode={{
+          series: episode.series || 'wtf',
+          season: episode.season || 1,
+          episode: episode.episode_number,
+          duration: episode.duration || undefined,
+          publishDate: episode.publish_date || undefined
+        }}
+      />
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -76,10 +91,11 @@ const DynamicEpisode = () => {
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1">
-              <img
+              <ImageWithFallback
                 src={episode.image_url || '/placeholder.svg'}
                 alt={episode.title}
                 className="w-full aspect-square object-cover rounded-xl shadow-lg"
+                loading="eager"
               />
             </div>
             
@@ -196,7 +212,7 @@ const DynamicEpisode = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {guests.map((guest) => (
                   <div key={guest.id} className="flex items-center space-x-4">
-                    <img
+                    <ImageWithFallback
                       src={guest.image_url || '/placeholder.svg'}
                       alt={guest.name}
                       className="w-16 h-16 rounded-full object-cover"

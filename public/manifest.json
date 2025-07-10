@@ -1,0 +1,17 @@
+{
+  "name": "Finance Transformers",
+  "short_name": "FinanceTransformers",
+  "description": "Podcasts, die Finance auf links drehen",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#13B87B",
+  "icons": [
+    {
+      "src": "/img/wtf-cover.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
