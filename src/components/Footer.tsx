@@ -19,9 +19,9 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-lg mb-4 uppercase tracking-wide">Schnellzugriff</h3>
             <ul className="space-y-2">
-              <li><a href="#wtf" className="text-gray-400 hover:text-[#13B87B] transition-colors">WTF Podcast</a></li>
-              <li><a href="#finance-transformers" className="text-gray-400 hover:text-[#13B87B] transition-colors">Finance Transformers</a></li>
-              <li><a href="#social" className="text-gray-400 hover:text-[#13B87B] transition-colors">Social Media</a></li>
+              <li><a href="#wtf" className="text-gray-400 hover:text-primary transition-colors">WTF Podcast</a></li>
+              <li><a href="#finance-transformers" className="text-gray-400 hover:text-primary transition-colors">Finance Transformers</a></li>
+              <li><a href="#social" className="text-gray-400 hover:text-primary transition-colors">Social Media</a></li>
             </ul>
           </div>
           
@@ -34,7 +34,7 @@ const Footer = () => {
                   href="https://teuscherconsulting.de" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="hover:text-[#13B87B] transition-colors"
+                  className="hover:text-primary transition-colors"
                 >
                   teuscherconsulting.de
                 </a>
@@ -51,7 +51,7 @@ const Footer = () => {
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a
                 href="/legal"
-                className="text-gray-400 hover:text-[#13B87B] transition-colors text-sm"
+                className="text-gray-400 hover:text-primary transition-colors text-sm"
               >
                 Impressum &amp; Rechtliches
               </a>
