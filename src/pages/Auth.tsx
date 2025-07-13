@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Lock, User } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { SecureInput } from '@/components/ui/secure-input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { useSecureAuth } from '@/hooks/useSecureAuth';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,10 +14,9 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [loading, setLoading] = useState(false);
   
-  const { signIn, signUp, user } = useAuth();
-  const { toast } = useToast();
+  const { user } = useAuth();
+  const { secureSignIn, secureSignUp, isLoading } = useSecureAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,47 +27,11 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
-    try {
-      if (isLogin) {
-        const { error } = await signIn(email, password);
-        if (error) {
-          toast({
-            title: "Login Failed",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Welcome back!",
-            description: "You have been successfully logged in.",
-          });
-          navigate('/');
-        }
-      } else {
-        const { error } = await signUp(email, password, firstName, lastName);
-        if (error) {
-          toast({
-            title: "Sign Up Failed",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Account Created!",
-            description: "Please check your email to verify your account.",
-          });
-        }
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+    if (isLogin) {
+      await secureSignIn(email, password);
+    } else {
+      await secureSignUp(email, password, firstName, lastName);
     }
   };
 
@@ -100,82 +63,59 @@ const Auth = () => {
               {!isLogin && (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label htmlFor="firstName" className="text-sm font-medium text-gray-700">
-                      First Name
-                    </label>
-                    <div className="relative">
-                      <User size={16} className="absolute left-3 top-3 text-gray-400" />
-                      <Input
-                        id="firstName"
-                        type="text"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        className="pl-10"
-                        placeholder="John"
-                      />
-                    </div>
+                    <SecureInput
+                      id="firstName"
+                      type="text"
+                      label="First Name"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="John"
+                      maxLength={50}
+                    />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="lastName" className="text-sm font-medium text-gray-700">
-                      Last Name
-                    </label>
-                    <div className="relative">
-                      <User size={16} className="absolute left-3 top-3 text-gray-400" />
-                      <Input
-                        id="lastName"
-                        type="text"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        className="pl-10"
-                        placeholder="Doe"
-                      />
-                    </div>
+                    <SecureInput
+                      id="lastName"
+                      type="text"
+                      label="Last Name"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Doe"
+                      maxLength={50}
+                    />
                   </div>
                 </div>
               )}
 
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <div className="relative">
-                  <Mail size={16} className="absolute left-3 top-3 text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                    placeholder="john@example.com"
-                    required
-                  />
-                </div>
-              </div>
+              <SecureInput
+                id="email"
+                type="email"
+                label="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="john@example.com"
+                required
+                maxLength={254}
+              />
 
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock size={16} className="absolute left-3 top-3 text-gray-400" />
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
-                    placeholder="••••••••"
-                    required
-                  />
-                </div>
-              </div>
+              <SecureInput
+                id="password"
+                type="password"
+                label="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                showPasswordToggle
+                maxLength={128}
+              />
 
               <Button 
                 type="submit" 
-                className="w-full bg-[#13B87B] hover:bg-[#0F9A6A]"
-                disabled={loading}
+                className="w-full bg-primary hover:bg-primary/90"
+                disabled={isLoading}
               >
-                {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
+                {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
               </Button>
             </form>
 
