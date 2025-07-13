@@ -1,11 +1,10 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /auth
+
+# Sitemap
+Sitemap: https://finance-transformers.lovable.app/sitemap.xml
+
+# Crawl delay for politeness
+Crawl-delay: 1

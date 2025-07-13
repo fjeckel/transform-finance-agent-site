@@ -11,6 +11,7 @@ import CookieConsent from "./components/CookieConsent";
 import ErrorBoundary from "./components/ui/error-boundary";
 import { useServiceWorker } from "./hooks/useServiceWorker";
 import { usePerformanceMonitoring } from "./hooks/usePerformanceMonitoring";
+import { usePageTracking } from "./hooks/usePageTracking";
 import { NetworkIndicator } from "./components/ui/network-indicator";
 import Index from "./pages/Index";
 import DynamicEpisode from "./components/DynamicEpisode";
@@ -44,6 +45,7 @@ const getCookie = (name: string) => {
 const App = () => {
   useServiceWorker();
   const performanceMetrics = usePerformanceMonitoring();
+  usePageTracking();
 
   useEffect(() => {
     const logVisit = async () => {
