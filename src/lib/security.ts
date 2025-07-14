@@ -1,10 +1,10 @@
 // Security utilities and validation functions
-import DOMPurify from 'dompurify';
+import * as DOMPurify from 'dompurify';
 import { z } from 'zod';
 
 // Input sanitization
 export const sanitizeHtml = (html: string): string => {
-  return DOMPurify.sanitize(html, {
+  return DOMPurify.default.sanitize(html, {
     ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a'],
     ALLOWED_ATTR: ['href', 'target'],
     ALLOW_DATA_ATTR: false,
