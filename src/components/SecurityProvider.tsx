@@ -22,108 +22,22 @@ interface SecurityProviderProps {
 }
 
 export const SecurityProvider: React.FC<SecurityProviderProps> = ({ children }) => {
-  const [csrfToken, setCsrfToken] = useState(() => generateCSRFToken());
-  const [isSecureConnection] = useState(() => 
-    window.location.protocol === 'https:' || window.location.hostname === 'localhost'
-  );
+  const [csrfToken, setCsrfToken] = useState('');
+  const [isSecureConnection] = useState(true);
 
   const refreshCSRFToken = () => {
-    setCsrfToken(generateCSRFToken());
+    // Generate a simple token for now
+    const array = new Uint8Array(16);
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      crypto.getRandomValues(array);
+      setCsrfToken(Array.from(array, byte => byte.toString(16).padStart(2, '0')).join(''));
+    } else {
+      setCsrfToken(Math.random().toString(36).substring(2));
+    }
   };
 
   useEffect(() => {
-    // Apply security headers via meta tags (limited effectiveness, but better than nothing)
-    const addSecurityMeta = () => {
-      const headers = getSecurityHeaders();
-      
-      Object.entries(headers).forEach(([name, content]) => {
-        const existing = document.querySelector(`meta[http-equiv="${name}"]`);
-        if (!existing) {
-          const meta = document.createElement('meta');
-          meta.httpEquiv = name;
-          meta.content = content;
-          document.head.appendChild(meta);
-        }
-      });
-
-      // Add CSP meta tag
-      const existingCSP = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-      if (!existingCSP) {
-        const cspMeta = document.createElement('meta');
-        cspMeta.httpEquiv = 'Content-Security-Policy';
-        cspMeta.content = getCSPHeader();
-        document.head.appendChild(cspMeta);
-      }
-    };
-
-    addSecurityMeta();
-
-    // Refresh CSRF token periodically
-    const interval = setInterval(refreshCSRFToken, 30 * 60 * 1000); // 30 minutes
-
-    // Warn about insecure connections
-    if (!isSecureConnection && window.location.hostname !== 'localhost') {
-      console.warn('⚠️ Insecure connection detected. HTTPS recommended for production.');
-    }
-
-    // Disable right-click in production (optional security measure)
-    const handleContextMenu = (e: MouseEvent) => {
-      if (process.env.NODE_ENV === 'production') {
-        e.preventDefault();
-      }
-    };
-
-    // Disable certain key combinations
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (process.env.NODE_ENV === 'production') {
-        // Disable F12, Ctrl+Shift+I, Ctrl+U
-        if (
-          e.key === 'F12' ||
-          (e.ctrlKey && e.shiftKey && e.key === 'I') ||
-          (e.ctrlKey && e.key === 'u')
-        ) {
-          e.preventDefault();
-        }
-      }
-    };
-
-    if (process.env.NODE_ENV === 'production') {
-      document.addEventListener('contextmenu', handleContextMenu);
-      document.addEventListener('keydown', handleKeyDown);
-    }
-
-    return () => {
-      clearInterval(interval);
-      if (process.env.NODE_ENV === 'production') {
-        document.removeEventListener('contextmenu', handleContextMenu);
-        document.removeEventListener('keydown', handleKeyDown);
-      }
-    };
-  }, [isSecureConnection]);
-
-  // Add security event listeners
-  useEffect(() => {
-    // Detect potential XSS attempts
-    const handleBeforeUnload = () => {
-      // Clear sensitive data from memory
-      sessionStorage.clear();
-    };
-
-    // Monitor for suspicious activity
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        // App is hidden, could refresh CSRF token when it becomes visible again
-        refreshCSRFToken();
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
+    refreshCSRFToken();
   }, []);
 
   const value = {
