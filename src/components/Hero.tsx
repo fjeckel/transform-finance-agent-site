@@ -27,30 +27,60 @@ const Hero = () => {
     }
 
     const onReady = () => {
-      if (playerRef.current) {
-        if (isMuted) {
-          playerRef.current.mute();
+      try {
+        if (playerRef.current) {
+          if (isMuted) {
+            playerRef.current.mute();
+          }
+          playerRef.current.playVideo();
+          setIsLoading(false);
         }
-        playerRef.current.playVideo();
+      } catch (error) {
+        console.warn('YouTube player ready error:', error);
         setIsLoading(false);
       }
     };
 
+    const onError = () => {
+      console.warn('YouTube player error');
+      setIsLoading(false);
+    };
+
     const onYouTubeIframeAPIReady = () => {
-      playerRef.current = new (window as any).YT.Player('hero-video', {
-        events: { onReady }
-      });
+      try {
+        playerRef.current = new (window as any).YT.Player('hero-video', {
+          events: { onReady, onError }
+        });
+      } catch (error) {
+        console.warn('YouTube API initialization error:', error);
+        setIsLoading(false);
+      }
     };
 
     if (!(window as any).YT) {
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
+      tag.async = true;
+      tag.onerror = () => {
+        console.warn('Failed to load YouTube API script');
+        setIsLoading(false);
+      };
       document.body.appendChild(tag);
       (window as any).onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
     } else {
       onYouTubeIframeAPIReady();
     }
-  }, [isMobile, isMuted]);
+
+    // Fallback timeout
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        console.warn('YouTube video loading timeout');
+        setIsLoading(false);
+      }
+    }, 10000);
+
+    return () => clearTimeout(timeout);
+  }, [isMobile, isMuted, isLoading]);
 
   const toggleMute = () => {
     if (playerRef.current) {
