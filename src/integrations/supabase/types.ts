@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      downloadable_pdfs: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          download_count: number | null
+          file_size: number | null
+          file_url: string
+          id: string
+          is_public: boolean | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          download_count?: number | null
+          file_size?: number | null
+          file_url: string
+          id?: string
+          is_public?: boolean | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          download_count?: number | null
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          is_public?: boolean | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "downloadable_pdfs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       episode_guests: {
         Row: {
           created_at: string | null

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import OptimizedImage from '@/components/ui/optimized-image';
 
 const WTFSection = () => {
   const podcastLinks = [
@@ -83,7 +84,7 @@ const WTFSection = () => {
           <div className="order-1 lg:order-2 flex justify-center lg:justify-end animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
               <div className="card-interactive">
-                <img 
+                <OptimizedImage 
                   src="/img/wtf-cover.png" 
                   alt="WTF?! Podcast Cover" 
                   className="aspect-square w-full object-cover rounded-2xl shadow-large"
