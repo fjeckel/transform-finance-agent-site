@@ -75,7 +75,7 @@ const OptimizedImage = ({
       <img
         src={imgSrc}
         alt={alt}
-        className={cn("block w-full h-full object-cover", className)}
+        className={className || "block w-full h-full object-cover"}
         onError={handleSvgError}
         onLoad={handleSvgLoad}
         loading={priority ? 'eager' : loading}
