@@ -7,7 +7,6 @@ import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 const FinanceTransformersSection = () => {
   const [currentEpisode, setCurrentEpisode] = useState(0);
   const { data: episodes, isLoading } = useEpisodesBySeriesPublished('finance_transformers', 3);
-  const touchStartX = useRef<number | null>(null);
 
   if (isLoading) {
     return <LoadingSkeleton />;
@@ -47,6 +46,7 @@ const FinanceTransformersSection = () => {
   const platformLinks = currentEp?.episode_platforms || [];
   const spotifyLink = platformLinks.find(p => p.platform_name.toLowerCase().includes('spotify'))?.platform_url;
   const appleLink = platformLinks.find(p => p.platform_name.toLowerCase().includes('apple'))?.platform_url;
+  const touchStartX = useRef<number | null>(null);
   const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
     touchStartX.current = event.touches[0].clientX;
   };

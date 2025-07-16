@@ -6,16 +6,12 @@ interface SEOHeadProps {
   image?: string;
   url?: string;
   type?: string;
-  keywords?: string;
-  author?: string;
   episode?: {
     series: string;
     season: number;
     episode: number;
     duration?: string;
     publishDate?: string;
-    audioUrl?: string;
-    guests?: string[];
   };
 }
 
@@ -25,8 +21,6 @@ const SEOHead = ({
   image = "/img/wtf-cover.png",
   url = window.location.href,
   type = "website",
-  keywords = "Finance, Transformation, Podcast, CFO, Controller, Digitalisierung, Innovation",
-  author = "Finance Transformers",
   episode
 }: SEOHeadProps) => {
   
@@ -53,13 +47,7 @@ const SEOHead = ({
 
     // Update basic meta tags
     updateMetaTag('description', description);
-    updateMetaTag('author', author);
-    updateMetaTag('keywords', keywords);
-    updateMetaTag('robots', 'index, follow');
-    updateMetaTag('language', 'de');
-    
-    // Canonical URL
-    updateMetaTag('canonical', url);
+    updateMetaTag('author', 'Finance Transformers');
     
     // Update Open Graph tags
     updateMetaTag('og:title', title, true);
@@ -85,39 +73,14 @@ const SEOHead = ({
         "partOfSeries": {
           "@type": "PodcastSeries",
           "name": `Finance Transformers - ${episode.series.toUpperCase()}`,
-          "url": window.location.origin,
-          "author": {
-            "@type": "Organization",
-            "name": "Finance Transformers"
-          }
+          "url": window.location.origin
         },
         "episodeNumber": episode.episode,
         "seasonNumber": episode.season,
         "datePublished": episode.publishDate,
         "duration": episode.duration,
         "image": image.startsWith('http') ? image : `${window.location.origin}${image}`,
-        "url": url,
-        "creator": {
-          "@type": "Organization",
-          "name": "Finance Transformers"
-        },
-        "publisher": {
-          "@type": "Organization",
-          "name": "Finance Transformers"
-        },
-        ...(episode.audioUrl && {
-          "associatedMedia": {
-            "@type": "MediaObject",
-            "contentUrl": episode.audioUrl,
-            "encodingFormat": "audio/mpeg"
-          }
-        }),
-        ...(episode.guests && episode.guests.length > 0 && {
-          "actor": episode.guests.map(guest => ({
-            "@type": "Person",
-            "name": guest
-          }))
-        })
+        "url": url
       };
 
       // Remove existing structured data
@@ -133,7 +96,7 @@ const SEOHead = ({
       document.head.appendChild(script);
     }
     
-  }, [title, description, image, url, type, keywords, author, episode]);
+  }, [title, description, image, url, type, episode]);
 
   return null;
 };

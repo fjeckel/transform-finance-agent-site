@@ -1,19 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Edit, Trash2, Eye, Calendar, Users, FileText, BarChart3, Settings } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Calendar, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { BulkActions } from '@/components/ui/bulk-actions';
 import { EpisodeListSkeleton, StatsSkeleton } from '@/components/ui/loading-skeleton';
-import PDFManager from '@/components/ui/pdf-manager';
-import { FaviconManager } from '@/components/ui/favicon-manager';
 
 interface AdminEpisode {
   id: string;
@@ -313,170 +310,119 @@ const Admin = () => {
           </Card>
         </div>
 
-        {/* Content Management */}
-        <Tabs defaultValue="episodes" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="episodes" className="flex items-center gap-2">
-              <Calendar size={16} />
-              Episodes
-            </TabsTrigger>
-            <TabsTrigger value="pdfs" className="flex items-center gap-2">
-              <FileText size={16} />
-              PDFs
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings size={16} />
-              Einstellungen
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart3 size={16} />
-              Analytics
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="episodes" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-4">
-                    <CardTitle>Episodes</CardTitle>
-                    <select 
-                      value={seriesFilter} 
-                      onChange={(e) => setSeriesFilter(e.target.value)}
-                      className="px-3 py-1 border rounded-md text-sm"
-                    >
-                      <option value="all">All Series</option>
-                      <option value="wtf">WTF?!</option>
-                      <option value="finance_transformers">Finance Transformers</option>
-                      <option value="cfo_memo">CFO Memo</option>
-                    </select>
+        {/* Episodes Management */}
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <CardTitle>Episodes</CardTitle>
+                <select 
+                  value={seriesFilter} 
+                  onChange={(e) => setSeriesFilter(e.target.value)}
+                  className="px-3 py-1 border rounded-md text-sm"
+                >
+                  <option value="all">All Series</option>
+                  <option value="wtf">WTF?!</option>
+                  <option value="finance_transformers">Finance Transformers</option>
+                  <option value="cfo_memo">CFO Memo</option>
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <Link to="/admin/episodes/new">
+                  <Button className="bg-[#13B87B] hover:bg-[#0F9A6A]">
+                    <Plus size={16} className="mr-2" />
+                    New Episode
+                  </Button>
+                </Link>
+                <Link to="/admin/episodes/upload">
+                  <Button variant="outline">Enhanced Bulk Upload</Button>
+                </Link>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <BulkActions
+              selectedItems={selectedEpisodes}
+              allItems={filteredEpisodes.map(e => e.id)}
+              onSelectAll={handleSelectAll}
+              onSelectItem={handleSelectEpisode}
+              onBulkAction={handleBulkAction}
+              disabled={bulkActionLoading}
+            />
+            
+            <div className="space-y-4">
+              {filteredEpisodes.map((episode) => (
+                <div key={episode.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      checked={selectedEpisodes.includes(episode.id)}
+                      onCheckedChange={(checked) => handleSelectEpisode(episode.id, !!checked)}
+                      disabled={bulkActionLoading}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <h3 className="font-medium">{episode.title}</h3>
+                        <Badge className={getSeriesColor(episode.series)}>
+                          {getSeriesName(episode.series)}
+                        </Badge>
+                        <Badge className={getStatusColor(episode.status)}>
+                          {episode.status}
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-gray-600 flex items-center gap-4">
+                        <span>Season {episode.season}, Episode {episode.episode_number}</span>
+                        {episode.duration && <span>Duration: {episode.duration}</span>}
+                        <span>Guests: {episode.guest_count || 0}</span>
+                        <span>Platforms: {episode.platform_count || 0}</span>
+                      </div>
+                      {episode.publish_date && (
+                        <div className="text-sm text-gray-500 flex items-center mt-1">
+                          <Calendar size={14} className="mr-1" />
+                          {new Date(episode.publish_date).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Link to="/admin/episodes/new">
-                      <Button className="bg-[#13B87B] hover:bg-[#0F9A6A]">
-                        <Plus size={16} className="mr-2" />
-                        New Episode
+                  <div className="flex space-x-2">
+                    <Link to={`/episode/${episode.slug}`}>
+                      <Button variant="outline" size="sm">
+                        <Eye size={14} className="mr-1" />
+                        View
                       </Button>
                     </Link>
-                    <Link to="/admin/episodes/upload">
-                      <Button variant="outline">Enhanced Bulk Upload</Button>
+                    <Link to={`/admin/episodes/${episode.id}/edit`}>
+                      <Button variant="outline" size="sm">
+                        <Edit size={14} className="mr-1" />
+                        Edit
+                      </Button>
                     </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleDelete(episode.id, episode.title)}
+                      disabled={bulkActionLoading}
+                    >
+                      <Trash2 size={14} className="mr-1" />
+                      Delete
+                    </Button>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <BulkActions
-                  selectedItems={selectedEpisodes}
-                  allItems={filteredEpisodes.map(e => e.id)}
-                  onSelectAll={handleSelectAll}
-                  onSelectItem={handleSelectEpisode}
-                  onBulkAction={handleBulkAction}
-                  disabled={bulkActionLoading}
-                />
-                
-                <div className="space-y-4">
-                  {filteredEpisodes.map((episode) => (
-                    <div key={episode.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <Checkbox
-                          checked={selectedEpisodes.includes(episode.id)}
-                          onCheckedChange={(checked) => handleSelectEpisode(episode.id, !!checked)}
-                          disabled={bulkActionLoading}
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="font-medium">{episode.title}</h3>
-                            <Badge className={getSeriesColor(episode.series)}>
-                              {getSeriesName(episode.series)}
-                            </Badge>
-                            <Badge className={getStatusColor(episode.status)}>
-                              {episode.status}
-                            </Badge>
-                          </div>
-                          <div className="text-sm text-gray-600 flex items-center gap-4">
-                            <span>Season {episode.season}, Episode {episode.episode_number}</span>
-                            {episode.duration && <span>Duration: {episode.duration}</span>}
-                            <span>Guests: {episode.guest_count || 0}</span>
-                            <span>Platforms: {episode.platform_count || 0}</span>
-                          </div>
-                          {episode.publish_date && (
-                            <div className="text-sm text-gray-500 flex items-center mt-1">
-                              <Calendar size={14} className="mr-1" />
-                              {new Date(episode.publish_date).toLocaleDateString()}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Link to={`/episode/${episode.slug}`}>
-                          <Button variant="outline" size="sm">
-                            <Eye size={14} className="mr-1" />
-                            View
-                          </Button>
-                        </Link>
-                        <Link to={`/admin/episodes/${episode.id}/edit`}>
-                          <Button variant="outline" size="sm">
-                            <Edit size={14} className="mr-1" />
-                            Edit
-                          </Button>
-                        </Link>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDelete(episode.id, episode.title)}
-                          disabled={bulkActionLoading}
-                        >
-                          <Trash2 size={14} className="mr-1" />
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {filteredEpisodes.length === 0 && episodes.length > 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      No episodes found for the selected series.
-                    </div>
-                  )}
-                  
-                  {episodes.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      No episodes yet. Create your first episode to get started.
-                    </div>
-                  )}
+              ))}
+              
+              {filteredEpisodes.length === 0 && episodes.length > 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  No episodes found for the selected series.
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="pdfs" className="space-y-4">
-            <Card>
-              <CardContent className="p-6">
-                <PDFManager />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="settings" className="space-y-4">
-            <div className="space-y-6">
-              <FaviconManager />
+              )}
+              
+              {episodes.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  No episodes yet. Create your first episode to get started.
+                </div>
+              )}
             </div>
-          </TabsContent>
-          
-          <TabsContent value="analytics" className="space-y-4">
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center py-8">
-                  <BarChart3 size={48} className="mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-500">Analytics dashboard coming soon.</p>
-                  <p className="text-sm text-gray-400 mt-2">
-                    This section will show detailed analytics for episodes and PDF downloads.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

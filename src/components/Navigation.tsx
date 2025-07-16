@@ -5,7 +5,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 
-
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -23,7 +22,7 @@ const Navigation = () => {
   const navItems = [
     { label: 'WTF?! WARUM FINANCE TRANSFORMIEREN', href: '#wtf', type: 'section' },
     { label: 'FINANCE TRANSFORMERS', href: '#finance-transformers', type: 'section' },
-    { label: 'ALLE INHALTE', href: '/episodes', type: 'route' },
+    { label: 'ALLE EPISODEN', href: '/episodes', type: 'route' },
   ];
 
   const handleNavClick = (item: typeof navItems[0]) => {
@@ -66,14 +65,14 @@ const Navigation = () => {
                     <li key={item.href}>
                       <button
                         onClick={() => handleNavClick(item)}
-                        className="text-xs font-bold text-foreground hover:text-primary transition-colors duration-200 py-2 px-3 rounded hover:bg-muted uppercase tracking-wide whitespace-nowrap font-cooper"
+                        className="text-xs font-bold text-gray-800 hover:text-[#13B87B] transition-colors duration-200 py-2 px-3 rounded hover:bg-gray-50 uppercase tracking-wide whitespace-nowrap font-cooper"
                       >
                         {item.label}
                       </button>
                     </li>
                   ))}
                 </ul>
-
+                
                 {/* Auth Section */}
                 <div className="flex items-center space-x-4 border-l border-gray-200 pl-6">
                   {user ? (
@@ -117,7 +116,7 @@ const Navigation = () => {
             </div>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 text-gray-800 hover:text-primary transition-colors"
+              className="p-2 text-gray-800 hover:text-[#13B87B] transition-colors"
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -127,18 +126,16 @@ const Navigation = () => {
         {isOpen && (
           <div className="bg-white/95 backdrop-blur-sm shadow-lg">
             <ul className="py-4">
-
               {navItems.map((item) => (
                 <li key={item.href}>
                   <button
                     onClick={() => handleNavClick(item)}
-                    className="block w-full text-left text-sm font-bold text-foreground hover:text-primary transition-colors duration-200 py-3 px-6 hover:bg-muted uppercase tracking-wide font-cooper"
+                    className="block w-full text-left text-sm font-bold text-gray-800 hover:text-[#13B87B] transition-colors duration-200 py-3 px-6 hover:bg-gray-50 uppercase tracking-wide font-cooper"
                   >
                     {item.label}
                   </button>
                 </li>
               ))}
-
               
               {/* Mobile Auth Section */}
               <li className="border-t border-gray-200 mt-4 pt-4">
