@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, LogIn, Settings, Languages } from 'lucide-react';
+import { Menu, X, LogIn, Settings } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import GoogleTranslate from './GoogleTranslate';
+
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -74,10 +74,6 @@ const Navigation = () => {
                   ))}
                 </ul>
 
-                <div className="flex items-center space-x-2">
-                  <Languages size={16} />
-                  <GoogleTranslate />
-                </div>
                 {/* Auth Section */}
                 <div className="flex items-center space-x-4 border-l border-gray-200 pl-6">
                   {user ? (
@@ -143,10 +139,6 @@ const Navigation = () => {
                 </li>
               ))}
 
-              <li className="px-6 py-2 flex items-center space-x-2">
-                <Languages size={16} />
-                <GoogleTranslate />
-              </li>
               
               {/* Mobile Auth Section */}
               <li className="border-t border-gray-200 mt-4 pt-4">
