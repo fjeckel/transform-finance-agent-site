@@ -42,8 +42,8 @@ const OptimizedImage = ({
     setIsLoaded(true);
   };
 
-  // Check if the image is an SVG file
-  const isSvg = imgSrc.toLowerCase().includes('.svg') || imgSrc.toLowerCase().includes('svg');
+  // For Supabase storage URLs, treat all images as regular images since we can't determine file type from URL
+  const isSvg = false;
 
   if (hasError) {
     return (
