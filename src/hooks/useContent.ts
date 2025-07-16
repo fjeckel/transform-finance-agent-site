@@ -67,6 +67,7 @@ export const useContent = () => {
         title: pdf.title,
         type: 'pdf' as const,
         description: pdf.description,
+        image_url: pdf.image_url,
         file_url: pdf.file_url,
         created_at: pdf.created_at,
         is_public: pdf.is_public,

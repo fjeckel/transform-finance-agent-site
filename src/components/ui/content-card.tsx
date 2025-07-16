@@ -108,45 +108,59 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item }) => {
   // PDF Card
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-      <CardHeader>
-        <div className="flex items-start justify-between mb-2">
-          <Badge variant="outline" className="flex items-center space-x-1">
-            <FileText className="h-3 w-3" />
-            <span>PDF</span>
-          </Badge>
-        </div>
-        <CardTitle className="text-xl leading-tight">
-          {item.title}
-        </CardTitle>
-        {item.description && (
-          <CardDescription className="line-clamp-2">
-            {item.description}
-          </CardDescription>
-        )}
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-            <span>{formatDate(item.created_at)}</span>
-            {item.file_size && (
-              <span>{formatFileSize(item.file_size)}</span>
-            )}
-            {item.download_count !== undefined && (
-              <span>{item.download_count} Downloads</span>
-            )}
+      <div className="md:flex">
+        {item.image_url && (
+          <div className="md:w-48 md:flex-shrink-0">
+            <OptimizedImage
+              src={item.image_url}
+              alt={item.title}
+              className="h-48 w-full object-cover md:h-full"
+              sizes="(max-width: 768px) 100vw, 192px"
+            />
           </div>
-          {item.file_url && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => window.open(item.file_url, '_blank')}
-            >
-              Download
-              <Download className="ml-2 h-4 w-4" />
-            </Button>
-          )}
+        )}
+        <div className="flex-1">
+          <CardHeader>
+            <div className="flex items-start justify-between mb-2">
+              <Badge variant="outline" className="flex items-center space-x-1">
+                <FileText className="h-3 w-3" />
+                <span>PDF</span>
+              </Badge>
+            </div>
+            <CardTitle className="text-xl leading-tight">
+              {item.title}
+            </CardTitle>
+            {item.description && (
+              <CardDescription className="line-clamp-2">
+                {item.description}
+              </CardDescription>
+            )}
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                <span>{formatDate(item.created_at)}</span>
+                {item.file_size && (
+                  <span>{formatFileSize(item.file_size)}</span>
+                )}
+                {item.download_count !== undefined && (
+                  <span>{item.download_count} Downloads</span>
+                )}
+              </div>
+              {item.file_url && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.open(item.file_url, '_blank')}
+                >
+                  Download
+                  <Download className="ml-2 h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </CardContent>
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 };

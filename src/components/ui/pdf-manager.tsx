@@ -15,6 +15,7 @@ interface PDF {
   title: string;
   description: string | null;
   file_url: string;
+  image_url?: string | null;
   file_size: number | null;
   download_count: number;
   is_public: boolean;
@@ -27,6 +28,7 @@ interface PDFFormData {
   description: string;
   is_public: boolean;
   file: File | null;
+  image: File | null;
 }
 
 const PDFManager = () => {
@@ -41,7 +43,8 @@ const PDFManager = () => {
     title: '',
     description: '',
     is_public: true,
-    file: null
+    file: null,
+    image: null
   });
 
   useEffect(() => {
@@ -92,16 +95,40 @@ const PDFManager = () => {
     }
   };
 
-  const uploadFile = async (file: File): Promise<string> => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid File",
+          description: "Please select an image file",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit for images
+        toast({
+          title: "File Too Large",
+          description: "Image must be less than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setFormData(prev => ({ ...prev, image: file }));
+    }
+  };
+
+  const uploadFile = async (file: File, isImage = false): Promise<string> => {
     const fileName = `${Date.now()}-${file.name}`;
+    const bucket = isImage ? 'pdf-downloads' : 'pdf-downloads';
     const { data, error } = await supabase.storage
-      .from('pdf-downloads')
+      .from(bucket)
       .upload(fileName, file);
 
     if (error) throw error;
     
     const { data: { publicUrl } } = supabase.storage
-      .from('pdf-downloads')
+      .from(bucket)
       .getPublicUrl(fileName);
     
     return publicUrl;
@@ -115,16 +142,22 @@ const PDFManager = () => {
     try {
       let fileUrl = editingPdf?.file_url || '';
       let fileSize = editingPdf?.file_size || null;
+      let imageUrl = editingPdf?.image_url || null;
 
       if (formData.file) {
-        fileUrl = await uploadFile(formData.file);
+        fileUrl = await uploadFile(formData.file, false);
         fileSize = formData.file.size;
+      }
+
+      if (formData.image) {
+        imageUrl = await uploadFile(formData.image, true);
       }
 
       const pdfData = {
         title: formData.title,
         description: formData.description || null,
         file_url: fileUrl,
+        image_url: imageUrl,
         file_size: fileSize,
         is_public: formData.is_public,
         ...(editingPdf ? {} : { created_by: (await supabase.auth.getUser()).data.user?.id })
@@ -153,7 +186,7 @@ const PDFManager = () => {
 
       setIsDialogOpen(false);
       setEditingPdf(null);
-      setFormData({ title: '', description: '', is_public: true, file: null });
+      setFormData({ title: '', description: '', is_public: true, file: null, image: null });
       fetchPDFs();
     } catch (error) {
       console.error('Error saving PDF:', error);
@@ -173,7 +206,8 @@ const PDFManager = () => {
       title: pdf.title,
       description: pdf.description || '',
       is_public: pdf.is_public,
-      file: null
+      file: null,
+      image: null
     });
     setIsDialogOpen(true);
   };
@@ -265,6 +299,16 @@ const PDFManager = () => {
               </div>
 
               <div>
+                <Label htmlFor="image">Cover Image {editingPdf && '(leave empty to keep current image)'}</Label>
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+              </div>
+
+              <div>
                 <Label htmlFor="file">PDF File {editingPdf && '(leave empty to keep current file)'}</Label>
                 <Input
                   id="file"
@@ -282,7 +326,7 @@ const PDFManager = () => {
                   onClick={() => {
                     setIsDialogOpen(false);
                     setEditingPdf(null);
-                    setFormData({ title: '', description: '', is_public: true, file: null });
+                    setFormData({ title: '', description: '', is_public: true, file: null, image: null });
                   }}
                 >
                   Cancel
