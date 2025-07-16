@@ -23,7 +23,7 @@ const Navigation = () => {
   const navItems = [
     { label: 'WTF?! WARUM FINANCE TRANSFORMIEREN', href: '#wtf', type: 'section' },
     { label: 'FINANCE TRANSFORMERS', href: '#finance-transformers', type: 'section' },
-    { label: 'ALLE EPISODEN', href: '/episodes', type: 'route' },
+    { label: 'ALLE INHALTE', href: '/episodes', type: 'route' },
   ];
 
   const handleNavClick = (item: typeof navItems[0]) => {

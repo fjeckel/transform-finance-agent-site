@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Edit, Trash2, Eye, Calendar, Users, FileText, BarChart3 } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Calendar, Users, FileText, BarChart3, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { BulkActions } from '@/components/ui/bulk-actions';
 import { EpisodeListSkeleton, StatsSkeleton } from '@/components/ui/loading-skeleton';
 import PDFManager from '@/components/ui/pdf-manager';
+import { FaviconManager } from '@/components/ui/favicon-manager';
 
 interface AdminEpisode {
   id: string;
@@ -314,7 +315,7 @@ const Admin = () => {
 
         {/* Content Management */}
         <Tabs defaultValue="episodes" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="episodes" className="flex items-center gap-2">
               <Calendar size={16} />
               Episodes
@@ -322,6 +323,10 @@ const Admin = () => {
             <TabsTrigger value="pdfs" className="flex items-center gap-2">
               <FileText size={16} />
               PDFs
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings size={16} />
+              Einstellungen
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 size={16} />
@@ -450,6 +455,12 @@ const Admin = () => {
                 <PDFManager />
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          <TabsContent value="settings" className="space-y-4">
+            <div className="space-y-6">
+              <FaviconManager />
+            </div>
           </TabsContent>
           
           <TabsContent value="analytics" className="space-y-4">
