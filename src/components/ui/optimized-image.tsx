@@ -90,7 +90,7 @@ const OptimizedImage = ({
     : imgSrc;
 
   return (
-    <div className={cn("relative overflow-hidden", className)}>
+    <div className="relative overflow-hidden">
       {!isLoaded && (
         <div className="absolute inset-0 bg-muted/20 animate-pulse" />
       )}
@@ -100,7 +100,8 @@ const OptimizedImage = ({
           src={imgSrc}
           alt={alt}
           className={cn(
-            "w-full h-full object-cover transition-opacity duration-300",
+            "transition-opacity duration-300",
+            className || "w-full h-full object-cover",
             isLoaded ? "opacity-100" : "opacity-0"
           )}
           onError={handleError}
