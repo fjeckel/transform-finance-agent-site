@@ -75,19 +75,11 @@ const OptimizedImage = ({
       <img
         src={imgSrc}
         alt={alt}
-        className={className}
+        className={cn("block w-full h-full object-cover", className)}
         onError={handleSvgError}
         onLoad={handleSvgLoad}
         loading={priority ? 'eager' : loading}
         sizes={sizes}
-        style={{ 
-          display: 'block', 
-          width: '100%', 
-          height: '100%', 
-          objectFit: 'cover',
-          backgroundColor: 'red', // Temporary debug background
-          border: '2px solid blue' // Temporary debug border
-        }}
       />
     );
   }
