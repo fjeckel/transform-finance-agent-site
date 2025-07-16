@@ -56,22 +56,16 @@ const OptimizedImage = ({
     );
   }
 
-  // For SVG files or when WebP isn't needed, use a simple img tag
+  // For SVG files, display directly without complex loading states
   if (isSvg) {
+    console.log('Rendering SVG image:', imgSrc);
     return (
       <div className={cn("relative overflow-hidden", className)}>
-        {!isLoaded && (
-          <div className="absolute inset-0 bg-muted/20 animate-pulse" />
-        )}
         <img
           src={imgSrc}
           alt={alt}
-          className={cn(
-            "w-full h-full object-cover transition-opacity duration-300",
-            isLoaded ? "opacity-100" : "opacity-0"
-          )}
+          className="w-full h-full object-cover"
           onError={handleError}
-          onLoad={handleLoad}
           loading={priority ? 'eager' : loading}
           sizes={sizes}
         />
