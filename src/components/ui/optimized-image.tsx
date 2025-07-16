@@ -16,7 +16,7 @@ const OptimizedImage = ({
   src, 
   alt, 
   className = '', 
-  fallbackSrc = '/img/wtf-cover.png',
+  fallbackSrc = '/placeholder.svg',
   loading = 'lazy',
   sizes = '100vw',
   priority = false
