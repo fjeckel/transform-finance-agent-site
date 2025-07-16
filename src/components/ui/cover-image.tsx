@@ -21,13 +21,17 @@ export const CoverImage: React.FC<CoverImageProps> = ({
   const [currentSrc, setCurrentSrc] = useState(src);
 
   const handleLoad = () => {
+    console.log('CoverImage loaded successfully:', currentSrc);
     setIsLoading(false);
   };
 
   const handleError = () => {
+    console.log('CoverImage failed to load:', currentSrc);
     if (currentSrc !== fallbackSrc) {
+      console.log('Trying fallback image:', fallbackSrc);
       setCurrentSrc(fallbackSrc);
     } else {
+      console.log('Fallback image also failed, showing error state');
       setIsLoading(false);
       setHasError(true);
     }
