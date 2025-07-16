@@ -60,16 +60,15 @@ const OptimizedImage = ({
   if (isSvg) {
     console.log('Rendering SVG image:', imgSrc);
     return (
-      <div className={cn("relative overflow-hidden", className)}>
-        <img
-          src={imgSrc}
-          alt={alt}
-          className="w-full h-full object-cover"
-          onError={handleError}
-          loading={priority ? 'eager' : loading}
-          sizes={sizes}
-        />
-      </div>
+      <img
+        src={imgSrc}
+        alt={alt}
+        className={className}
+        onError={handleError}
+        loading={priority ? 'eager' : loading}
+        sizes={sizes}
+        style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
+      />
     );
   }
 
