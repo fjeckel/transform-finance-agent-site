@@ -13,6 +13,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Edit, Plus, Trash2, ArrowUp, ArrowDown, ExternalLink, Image } from 'lucide-react';
+import { 
+  Form, 
+  FormControl, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage 
+} from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 interface MainPageSection {
   id: string;
@@ -44,11 +55,78 @@ interface MainPageSection {
   }>;
 }
 
+const sectionFormSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  subtitle: z.string().optional(),
+  description: z.string().optional(),
+  section_key: z.string().min(1, 'Section key is required'),
+  section_type: z.string().min(1, 'Section type is required'),
+  background_color: z.string().min(1, 'Background color is required'),
+  text_color: z.string().min(1, 'Text color is required'),
+});
+
+const contentFormSchema = z.object({
+  content_key: z.string().min(1, 'Content key is required'),
+  content_type: z.string().min(1, 'Content type is required'),
+  content_value: z.string().min(1, 'Content value is required'),
+});
+
+const linkFormSchema = z.object({
+  platform_name: z.string().min(1, 'Platform name is required'),
+  link_type: z.string().min(1, 'Link type is required'),
+  url: z.string().url('Must be a valid URL'),
+  display_text: z.string().optional(),
+  color: z.string().min(1, 'Color is required'),
+  icon: z.string().optional(),
+});
+
+type SectionFormData = z.infer<typeof sectionFormSchema>;
+type ContentFormData = z.infer<typeof contentFormSchema>;
+type LinkFormData = z.infer<typeof linkFormSchema>;
+
 const MainPageSectionsManager = () => {
   const [selectedSection, setSelectedSection] = useState<MainPageSection | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isContentDialogOpen, setIsContentDialogOpen] = useState(false);
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [editingContent, setEditingContent] = useState<any>(null);
+  const [editingLink, setEditingLink] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const sectionForm = useForm<SectionFormData>({
+    resolver: zodResolver(sectionFormSchema),
+    defaultValues: {
+      title: '',
+      subtitle: '',
+      description: '',
+      section_key: '',
+      section_type: 'podcast',
+      background_color: '#ffffff',
+      text_color: '#000000',
+    },
+  });
+
+  const contentForm = useForm<ContentFormData>({
+    resolver: zodResolver(contentFormSchema),
+    defaultValues: {
+      content_key: '',
+      content_type: 'text',
+      content_value: '',
+    },
+  });
+
+  const linkForm = useForm<LinkFormData>({
+    resolver: zodResolver(linkFormSchema),
+    defaultValues: {
+      platform_name: '',
+      link_type: 'social',
+      url: '',
+      display_text: '',
+      color: '#000000',
+      icon: '',
+    },
+  });
 
   const { data: sections, isLoading } = useQuery({
     queryKey: ['admin-main-page-sections'],
@@ -82,6 +160,209 @@ const MainPageSectionsManager = () => {
     onError: (error) => {
       toast({ 
         title: 'Error updating section', 
+        description: error.message, 
+        variant: 'destructive' 
+      });
+    },
+  });
+
+  const createSectionMutation = useMutation({
+    mutationFn: async (data: SectionFormData) => {
+      const maxSortOrder = Math.max(...(sections?.map(s => s.sort_order) || [0]));
+      const { error } = await supabase
+        .from('main_page_sections')
+        .insert({
+          title: data.title,
+          subtitle: data.subtitle,
+          description: data.description,
+          section_key: data.section_key,
+          section_type: data.section_type,
+          background_color: data.background_color,
+          text_color: data.text_color,
+          sort_order: maxSortOrder + 1,
+          is_active: true,
+        });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-main-page-sections'] });
+      toast({ title: 'Section created successfully' });
+      setIsEditDialogOpen(false);
+      sectionForm.reset();
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Error creating section', 
+        description: error.message, 
+        variant: 'destructive' 
+      });
+    },
+  });
+
+  const deleteSectionMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('main_page_sections')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-main-page-sections'] });
+      toast({ title: 'Section deleted successfully' });
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Error deleting section', 
+        description: error.message, 
+        variant: 'destructive' 
+      });
+    },
+  });
+
+  const createContentMutation = useMutation({
+    mutationFn: async ({ sectionId, data }: { sectionId: string; data: ContentFormData }) => {
+      const { error } = await supabase
+        .from('section_content')
+        .insert({
+          section_id: sectionId,
+          content_key: data.content_key,
+          content_type: data.content_type,
+          content_value: data.content_value,
+        });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-main-page-sections'] });
+      toast({ title: 'Content added successfully' });
+      setIsContentDialogOpen(false);
+      contentForm.reset();
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Error adding content', 
+        description: error.message, 
+        variant: 'destructive' 
+      });
+    },
+  });
+
+  const updateContentMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: ContentFormData }) => {
+      const { error } = await supabase
+        .from('section_content')
+        .update(data)
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-main-page-sections'] });
+      toast({ title: 'Content updated successfully' });
+      setIsContentDialogOpen(false);
+      contentForm.reset();
+      setEditingContent(null);
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Error updating content', 
+        description: error.message, 
+        variant: 'destructive' 
+      });
+    },
+  });
+
+  const deleteContentMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('section_content')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-main-page-sections'] });
+      toast({ title: 'Content deleted successfully' });
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Error deleting content', 
+        description: error.message, 
+        variant: 'destructive' 
+      });
+    },
+  });
+
+  const createLinkMutation = useMutation({
+    mutationFn: async ({ sectionId, data }: { sectionId: string; data: LinkFormData }) => {
+      const maxSortOrder = Math.max(...(selectedSection?.links?.map(l => l.sort_order) || [0]));
+      const { error } = await supabase
+        .from('section_links')
+        .insert({
+          section_id: sectionId,
+          platform_name: data.platform_name,
+          link_type: data.link_type,
+          url: data.url,
+          display_text: data.display_text,
+          color: data.color,
+          icon: data.icon,
+          sort_order: maxSortOrder + 1,
+        });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-main-page-sections'] });
+      toast({ title: 'Link added successfully' });
+      setIsLinkDialogOpen(false);
+      linkForm.reset();
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Error adding link', 
+        description: error.message, 
+        variant: 'destructive' 
+      });
+    },
+  });
+
+  const updateLinkMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: LinkFormData }) => {
+      const { error } = await supabase
+        .from('section_links')
+        .update(data)
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-main-page-sections'] });
+      toast({ title: 'Link updated successfully' });
+      setIsLinkDialogOpen(false);
+      linkForm.reset();
+      setEditingLink(null);
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Error updating link', 
+        description: error.message, 
+        variant: 'destructive' 
+      });
+    },
+  });
+
+  const deleteLinkMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('section_links')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-main-page-sections'] });
+      toast({ title: 'Link deleted successfully' });
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Error deleting link', 
         description: error.message, 
         variant: 'destructive' 
       });
@@ -149,7 +430,11 @@ const MainPageSectionsManager = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Main Page Sections</h2>
-        <Button onClick={() => setIsEditDialogOpen(true)}>
+        <Button onClick={() => {
+          setSelectedSection(null);
+          sectionForm.reset();
+          setIsEditDialogOpen(true);
+        }}>
           <Plus className="h-4 w-4 mr-2" />
           Add Section
         </Button>
@@ -195,10 +480,26 @@ const MainPageSectionsManager = () => {
                     size="sm"
                     onClick={() => {
                       setSelectedSection(section);
+                      sectionForm.reset({
+                        title: section.title,
+                        subtitle: section.subtitle || '',
+                        description: section.description || '',
+                        section_key: section.section_key,
+                        section_type: section.section_type,
+                        background_color: section.background_color,
+                        text_color: section.text_color,
+                      });
                       setIsEditDialogOpen(true);
                     }}
                   >
                     <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => deleteSectionMutation.mutate(section.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -259,7 +560,7 @@ const MainPageSectionsManager = () => {
         ))}
       </div>
 
-      {/* Edit Dialog */}
+      {/* Edit Section Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -267,128 +568,462 @@ const MainPageSectionsManager = () => {
               {selectedSection ? 'Edit Section' : 'Add New Section'}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input id="title" defaultValue={selectedSection?.title} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="subtitle">Subtitle</Label>
-                <Input id="subtitle" defaultValue={selectedSection?.subtitle} />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea id="description" defaultValue={selectedSection?.description} />
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="section_type">Section Type</Label>
-                <Select defaultValue={selectedSection?.section_type}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="podcast">Podcast Section</SelectItem>
-                    <SelectItem value="episode_carousel">Episode Carousel</SelectItem>
-                    <SelectItem value="person_profile">Person Profile</SelectItem>
-                    <SelectItem value="social_links">Social Links</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="background_color">Background Color</Label>
-                <Input 
-                  id="background_color" 
-                  type="color" 
-                  defaultValue={selectedSection?.background_color || '#ffffff'} 
+          <Form {...sectionForm}>
+            <form onSubmit={sectionForm.handleSubmit((data) => {
+              if (selectedSection) {
+                updateSectionMutation.mutate({ id: selectedSection.id, updates: data });
+              } else {
+                createSectionMutation.mutate(data);
+              }
+            })} className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <FormField
+                  control={sectionForm.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={sectionForm.control}
+                  name="subtitle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subtitle</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="text_color">Text Color</Label>
-                <Input 
-                  id="text_color" 
-                  type="color" 
-                  defaultValue={selectedSection?.text_color || '#000000'} 
+
+              <FormField
+                control={sectionForm.control}
+                name="section_key"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Section Key</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="unique-section-key" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={sectionForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid md:grid-cols-3 gap-4">
+                <FormField
+                  control={sectionForm.control}
+                  name="section_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Section Type</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="podcast">Podcast Section</SelectItem>
+                          <SelectItem value="episode_carousel">Episode Carousel</SelectItem>
+                          <SelectItem value="person_profile">Person Profile</SelectItem>
+                          <SelectItem value="social_links">Social Links</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={sectionForm.control}
+                  name="background_color"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Background Color</FormLabel>
+                      <FormControl>
+                        <Input type="color" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={sectionForm.control}
+                  name="text_color"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Text Color</FormLabel>
+                      <FormControl>
+                        <Input type="color" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-            </div>
 
-            <Tabs defaultValue="content" className="w-full">
-              <TabsList>
-                <TabsTrigger value="content">Content</TabsTrigger>
-                <TabsTrigger value="links">Links</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="content" className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Section Content</h3>
-                  <Button variant="outline" size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Content
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  {selectedSection?.content?.map((content) => (
-                    <div key={content.id} className="p-3 border rounded-md">
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-1">
-                          <div className="font-medium">{content.content_key}</div>
-                          <div className="text-sm text-muted-foreground">
-                            Type: {content.content_type}
-                          </div>
-                          <div className="text-sm">{content.content_value}</div>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </div>
+              {selectedSection && (
+                <Tabs defaultValue="content" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="content">Content</TabsTrigger>
+                    <TabsTrigger value="links">Links</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="content" className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-semibold">Section Content</h3>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setEditingContent(null);
+                          contentForm.reset();
+                          setIsContentDialogOpen(true);
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Content
+                      </Button>
                     </div>
-                  ))}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="links" className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Section Links</h3>
-                  <Button variant="outline" size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Link
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  {selectedSection?.links?.map((link) => (
-                    <div key={link.id} className="p-3 border rounded-md">
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-1">
-                          <div className="font-medium">{link.platform_name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            Type: {link.link_type}
+                    <div className="space-y-2">
+                      {selectedSection?.content?.map((content) => (
+                        <div key={content.id} className="p-3 border rounded-md">
+                          <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                              <div className="font-medium">{content.content_key}</div>
+                              <div className="text-sm text-muted-foreground">
+                                Type: {content.content_type}
+                              </div>
+                              <div className="text-sm">{content.content_value}</div>
+                            </div>
+                            <div className="flex space-x-2">
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setEditingContent(content);
+                                  contentForm.reset({
+                                    content_key: content.content_key,
+                                    content_type: content.content_type,
+                                    content_value: content.content_value,
+                                  });
+                                  setIsContentDialogOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => deleteContentMutation.mutate(content.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
-                          <div className="text-sm">{link.url}</div>
                         </div>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </TabsContent>
-            </Tabs>
+                  </TabsContent>
+                  
+                  <TabsContent value="links" className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-semibold">Section Links</h3>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setEditingLink(null);
+                          linkForm.reset();
+                          setIsLinkDialogOpen(true);
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Link
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      {selectedSection?.links?.map((link) => (
+                        <div key={link.id} className="p-3 border rounded-md">
+                          <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                              <div className="font-medium">{link.platform_name}</div>
+                              <div className="text-sm text-muted-foreground">
+                                Type: {link.link_type}
+                              </div>
+                              <div className="text-sm">{link.url}</div>
+                            </div>
+                            <div className="flex space-x-2">
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setEditingLink(link);
+                                  linkForm.reset({
+                                    platform_name: link.platform_name,
+                                    link_type: link.link_type,
+                                    url: link.url,
+                                    display_text: link.display_text || '',
+                                    color: link.color,
+                                    icon: link.icon || '',
+                                  });
+                                  setIsLinkDialogOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => deleteLinkMutation.mutate(link.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              )}
 
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button>
-                {selectedSection ? 'Update Section' : 'Create Section'}
-              </Button>
-            </div>
-          </div>
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  {selectedSection ? 'Update Section' : 'Create Section'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add/Edit Content Dialog */}
+      <Dialog open={isContentDialogOpen} onOpenChange={setIsContentDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingContent ? 'Edit Content' : 'Add Content'}
+            </DialogTitle>
+          </DialogHeader>
+          <Form {...contentForm}>
+            <form onSubmit={contentForm.handleSubmit((data) => {
+              if (editingContent) {
+                updateContentMutation.mutate({ id: editingContent.id, data });
+              } else if (selectedSection) {
+                createContentMutation.mutate({ sectionId: selectedSection.id, data });
+              }
+            })} className="space-y-4">
+              <FormField
+                control={contentForm.control}
+                name="content_key"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Content Key</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="hero_image" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={contentForm.control}
+                name="content_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Content Type</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="text">Text</SelectItem>
+                        <SelectItem value="image">Image</SelectItem>
+                        <SelectItem value="url">URL</SelectItem>
+                        <SelectItem value="json">JSON</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={contentForm.control}
+                name="content_value"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Content Value</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => setIsContentDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  {editingContent ? 'Update Content' : 'Add Content'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add/Edit Link Dialog */}
+      <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingLink ? 'Edit Link' : 'Add Link'}
+            </DialogTitle>
+          </DialogHeader>
+          <Form {...linkForm}>
+            <form onSubmit={linkForm.handleSubmit((data) => {
+              if (editingLink) {
+                updateLinkMutation.mutate({ id: editingLink.id, data });
+              } else if (selectedSection) {
+                createLinkMutation.mutate({ sectionId: selectedSection.id, data });
+              }
+            })} className="space-y-4">
+              <FormField
+                control={linkForm.control}
+                name="platform_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Platform Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Spotify" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={linkForm.control}
+                name="link_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Link Type</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="social">Social</SelectItem>
+                        <SelectItem value="podcast">Podcast</SelectItem>
+                        <SelectItem value="website">Website</SelectItem>
+                        <SelectItem value="download">Download</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={linkForm.control}
+                name="url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>URL</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="https://example.com" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={linkForm.control}
+                name="display_text"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Display Text (Optional)</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Listen on Spotify" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={linkForm.control}
+                  name="color"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Color</FormLabel>
+                      <FormControl>
+                        <Input type="color" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={linkForm.control}
+                  name="icon"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Icon (Optional)</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="spotify" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => setIsLinkDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  {editingLink ? 'Update Link' : 'Add Link'}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
