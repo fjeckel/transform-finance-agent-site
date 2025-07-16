@@ -4,7 +4,7 @@ import { ExternalLink, Clock, Users, Mic, Download, FileText } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import OptimizedImage from '@/components/ui/optimized-image';
+import { CoverImage } from '@/components/ui/cover-image';
 import { ContentItem } from '@/hooks/useContent';
 
 interface ContentCardProps {
@@ -51,11 +51,10 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item }) => {
       <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
         {item.image_url && (
           <div className="relative">
-            <OptimizedImage
+            <CoverImage
               src={item.image_url}
               alt={item.title}
               className="h-48 w-full object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>
         )}
@@ -106,11 +105,10 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item }) => {
     <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
       {item.image_url && (
         <div className="relative">
-          <OptimizedImage
+          <CoverImage
             src={item.image_url}
             alt={item.title}
             className="h-48 w-full object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
       )}
