@@ -14,18 +14,18 @@ interface ContentCardProps {
 export const ContentCard: React.FC<ContentCardProps> = ({ item }) => {
   const getSeriesBadgeColor = (series: string): string => {
     switch (series) {
-      case 'wtf': return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
-      case 'cfo-memo': return 'bg-green-100 text-green-800 hover:bg-green-200';
-      case 'finance-transformers': return 'bg-purple-100 text-purple-800 hover:bg-purple-200';
-      default: return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+      case 'wtf': return 'bg-purple-500 text-white';
+      case 'cfo_memo': return 'bg-green-500 text-white';
+      case 'finance_transformers': return 'bg-[#003FA5] text-white';
+      default: return 'bg-gray-500 text-white';
     }
   };
 
   const getSeriesDisplayName = (series: string): string => {
     switch (series) {
       case 'wtf': return 'WTF';
-      case 'cfo-memo': return 'CFO Memo';
-      case 'finance-transformers': return 'Finance Transformers';
+      case 'cfo_memo': return 'CFO Memo';
+      case 'finance_transformers': return 'Finance Transformers';
       default: return series;
     }
   };
@@ -48,58 +48,54 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item }) => {
 
   if (item.type === 'episode') {
     return (
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-        <div className="md:flex">
-          {item.image_url && (
-            <div className="md:w-48 md:flex-shrink-0">
-              <OptimizedImage
-                src={item.image_url}
-                alt={item.title}
-                className="h-48 w-full object-cover md:h-full"
-                sizes="(max-width: 768px) 100vw, 192px"
-              />
-            </div>
-          )}
-          <div className="flex-1">
-            <CardHeader>
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center space-x-2">
-                  {item.series && (
-                    <Badge variant="secondary" className={getSeriesBadgeColor(item.series)}>
-                      {getSeriesDisplayName(item.series)}
-                    </Badge>
-                  )}
-                  <Badge variant="outline" className="flex items-center space-x-1">
-                    <Mic className="h-3 w-3" />
-                    <span>Episode</span>
-                  </Badge>
-                </div>
-              </div>
-              <CardTitle className="text-xl leading-tight">
-                {item.title}
-              </CardTitle>
-              {item.description && (
-                <CardDescription className="line-clamp-2">
-                  {item.description}
-                </CardDescription>
-              )}
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                  {item.publish_date && (
-                    <span>{formatDate(item.publish_date)}</span>
-                  )}
-                </div>
-                <Link to={`/episode/${item.slug}`}>
-                  <Button variant="outline" size="sm">
-                    Episode ansehen
-                    <ExternalLink className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
+        {item.image_url && (
+          <div className="relative">
+            <OptimizedImage
+              src={item.image_url}
+              alt={item.title}
+              className="h-48 w-full object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
           </div>
+        )}
+        <div className="flex-1 flex flex-col">
+          <CardHeader className="flex-1">
+            <div className="flex items-center gap-2 mb-3">
+              {item.series && (
+                <Badge variant="secondary" className={getSeriesBadgeColor(item.series)}>
+                  {getSeriesDisplayName(item.series)}
+                </Badge>
+              )}
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Mic className="h-3 w-3" />
+                <span>Episode</span>
+              </Badge>
+            </div>
+            <CardTitle className="text-lg leading-tight mb-2">
+              {item.title}
+            </CardTitle>
+            {item.description && (
+              <CardDescription className="line-clamp-3 text-sm">
+                {item.description}
+              </CardDescription>
+            )}
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                {item.publish_date && (
+                  <span>{formatDate(item.publish_date)}</span>
+                )}
+              </div>
+              <Link to={`/episode/${item.slug}`}>
+                <Button variant="outline" size="sm">
+                  Ansehen
+                  <ExternalLink className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
         </div>
       </Card>
     );
@@ -107,59 +103,59 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item }) => {
 
   // PDF Card
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-      <div className="md:flex">
-        {item.image_url && (
-          <div className="md:w-48 md:flex-shrink-0">
-            <OptimizedImage
-              src={item.image_url}
-              alt={item.title}
-              className="h-48 w-full object-cover md:h-full"
-              sizes="(max-width: 768px) 100vw, 192px"
-            />
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
+      {item.image_url && (
+        <div className="relative">
+          <OptimizedImage
+            src={item.image_url}
+            alt={item.title}
+            className="h-48 w-full object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        </div>
+      )}
+      <div className="flex-1 flex flex-col">
+        <CardHeader className="flex-1">
+          <div className="mb-3">
+            <Badge variant="outline" className="flex items-center gap-1 w-fit">
+              <FileText className="h-3 w-3" />
+              <span>PDF</span>
+            </Badge>
           </div>
-        )}
-        <div className="flex-1">
-          <CardHeader>
-            <div className="flex items-start justify-between mb-2">
-              <Badge variant="outline" className="flex items-center space-x-1">
-                <FileText className="h-3 w-3" />
-                <span>PDF</span>
-              </Badge>
-            </div>
-            <CardTitle className="text-xl leading-tight">
-              {item.title}
-            </CardTitle>
-            {item.description && (
-              <CardDescription className="line-clamp-2">
-                {item.description}
-              </CardDescription>
-            )}
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                <span>{formatDate(item.created_at)}</span>
+          <CardTitle className="text-lg leading-tight mb-2">
+            {item.title}
+          </CardTitle>
+          {item.description && (
+            <CardDescription className="line-clamp-3 text-sm">
+              {item.description}
+            </CardDescription>
+          )}
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+              <span>{formatDate(item.created_at)}</span>
+              <div className="flex items-center gap-2">
                 {item.file_size && (
                   <span>{formatFileSize(item.file_size)}</span>
                 )}
                 {item.download_count !== undefined && (
-                  <span>{item.download_count} Downloads</span>
+                  <span>• {item.download_count} Downloads</span>
                 )}
               </div>
-              {item.file_url && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => window.open(item.file_url, '_blank')}
-                >
-                  Download
-                  <Download className="ml-2 h-4 w-4" />
-                </Button>
-              )}
             </div>
-          </CardContent>
-        </div>
+            {item.file_url && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.open(item.file_url, '_blank')}
+              >
+                Download
+                <Download className="ml-2 h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </CardContent>
       </div>
     </Card>
   );
