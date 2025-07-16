@@ -230,6 +230,51 @@ export type Database = {
         }
         Relationships: []
       }
+      main_page_sections: {
+        Row: {
+          background_color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          section_key: string
+          section_type: string
+          sort_order: number | null
+          subtitle: string | null
+          text_color: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          background_color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          section_key: string
+          section_type?: string
+          sort_order?: number | null
+          subtitle?: string | null
+          text_color?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          background_color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          section_key?: string
+          section_type?: string
+          sort_order?: number | null
+          subtitle?: string | null
+          text_color?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       page_visit_logs: {
         Row: {
           id: string
@@ -288,6 +333,132 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      section_configurations: {
+        Row: {
+          config_key: string
+          config_value: string
+          created_at: string
+          id: string
+          section_id: string
+          updated_at: string
+        }
+        Insert: {
+          config_key: string
+          config_value: string
+          created_at?: string
+          id?: string
+          section_id: string
+          updated_at?: string
+        }
+        Update: {
+          config_key?: string
+          config_value?: string
+          created_at?: string
+          id?: string
+          section_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "section_configurations_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "main_page_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      section_content: {
+        Row: {
+          content_key: string
+          content_type: string
+          content_value: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          section_id: string
+          updated_at: string
+        }
+        Insert: {
+          content_key: string
+          content_type: string
+          content_value: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          section_id: string
+          updated_at?: string
+        }
+        Update: {
+          content_key?: string
+          content_type?: string
+          content_value?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          section_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "section_content_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "main_page_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      section_links: {
+        Row: {
+          color: string | null
+          created_at: string
+          display_text: string | null
+          icon: string | null
+          id: string
+          link_type: string
+          platform_name: string
+          section_id: string
+          sort_order: number | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          display_text?: string | null
+          icon?: string | null
+          id?: string
+          link_type: string
+          platform_name: string
+          section_id: string
+          sort_order?: number | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          display_text?: string | null
+          icon?: string | null
+          id?: string
+          link_type?: string
+          platform_name?: string
+          section_id?: string
+          sort_order?: number | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "section_links_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "main_page_sections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       show_notes: {
         Row: {
