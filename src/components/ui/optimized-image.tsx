@@ -59,15 +59,35 @@ const OptimizedImage = ({
   // For SVG files, display directly without complex loading states
   if (isSvg) {
     console.log('Rendering SVG image:', imgSrc);
+    
+    // Add additional debugging
+    const handleSvgLoad = () => {
+      console.log('✅ SVG loaded successfully:', imgSrc);
+      setIsLoaded(true);
+    };
+    
+    const handleSvgError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
+      console.error('❌ SVG failed to load:', imgSrc, event);
+      handleError();
+    };
+    
     return (
       <img
         src={imgSrc}
         alt={alt}
         className={className}
-        onError={handleError}
+        onError={handleSvgError}
+        onLoad={handleSvgLoad}
         loading={priority ? 'eager' : loading}
         sizes={sizes}
-        style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
+        style={{ 
+          display: 'block', 
+          width: '100%', 
+          height: '100%', 
+          objectFit: 'cover',
+          backgroundColor: 'red', // Temporary debug background
+          border: '2px solid blue' // Temporary debug border
+        }}
       />
     );
   }
