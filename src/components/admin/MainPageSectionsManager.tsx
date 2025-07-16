@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Edit, Plus, Trash2, ArrowUp, ArrowDown, ExternalLink, Image } from 'lucide-react';
+import { ImageUpload } from '@/components/ui/image-upload';
 import { 
   Form, 
   FormControl, 
@@ -69,6 +70,15 @@ const contentFormSchema = z.object({
   content_key: z.string().min(1, 'Content key is required'),
   content_type: z.string().min(1, 'Content type is required'),
   content_value: z.string().min(1, 'Content value is required'),
+}).refine((data) => {
+  // Allow empty content_value for image types since ImageUpload handles it
+  if (data.content_type === 'image' || data.content_key === 'cover_image') {
+    return true;
+  }
+  return data.content_value.length > 0;
+}, {
+  message: 'Content value is required',
+  path: ['content_value'],
 });
 
 const linkFormSchema = z.object({
@@ -885,15 +895,31 @@ const MainPageSectionsManager = () => {
               <FormField
                 control={contentForm.control}
                 name="content_value"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Content Value</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const contentType = contentForm.watch('content_type');
+                  const contentKey = contentForm.watch('content_key');
+                  const isImageContent = contentType === 'image' || contentKey === 'cover_image';
+                  
+                  return (
+                    <FormItem>
+                      <FormLabel>
+                        {isImageContent ? 'Cover Image' : 'Content Value'}
+                      </FormLabel>
+                      <FormControl>
+                        {isImageContent ? (
+                          <ImageUpload
+                            value={field.value}
+                            onChange={field.onChange}
+                            episodeId={`main-page-sections/${selectedSection?.id || 'temp'}`}
+                          />
+                        ) : (
+                          <Textarea {...field} />
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
               <div className="flex justify-end space-x-2">
                 <Button type="button" variant="outline" onClick={() => setIsContentDialogOpen(false)}>
