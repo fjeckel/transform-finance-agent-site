@@ -49,15 +49,13 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item }) => {
   if (item.type === 'episode') {
     return (
       <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
-        {item.image_url && (
-          <div className="relative">
-            <CoverImage
-              src={item.image_url}
-              alt={item.title}
-              className="h-48 w-full object-cover"
-            />
-          </div>
-        )}
+        <div className="relative">
+          <CoverImage
+            src="/img/wtf-cover.png"
+            alt={item.title}
+            className="h-48 w-full object-cover"
+          />
+        </div>
         <div className="flex-1 flex flex-col">
           <CardHeader className="flex-1">
             <div className="flex items-center gap-2 mb-3">
@@ -103,15 +101,13 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item }) => {
   // PDF Card
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
-      {item.image_url && (
-        <div className="relative">
-          <CoverImage
-            src={item.image_url}
-            alt={item.title}
-            className="h-48 w-full object-cover"
-          />
-        </div>
-      )}
+      <div className="relative">
+        <CoverImage
+          src="/img/wtf-cover.png"
+          alt={item.title}
+          className="h-48 w-full object-cover"
+        />
+      </div>
       <div className="flex-1 flex flex-col">
         <CardHeader className="flex-1">
           <div className="mb-3">
