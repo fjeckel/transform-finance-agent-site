@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       downloadable_pdfs: {
         Row: {
+          category: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
@@ -25,10 +26,12 @@ export type Database = {
           id: string
           image_url: string | null
           is_public: boolean | null
+          status: string | null
           title: string
           updated_at: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
@@ -38,10 +41,12 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_public?: boolean | null
+          status?: string | null
           title: string
           updated_at?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
@@ -51,6 +56,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_public?: boolean | null
+          status?: string | null
           title?: string
           updated_at?: string | null
         }

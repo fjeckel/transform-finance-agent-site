@@ -11,6 +11,8 @@ export interface PDF {
   download_count: number | null;
   is_public: boolean | null;
   created_at: string | null;
+  category?: string | null;
+  status?: string | null;
 }
 
 export const usePdfs = () => {

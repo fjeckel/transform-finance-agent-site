@@ -246,6 +246,9 @@ const Admin = () => {
               <Link to="/admin/analytics" className="text-sm text-gray-600 hover:text-[#13B87B]">
                 Analytics
               </Link>
+              <Link to="/admin/pdfs" className="text-sm text-gray-600 hover:text-[#13B87B]">
+                PDF Library
+              </Link>
               <span className="text-sm text-gray-600">Welcome, {user?.email}</span>
               <Button variant="outline" onClick={handleLogout}>
                 Logout
