@@ -1,20 +1,15 @@
 import React from 'react';
-import { Download, Calendar, File } from 'lucide-react';
+import { Download, Calendar, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PDF } from '@/hooks/usePdfs';
+import { formatBytes } from '@/lib/utils';
 
 interface PDFCardProps {
   pdf: PDF;
   onDownload: (pdfId: string) => void;
 }
 
-const formatFileSize = (bytes: number | null): string => {
-  if (!bytes) return 'Unknown size';
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
-};
 
 export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
   const handleDownload = () => {
@@ -33,7 +28,7 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
             className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <File size={64} className="text-gray-400" />
+          <FileText size={64} className="text-red-500" />
         )}
       </div>
       
@@ -45,8 +40,8 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
         <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
           {pdf.file_size && (
             <div className="flex items-center">
-              <File size={14} className="mr-1" />
-              <span>{formatFileSize(pdf.file_size)}</span>
+              <FileText size={14} className="mr-1" />
+              <span>{formatBytes(pdf.file_size)}</span>
             </div>
           )}
           {pdf.created_at && (
