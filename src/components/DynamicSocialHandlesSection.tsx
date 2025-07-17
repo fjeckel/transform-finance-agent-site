@@ -44,18 +44,6 @@ const DynamicSocialHandlesSection = () => {
             </a>)}
         </div>
 
-        <div className="text-center">
-          <div className="inline-flex items-center space-x-4 bg-white/10 backdrop-blur-sm rounded-full px-8 py-4 border border-white/20">
-            <span className="text-white font-medium">Verbunden bleiben:</span>
-            <div className="flex space-x-3">
-              {socialLinks.slice(0, 3).map((social, index) => <a key={index} href={social.url} target="_blank" rel="noopener noreferrer" className={`p-2 rounded-full ${social.color} transition-all duration-300 hover:scale-110`}>
-                  <div className="w-5 h-5 text-white flex items-center justify-center">
-                    {social.name === 'YouTube' ? <Youtube size={16} /> : social.name === 'LinkedIn' ? <LinkedinIcon size={16} /> : '🐦'}
-                  </div>
-                </a>)}
-            </div>
-          </div>
-        </div>
       </div>
     </section>;
 };
