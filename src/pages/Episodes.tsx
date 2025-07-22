@@ -1,11 +1,18 @@
 
 import React, { useState, useMemo } from 'react';
-import { ArrowLeft, Play, Clock, Calendar, User, Filter } from 'lucide-react';
+import { ArrowLeft, Play, Clock, Calendar, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useEpisodes } from '@/hooks/useEpisodes';
 import { usePdfs } from '@/hooks/usePdfs';
 import { PDFCard } from '@/components/ui/pdf-card';
@@ -15,6 +22,7 @@ const Episodes = () => {
   const { pdfs, loading: pdfsLoading, error: pdfsError, incrementDownloadCount } = usePdfs();
   const [selectedTab, setSelectedTab] = useState<string>('episodes');
   const [selectedSeries, setSelectedSeries] = useState<string>('all');
+  const [sortOption, setSortOption] = useState<'date_desc' | 'date_asc' | 'title_asc' | 'title_desc'>('date_desc');
 
   const seriesOptions = [
     { value: 'all', label: 'Alle Serien', count: episodes.length },
@@ -27,6 +35,25 @@ const Episodes = () => {
     if (selectedSeries === 'all') return episodes;
     return episodes.filter(episode => episode.series === selectedSeries);
   }, [episodes, selectedSeries]);
+
+  const sortedEpisodes = useMemo(() => {
+    const sorted = [...filteredEpisodes];
+    sorted.sort((a, b) => {
+      switch (sortOption) {
+        case 'date_asc':
+          return new Date(a.publish_date).getTime() - new Date(b.publish_date).getTime();
+        case 'date_desc':
+          return new Date(b.publish_date).getTime() - new Date(a.publish_date).getTime();
+        case 'title_asc':
+          return a.title.localeCompare(b.title);
+        case 'title_desc':
+          return b.title.localeCompare(a.title);
+        default:
+          return 0;
+      }
+    });
+    return sorted;
+  }, [filteredEpisodes, sortOption]);
 
   const getSeriesBadgeColor = (series: string) => {
     switch (series) {
@@ -120,6 +147,20 @@ const Episodes = () => {
                 </Tabs>
               </div>
 
+              <div className="mb-6 flex justify-end">
+                <Select value={sortOption} onValueChange={setSortOption}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Sortierung" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="date_desc">Neueste zuerst</SelectItem>
+                    <SelectItem value="date_asc">Älteste zuerst</SelectItem>
+                    <SelectItem value="title_asc">Titel A-Z</SelectItem>
+                    <SelectItem value="title_desc">Titel Z-A</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {filteredEpisodes.length === 0 ? (
                 <div className="text-center py-12">
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">Keine Episoden verfügbar</h2>
@@ -131,7 +172,7 @@ const Episodes = () => {
                 <>
                   {/* Episodes Grid */}
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredEpisodes.map((episode) => (
+                    {sortedEpisodes.map((episode) => (
                       <Card key={episode.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
                         <div className="aspect-square overflow-hidden">
                           <img
