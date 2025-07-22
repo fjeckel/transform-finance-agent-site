@@ -250,6 +250,9 @@ const Admin = () => {
               <Link to="/admin/pdfs" className="text-sm text-gray-600 hover:text-[#13B87B]">
                 PDF Library
               </Link>
+              <Link to="/admin/rss-feeds" className="text-sm text-gray-600 hover:text-[#13B87B]">
+                RSS Feeds
+              </Link>
               <span className="text-sm text-gray-600">Welcome, {user?.email}</span>
               <Button variant="outline" onClick={handleLogout}>
                 Logout
@@ -261,7 +264,7 @@ const Admin = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Dashboard Stats */}
-        <div className="grid md:grid-cols-5 gap-6 mb-8">
+        <div className="grid md:grid-cols-6 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">Total Episodes</CardTitle>
@@ -311,6 +314,17 @@ const Admin = () => {
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
                 {episodes.filter(e => e.status === 'published').length}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Drafts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-600">
+                {episodes.filter(e => e.status === 'draft').length}
               </div>
             </CardContent>
           </Card>

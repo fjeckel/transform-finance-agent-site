@@ -1,0 +1,35 @@
+name: Test Supabase Edge Functions
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/**'
+      - '.github/workflows/test-supabase-functions.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Check RSS Feed Function
+        run: |
+          cd supabase/functions/rss-feed
+          deno check index.ts
+          
+      - name: Format check
+        run: |
+          cd supabase/functions/rss-feed
+          deno fmt --check
+          
+      - name: Lint
+        run: |
+          cd supabase/functions/rss-feed
+          deno lint

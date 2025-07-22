@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Save, Send, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -74,6 +75,44 @@ const NewEpisode = () => {
     setSlug(slugify(title));
   }, [title]);
 
+  // Load autosaved data on component mount
+  useEffect(() => {
+    const savedData = localStorage.getItem('autosave_new-episode');
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        const data = parsed.data;
+        
+        // Show confirmation dialog
+        if (window.confirm('Found autosaved data. Would you like to restore it?')) {
+          setTitle(data.title || '');
+          setSlug(data.slug || '');
+          setSeason(data.season || 1);
+          setEpisodeNumber(data.episodeNumber || 1);
+          setDescription(data.description || '');
+          setContent(data.content || '');
+          setTranscript(data.transcript || '');
+          setPublishDate(data.publishDate || '');
+          setStatus(data.status || 'draft');
+          setSeries(data.series || 'finance_transformers');
+          setImageUrl(data.imageUrl || '');
+          setAudioUrl(data.audioUrl || '');
+          setDuration(data.duration || '');
+          setShowNotes(data.showNotes || []);
+          setGuests(data.guests || []);
+          setPlatformLinks(data.platformLinks || []);
+          
+          toast({
+            title: 'Draft Restored',
+            description: 'Your previous work has been restored.',
+          });
+        }
+      } catch (error) {
+        console.error('Failed to restore autosaved data:', error);
+      }
+    }
+  }, []);
+
   const validateForm = () => {
     try {
       episodeSchema.parse({
@@ -103,6 +142,93 @@ const NewEpisode = () => {
         setValidationErrors(errors);
       }
       return false;
+    }
+  };
+
+  const handleSaveAsDraft = async () => {
+    setLoading(true);
+    try {
+      const { data: episode, error } = await supabase
+        .from('episodes')
+        .insert({
+          title: title || 'Untitled Episode',
+          slug: slug || slugify(title || 'untitled-episode'),
+          description,
+          content,
+          transcript: transcript || null,
+          season,
+          episode_number: episodeNumber,
+          series,
+          publish_date: publishDate ? new Date(publishDate).toISOString() : null,
+          status: 'draft',
+          image_url: imageUrl || null,
+          audio_url: audioUrl || null,
+          duration: duration || null,
+          created_by: user?.id || null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Save related data...
+      await saveRelatedData(episode.id);
+
+      toast({ 
+        title: 'Draft Saved', 
+        description: 'Your episode has been saved as a draft.'
+      });
+      
+      localStorage.removeItem('autosave_new-episode');
+      navigate('/admin');
+    } catch (err) {
+      console.error('Error saving draft:', err);
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to save draft', 
+        variant: 'destructive' 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveRelatedData = async (episodeId: string) => {
+    // Add show notes
+    if (showNotes.length > 0) {
+      const { error: notesError } = await supabase.from('show_notes').insert(
+        showNotes.map((note, index) => ({
+          episode_id: episodeId,
+          timestamp: note.timestamp,
+          title: note.title,
+          content: note.content || null,
+          sort_order: index,
+        }))
+      );
+      if (notesError) console.error('Error creating show notes:', notesError);
+    }
+
+    // Add episode guests
+    if (guests.length > 0) {
+      const { error: guestsError } = await supabase.from('episode_guests').insert(
+        guests.map(guest => ({
+          episode_id: episodeId,
+          guest_id: guest.id,
+        }))
+      );
+      if (guestsError) console.error('Error adding guests:', guestsError);
+    }
+
+    // Add platform links
+    if (platformLinks.length > 0) {
+      const { error: linksError } = await supabase.from('episode_platforms').insert(
+        platformLinks.map(link => ({
+          episode_id: episodeId,
+          platform_name: link.platform_name,
+          platform_url: link.platform_url,
+        }))
+      );
+      if (linksError) console.error('Error adding platform links:', linksError);
     }
   };
 
@@ -140,42 +266,7 @@ const NewEpisode = () => {
 
       if (episodeError) throw episodeError;
 
-      // Add show notes
-      if (showNotes.length > 0) {
-        const { error: notesError } = await supabase.from('show_notes').insert(
-          showNotes.map((note, index) => ({
-            episode_id: episode.id,
-            timestamp: note.timestamp,
-            title: note.title,
-            content: note.content || null,
-            sort_order: index,
-          }))
-        );
-        if (notesError) console.error('Error creating show notes:', notesError);
-      }
-
-      // Add episode guests
-      if (guests.length > 0) {
-        const { error: guestsError } = await supabase.from('episode_guests').insert(
-          guests.map(guest => ({
-            episode_id: episode.id,
-            guest_id: guest.id,
-          }))
-        );
-        if (guestsError) console.error('Error adding guests:', guestsError);
-      }
-
-      // Add platform links
-      if (platformLinks.length > 0) {
-        const { error: linksError } = await supabase.from('episode_platforms').insert(
-          platformLinks.map(link => ({
-            episode_id: episode.id,
-            platform_name: link.platform_name,
-            platform_url: link.platform_url,
-          }))
-        );
-        if (linksError) console.error('Error adding platform links:', linksError);
-      }
+      await saveRelatedData(episode.id);
 
       toast({ title: 'Episode Created', description: 'New episode has been created with all content.' });
       
@@ -396,9 +487,23 @@ const NewEpisode = () => {
                 </TabsContent>
               </Tabs>
 
-              <div className="pt-4 border-t">
-                <Button type="submit" className="bg-[#13B87B] hover:bg-[#0F9A6A]" disabled={loading}>
-                  {loading ? 'Creating...' : 'Create Episode'}
+              <div className="pt-4 border-t flex gap-3">
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={handleSaveAsDraft}
+                  disabled={loading || !title}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  {loading ? 'Saving...' : 'Save as Draft'}
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-[#13B87B] hover:bg-[#0F9A6A]" 
+                  disabled={loading}
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  {loading ? 'Creating...' : status === 'published' ? 'Publish Episode' : 'Create Episode'}
                 </Button>
               </div>
             </form>

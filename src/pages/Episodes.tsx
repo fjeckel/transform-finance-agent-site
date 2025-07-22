@@ -1,6 +1,6 @@
 
-import React, { useState, useMemo } from 'react';
-import { ArrowLeft, Play, Clock, Calendar, User } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { ArrowLeft, Play, Clock, Calendar, User, Search, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,8 @@ import {
 import { useEpisodes } from '@/hooks/useEpisodes';
 import { usePdfs } from '@/hooks/usePdfs';
 import { PDFCard } from '@/components/ui/pdf-card';
+import { Input } from '@/components/ui/input';
+import RssSubscribeButton from '@/components/RssSubscribeButton';
 
 const Episodes = () => {
   const { episodes, loading: episodesLoading, error: episodesError } = useEpisodes();
@@ -23,18 +25,67 @@ const Episodes = () => {
   const [selectedTab, setSelectedTab] = useState<string>('episodes');
   const [selectedSeries, setSelectedSeries] = useState<string>('all');
   const [sortOption, setSortOption] = useState<'episode_desc' | 'episode_asc' | 'date_desc' | 'date_asc' | 'title_asc' | 'title_desc'>('episode_desc');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [displayCount, setDisplayCount] = useState<number>(9); // Show 9 episodes initially
+  const [pdfsDisplayCount, setPdfsDisplayCount] = useState<number>(9); // Show 9 PDFs initially
 
-  const seriesOptions = [
-    { value: 'all', label: 'Alle Serien', count: episodes.length },
-    { value: 'wtf', label: 'WTF', count: episodes.filter(e => e.series === 'wtf').length },
-    { value: 'finance_transformers', label: 'Finance Transformers', count: episodes.filter(e => e.series === 'finance_transformers').length },
-    { value: 'cfo_memo', label: 'CFO Memo', count: episodes.filter(e => e.series === 'cfo_memo').length }
-  ];
+  // Reset display count when search query or series filter changes
+  useEffect(() => {
+    setDisplayCount(9);
+    setPdfsDisplayCount(9);
+  }, [searchQuery, selectedSeries]);
+
+  const seriesOptions = useMemo(() => {
+    const searchFiltered = searchQuery.trim() 
+      ? episodes.filter(episode => {
+          const query = searchQuery.toLowerCase();
+          return episode.title.toLowerCase().includes(query) ||
+            (episode.description && episode.description.toLowerCase().includes(query)) ||
+            (episode.guests && episode.guests.some(guest => guest.name.toLowerCase().includes(query))) ||
+            (episode.series && getSeriesDisplayName(episode.series).toLowerCase().includes(query));
+        })
+      : episodes;
+    
+    return [
+      { value: 'all', label: 'Alle Serien', count: searchFiltered.length },
+      { value: 'wtf', label: 'WTF', count: searchFiltered.filter(e => e.series === 'wtf').length },
+      { value: 'finance_transformers', label: 'Finance Transformers', count: searchFiltered.filter(e => e.series === 'finance_transformers').length },
+      { value: 'cfo_memo', label: 'CFO Memo', count: searchFiltered.filter(e => e.series === 'cfo_memo').length }
+    ];
+  }, [episodes, searchQuery]);
 
   const filteredEpisodes = useMemo(() => {
-    if (selectedSeries === 'all') return episodes;
-    return episodes.filter(episode => episode.series === selectedSeries);
-  }, [episodes, selectedSeries]);
+    let filtered = episodes;
+    
+    // Filter by series
+    if (selectedSeries !== 'all') {
+      filtered = filtered.filter(episode => episode.series === selectedSeries);
+    }
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(episode => {
+        // Search in title
+        if (episode.title.toLowerCase().includes(query)) return true;
+        
+        // Search in description
+        if (episode.description && episode.description.toLowerCase().includes(query)) return true;
+        
+        // Search in guest names
+        if (episode.guests && episode.guests.some(guest => 
+          guest.name.toLowerCase().includes(query)
+        )) return true;
+        
+        // Search in series name
+        if (episode.series && getSeriesDisplayName(episode.series).toLowerCase().includes(query)) return true;
+        
+        return false;
+      });
+    }
+    
+    return filtered;
+  }, [episodes, selectedSeries, searchQuery]);
 
   const sortedEpisodes = useMemo(() => {
     const sorted = [...filteredEpisodes];
@@ -121,12 +172,17 @@ const Episodes = () => {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4 font-cooper">
-            Alle Inhalte
-          </h1>
-          <p className="text-lg text-gray-600">
-            Entdecke alle Episoden unserer Podcast-Serien und unsere CFO Memos
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4 font-cooper">
+                Alle Inhalte
+              </h1>
+              <p className="text-lg text-gray-600">
+                Entdecke alle Episoden unserer Podcast-Serien und unsere CFO Memos
+              </p>
+            </div>
+            <RssSubscribeButton />
+          </div>
         </div>
 
         {/* Main Content Tabs */}
@@ -155,7 +211,26 @@ const Episodes = () => {
                 </Tabs>
               </div>
 
-              <div className="mb-6 flex justify-end">
+              {/* Search and Sort Controls */}
+              <div className="mb-6 flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                  <Input
+                    type="text"
+                    placeholder="Suche nach Titel, Gast oder Beschreibung..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 pr-10"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X size={20} />
+                    </button>
+                  )}
+                </div>
                 <Select value={sortOption} onValueChange={(value) => setSortOption(value as typeof sortOption)}>
                   <SelectTrigger className="w-48">
                     <SelectValue placeholder="Sortierung" />
@@ -171,18 +246,37 @@ const Episodes = () => {
                 </Select>
               </div>
 
+              {searchQuery && filteredEpisodes.length > 0 && (
+                <p className="text-sm text-gray-600 mb-4">
+                  {filteredEpisodes.length} {filteredEpisodes.length === 1 ? 'Ergebnis' : 'Ergebnisse'} für "{searchQuery}"
+                </p>
+              )}
+
               {filteredEpisodes.length === 0 ? (
                 <div className="text-center py-12">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">Keine Episoden verfügbar</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                    {searchQuery ? 'Keine Ergebnisse gefunden' : 'Keine Episoden verfügbar'}
+                  </h2>
                   <p className="text-gray-600">
-                    Es sind noch keine Episoden veröffentlicht. Schauen Sie bald wieder vorbei!
+                    {searchQuery 
+                      ? `Keine Episoden für "${searchQuery}" gefunden. Versuchen Sie es mit anderen Suchbegriffen.`
+                      : 'Es sind noch keine Episoden veröffentlicht. Schauen Sie bald wieder vorbei!'}
                   </p>
+                  {searchQuery && (
+                    <Button 
+                      variant="outline" 
+                      className="mt-4"
+                      onClick={() => setSearchQuery('')}
+                    >
+                      Suche zurücksetzen
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <>
                   {/* Episodes Grid */}
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {sortedEpisodes.map((episode) => (
+                    {sortedEpisodes.slice(0, displayCount).map((episode) => (
                       <Card key={episode.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
                         <div className="aspect-square overflow-hidden">
                           <img
@@ -270,28 +364,83 @@ const Episodes = () => {
                   </div>
 
                   {/* Load More Button */}
-                  <div className="text-center mt-12">
-                    <Button variant="outline" className="px-8 py-3">
-                      Weitere Episoden laden
-                    </Button>
-                  </div>
+                  {displayCount < sortedEpisodes.length && (
+                    <div className="text-center mt-12">
+                      <Button 
+                        variant="outline" 
+                        className="px-8 py-3"
+                        onClick={() => setDisplayCount(prev => Math.min(prev + 9, sortedEpisodes.length))}
+                      >
+                        Weitere Episoden laden ({sortedEpisodes.length - displayCount} verbleibend)
+                      </Button>
+                    </div>
+                  )}
                 </>
               )}
             </TabsContent>
 
             <TabsContent value="memos" className="mt-8">
-              {pdfs.length === 0 ? (
+              {/* Search for Memos */}
+              <div className="mb-6">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                  <Input
+                    type="text"
+                    placeholder="Suche nach Memo-Titel oder Beschreibung..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 pr-10"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X size={20} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {(() => {
+                const filteredPdfs = searchQuery.trim() 
+                  ? pdfs.filter(pdf => {
+                      const query = searchQuery.toLowerCase();
+                      return pdf.title.toLowerCase().includes(query) ||
+                        (pdf.description && pdf.description.toLowerCase().includes(query));
+                    })
+                  : pdfs;
+
+                return filteredPdfs.length === 0 ? (
                 <div className="text-center py-12">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">Keine Memos verfügbar</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                    {searchQuery ? 'Keine Memos gefunden' : 'Keine Memos verfügbar'}
+                  </h2>
                   <p className="text-gray-600">
-                    Es sind noch keine Memos veröffentlicht. Schauen Sie bald wieder vorbei!
+                    {searchQuery 
+                      ? `Keine Memos für "${searchQuery}" gefunden. Versuchen Sie es mit anderen Suchbegriffen.`
+                      : 'Es sind noch keine Memos veröffentlicht. Schauen Sie bald wieder vorbei!'}
                   </p>
+                  {searchQuery && (
+                    <Button 
+                      variant="outline" 
+                      className="mt-4"
+                      onClick={() => setSearchQuery('')}
+                    >
+                      Suche zurücksetzen
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <>
+                  {searchQuery && (
+                    <p className="text-sm text-gray-600 mb-4">
+                      {filteredPdfs.length} {filteredPdfs.length === 1 ? 'Ergebnis' : 'Ergebnisse'} für "{searchQuery}"
+                    </p>
+                  )}
                   {/* PDFs Grid */}
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {pdfs.map((pdf) => (
+                    {filteredPdfs.slice(0, pdfsDisplayCount).map((pdf) => (
                       <PDFCard 
                         key={pdf.id} 
                         pdf={pdf} 
@@ -299,8 +448,21 @@ const Episodes = () => {
                       />
                     ))}
                   </div>
+                  {/* Load More Button for PDFs */}
+                  {pdfsDisplayCount < filteredPdfs.length && (
+                    <div className="text-center mt-12">
+                      <Button 
+                        variant="outline" 
+                        className="px-8 py-3"
+                        onClick={() => setPdfsDisplayCount(prev => Math.min(prev + 9, filteredPdfs.length))}
+                      >
+                        Weitere Memos laden ({filteredPdfs.length - pdfsDisplayCount} verbleibend)
+                      </Button>
+                    </div>
+                  )}
                 </>
-              )}
+              );
+              })()}
             </TabsContent>
           </Tabs>
         </div>
