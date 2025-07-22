@@ -120,7 +120,7 @@ const FinanceTransformersSection = () => {
             
             <div className="relative">
               <img 
-                src={currentEp?.image_url || '/placeholder.svg'} 
+                src={currentEp?.image_url || '/img/wtf-cover.png'} 
                 alt={currentEp?.title || 'Episode'} 
                 className="aspect-square object-cover w-full h-full rounded-xl shadow-lg" 
               />
@@ -143,7 +143,7 @@ const FinanceTransformersSection = () => {
                   }`}
                 >
                   <img 
-                    src={episode.image_url || '/placeholder.svg'} 
+                    src={episode.image_url || '/img/wtf-cover.png'} 
                     alt={episode.title} 
                     className="w-full h-full object-cover" 
                   />
