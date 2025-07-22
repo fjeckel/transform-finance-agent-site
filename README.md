@@ -1,5 +1,7 @@
 # Welcome to your Lovable project
 
+![Deploy Supabase Functions](https://github.com/fjeckel/transform-finance-agent-site/actions/workflows/deploy-supabase-functions.yml/badge.svg)
+
 ## Project info
 
 **URL**: https://lovable.dev/projects/1477f6a5-aad6-4cab-b15a-ed0a8f7e8aec
