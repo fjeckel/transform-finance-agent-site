@@ -261,7 +261,7 @@ const Admin = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Dashboard Stats */}
-        <div className="grid md:grid-cols-5 gap-6 mb-8">
+        <div className="grid md:grid-cols-6 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">Total Episodes</CardTitle>
@@ -311,6 +311,17 @@ const Admin = () => {
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
                 {episodes.filter(e => e.status === 'published').length}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Drafts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-600">
+                {episodes.filter(e => e.status === 'draft').length}
               </div>
             </CardContent>
           </Card>
