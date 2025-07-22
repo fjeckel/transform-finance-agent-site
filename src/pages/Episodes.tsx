@@ -22,7 +22,7 @@ const Episodes = () => {
   const { pdfs, loading: pdfsLoading, error: pdfsError, incrementDownloadCount } = usePdfs();
   const [selectedTab, setSelectedTab] = useState<string>('episodes');
   const [selectedSeries, setSelectedSeries] = useState<string>('all');
-  const [sortOption, setSortOption] = useState<'date_desc' | 'date_asc' | 'title_asc' | 'title_desc'>('date_desc');
+  const [sortOption, setSortOption] = useState<'episode_desc' | 'episode_asc' | 'date_desc' | 'date_asc' | 'title_asc' | 'title_desc'>('episode_desc');
 
   const seriesOptions = [
     { value: 'all', label: 'Alle Serien', count: episodes.length },
@@ -40,6 +40,14 @@ const Episodes = () => {
     const sorted = [...filteredEpisodes];
     sorted.sort((a, b) => {
       switch (sortOption) {
+        case 'episode_asc':
+          // Sort by season, then episode_number ascending
+          if (a.season !== b.season) return a.season - b.season;
+          return a.episode_number - b.episode_number;
+        case 'episode_desc':
+          // Sort by season, then episode_number descending
+          if (a.season !== b.season) return b.season - a.season;
+          return b.episode_number - a.episode_number;
         case 'date_asc':
           return new Date(a.publish_date).getTime() - new Date(b.publish_date).getTime();
         case 'date_desc':
@@ -153,8 +161,10 @@ const Episodes = () => {
                     <SelectValue placeholder="Sortierung" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="date_desc">Neueste zuerst</SelectItem>
-                    <SelectItem value="date_asc">Älteste zuerst</SelectItem>
+                    <SelectItem value="episode_desc">Neueste Episode zuerst</SelectItem>
+                    <SelectItem value="episode_asc">Älteste Episode zuerst</SelectItem>
+                    <SelectItem value="date_desc">Neueste nach Datum</SelectItem>
+                    <SelectItem value="date_asc">Älteste nach Datum</SelectItem>
                     <SelectItem value="title_asc">Titel A-Z</SelectItem>
                     <SelectItem value="title_desc">Titel Z-A</SelectItem>
                   </SelectContent>
