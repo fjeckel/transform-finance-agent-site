@@ -39,10 +39,17 @@ const Episodes = () => {
     const searchFiltered = searchQuery.trim() 
       ? episodes.filter(episode => {
           const query = searchQuery.toLowerCase();
-          return episode.title.toLowerCase().includes(query) ||
-            (episode.description && episode.description.toLowerCase().includes(query)) ||
-            (episode.guests && episode.guests.some(guest => guest.name.toLowerCase().includes(query))) ||
-            (episode.series && getSeriesDisplayName(episode.series).toLowerCase().includes(query));
+          try {
+            return episode.title?.toLowerCase().includes(query) ||
+              (episode.description && episode.description.toLowerCase().includes(query)) ||
+              (episode.guests && Array.isArray(episode.guests) && episode.guests.some(guest => 
+                guest && guest.name && guest.name.toLowerCase().includes(query)
+              )) ||
+              (episode.series && getSeriesDisplayName(episode.series).toLowerCase().includes(query));
+          } catch (error) {
+            console.error('Search error for episode:', episode.id, error);
+            return false;
+          }
         })
       : episodes;
     
@@ -66,21 +73,26 @@ const Episodes = () => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(episode => {
-        // Search in title
-        if (episode.title.toLowerCase().includes(query)) return true;
-        
-        // Search in description
-        if (episode.description && episode.description.toLowerCase().includes(query)) return true;
-        
-        // Search in guest names
-        if (episode.guests && episode.guests.some(guest => 
-          guest.name.toLowerCase().includes(query)
-        )) return true;
-        
-        // Search in series name
-        if (episode.series && getSeriesDisplayName(episode.series).toLowerCase().includes(query)) return true;
-        
-        return false;
+        try {
+          // Search in title
+          if (episode.title?.toLowerCase().includes(query)) return true;
+          
+          // Search in description
+          if (episode.description && episode.description.toLowerCase().includes(query)) return true;
+          
+          // Search in guest names
+          if (episode.guests && Array.isArray(episode.guests) && episode.guests.some(guest => 
+            guest && guest.name && guest.name.toLowerCase().includes(query)
+          )) return true;
+          
+          // Search in series name
+          if (episode.series && getSeriesDisplayName(episode.series).toLowerCase().includes(query)) return true;
+          
+          return false;
+        } catch (error) {
+          console.error('Filter error for episode:', episode.id, error);
+          return false;
+        }
       });
     }
     
@@ -317,10 +329,13 @@ const Episodes = () => {
                             )}
                           </div>
 
-                          {episode.guests.length > 0 && (
+                          {episode.guests && episode.guests.length > 0 && (
                             <div className="flex items-center text-sm text-gray-600 mb-3">
                               <User size={14} className="mr-1" />
-                              <span>{episode.guests.map(g => g.name).join(', ')}</span>
+                              <span>{episode.guests
+                                .filter(g => g && g.name)
+                                .map(g => g.name)
+                                .join(', ')}</span>
                             </div>
                           )}
                         </CardHeader>
@@ -406,8 +421,13 @@ const Episodes = () => {
                 const filteredPdfs = searchQuery.trim() 
                   ? pdfs.filter(pdf => {
                       const query = searchQuery.toLowerCase();
-                      return pdf.title.toLowerCase().includes(query) ||
-                        (pdf.description && pdf.description.toLowerCase().includes(query));
+                      try {
+                        return pdf.title?.toLowerCase().includes(query) ||
+                          (pdf.description && pdf.description.toLowerCase().includes(query));
+                      } catch (error) {
+                        console.error('PDF search error:', pdf.id, error);
+                        return false;
+                      }
                     })
                   : pdfs;
 
