@@ -59,6 +59,7 @@ const EditEpisode = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [applyAllLoading, setApplyAllLoading] = useState(false);
 
   // Auto-save functionality
   const formData = {
@@ -71,6 +72,27 @@ const EditEpisode = () => {
     data: formData,
     enabled: !initialLoading,
   });
+
+  const applyCoverToAllEpisodes = async () => {
+    if (!imageUrl) return;
+    if (!window.confirm('Set this image as cover art for all episodes?')) return;
+
+    try {
+      setApplyAllLoading(true);
+      const { error } = await supabase
+        .from('episodes')
+        .update({ image_url: imageUrl });
+
+      if (error) throw error;
+
+      toast({ title: 'Cover Art Updated', description: 'Cover art applied to all episodes.' });
+    } catch (err) {
+      console.error('Error applying cover to all episodes:', err);
+      toast({ title: 'Error', description: 'Failed to apply cover to all episodes', variant: 'destructive' });
+    } finally {
+      setApplyAllLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (id) {
@@ -349,6 +371,17 @@ const EditEpisode = () => {
                       episodeId={id}
                       disabled={loading}
                     />
+                    <div className="mt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={applyCoverToAllEpisodes}
+                        disabled={applyAllLoading || !imageUrl}
+                      >
+                        {applyAllLoading ? 'Applying...' : 'Set as cover art for all episodes'}
+                      </Button>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">
