@@ -60,25 +60,6 @@ const DynamicSocialLinksSection: React.FC<DynamicSocialLinksSectionProps> = ({ s
             ))}
           </div>
           
-          <div className="border-t border-border pt-8">
-            <h3 className="text-xl font-semibold text-foreground mb-6">Stay Connected</h3>
-            <div className="flex justify-center space-x-6">
-              {section.links?.map((link) => (
-                <a
-                  key={`small-${link.id}`}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-3 rounded-full transition-all duration-300 hover:scale-110"
-                  style={{ backgroundColor: link.color }}
-                >
-                  <div className="text-white">
-                    {getIcon(link.icon)}
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </section>
