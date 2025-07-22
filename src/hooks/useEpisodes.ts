@@ -57,8 +57,7 @@ export const useEpisodes = () => {
             platform_url
           )
         `)
-        .eq('status', 'published')
-        .order('publish_date', { ascending: false });
+        .eq('status', 'published');
 
       if (error) throw error;
 
