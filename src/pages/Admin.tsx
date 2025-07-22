@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { BulkActions } from '@/components/ui/bulk-actions';
 import { EpisodeListSkeleton, StatsSkeleton } from '@/components/ui/loading-skeleton';
 import MainPageSectionsManager from '@/components/admin/MainPageSectionsManager';
+import { HeroVideoManager } from '@/components/ui/hero-video-manager';
 
 interface AdminEpisode {
   id: string;
@@ -437,7 +438,8 @@ const Admin = () => {
             </Card>
           </TabsContent>
           
-          <TabsContent value="main-page">
+          <TabsContent value="main-page" className="space-y-6">
+            <HeroVideoManager onUpdate={() => {}} />
             <MainPageSectionsManager />
           </TabsContent>
         </Tabs>
