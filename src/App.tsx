@@ -19,6 +19,7 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import AdminAnalytics from "./pages/AdminAnalytics";
 import AdminPdfs from "./pages/AdminPdfs";
+import AdminRssFeeds from "./pages/AdminRssFeeds";
 import NewEpisode from "./pages/NewEpisode";
 import EditEpisode from "./pages/EditEpisode";
 import BulkUploadEpisodes from "./pages/BulkUploadEpisodes";
@@ -90,6 +91,7 @@ const App = () => {
                 <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
                 <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
                 <Route path="/admin/pdfs" element={<AdminRoute><AdminPdfs /></AdminRoute>} />
+                <Route path="/admin/rss-feeds" element={<AdminRoute><AdminRssFeeds /></AdminRoute>} />
                 <Route path="/admin/episodes/new" element={<AdminRoute><NewEpisode /></AdminRoute>} />
                 <Route path="/admin/episodes/upload" element={<AdminRoute><BulkUploadEpisodes /></AdminRoute>} />
                 <Route path="/admin/episodes/:id/edit" element={<AdminRoute><EditEpisode /></AdminRoute>} />

@@ -17,6 +17,7 @@ import { useEpisodes } from '@/hooks/useEpisodes';
 import { usePdfs } from '@/hooks/usePdfs';
 import { PDFCard } from '@/components/ui/pdf-card';
 import { Input } from '@/components/ui/input';
+import RssSubscribeButton from '@/components/RssSubscribeButton';
 
 const Episodes = () => {
   const { episodes, loading: episodesLoading, error: episodesError } = useEpisodes();
@@ -171,12 +172,17 @@ const Episodes = () => {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4 font-cooper">
-            Alle Inhalte
-          </h1>
-          <p className="text-lg text-gray-600">
-            Entdecke alle Episoden unserer Podcast-Serien und unsere CFO Memos
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4 font-cooper">
+                Alle Inhalte
+              </h1>
+              <p className="text-lg text-gray-600">
+                Entdecke alle Episoden unserer Podcast-Serien und unsere CFO Memos
+              </p>
+            </div>
+            <RssSubscribeButton />
+          </div>
         </div>
 
         {/* Main Content Tabs */}
