@@ -8,7 +8,9 @@
     "build": "rimraf dist && vite build",
     "build:dev": "rimraf dist && vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy:functions": "./deploy-functions.sh",
+    "functions:serve": "supabase functions serve"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
