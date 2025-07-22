@@ -92,7 +92,7 @@ const DynamicEpisode = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1">
               <ImageWithFallback
-                src={episode.image_url || '/placeholder.svg'}
+                src={episode.image_url || '/img/wtf-cover.png'}
                 alt={episode.title}
                 className="w-full aspect-square object-cover rounded-xl shadow-lg"
                 loading="eager"

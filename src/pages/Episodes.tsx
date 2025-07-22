@@ -156,7 +156,7 @@ const Episodes = () => {
               </div>
 
               <div className="mb-6 flex justify-end">
-                <Select value={sortOption} onValueChange={setSortOption}>
+                <Select value={sortOption} onValueChange={(value) => setSortOption(value as typeof sortOption)}>
                   <SelectTrigger className="w-48">
                     <SelectValue placeholder="Sortierung" />
                   </SelectTrigger>
@@ -186,7 +186,7 @@ const Episodes = () => {
                       <Card key={episode.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
                         <div className="aspect-square overflow-hidden">
                           <img
-                            src={episode.image_url || '/img/veronika.jpg'}
+                            src={episode.image_url || '/img/wtf-cover.png'}
                             alt={episode.title}
                             className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                           />
