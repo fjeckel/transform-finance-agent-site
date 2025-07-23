@@ -7,9 +7,23 @@ import SEOHead from '@/components/SEOHead';
 import DynamicSection from '@/components/DynamicSection';
 import { useMainPageSections } from '@/hooks/useMainPageSections';
 import { Skeleton } from '@/components/ui/skeleton';
+import TimTeuscherSection from '@/components/TimTeuscherSection';
+import FabianJeckelSection from '@/components/FabianJeckelSection';
 
 const Index = () => {
   const { data: sections, isLoading } = useMainPageSections();
+  
+  // Debug: Log sections to console
+  React.useEffect(() => {
+    if (sections) {
+      console.log('Loaded sections:', sections.map(s => ({
+        key: s.section_key,
+        title: s.title,
+        type: s.section_type,
+        active: s.is_active
+      })));
+    }
+  }, [sections]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -32,9 +46,19 @@ const Index = () => {
             ))}
           </div>
         ) : (
-          sections?.map((section) => (
-            <DynamicSection key={section.id} section={section} />
-          ))
+          <>
+            {sections?.map((section) => (
+              <DynamicSection key={section.id} section={section} />
+            ))}
+            
+            {/* Temporarily add hardcoded sections if they're missing from CRM */}
+            {sections && !sections.find(s => s.section_key === 'tim_teuscher') && (
+              <TimTeuscherSection />
+            )}
+            {sections && !sections.find(s => s.section_key === 'fabian_jeckel') && (
+              <FabianJeckelSection />
+            )}
+          </>
         )}
 
         {/* Footer */}
