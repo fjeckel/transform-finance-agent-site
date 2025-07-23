@@ -14,63 +14,110 @@ export type Database = {
   }
   public: {
     Tables: {
+      download_tokens: {
+        Row: {
+          created_at: string | null
+          download_count: number | null
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          last_accessed_at: string | null
+          max_downloads: number | null
+          purchase_id: string | null
+          token: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          download_count?: number | null
+          expires_at: string
+          id?: string
+          ip_address?: unknown | null
+          last_accessed_at?: string | null
+          max_downloads?: number | null
+          purchase_id?: string | null
+          token: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          download_count?: number | null
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          last_accessed_at?: string | null
+          max_downloads?: number | null
+          purchase_id?: string | null
+          token?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "download_tokens_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       downloadable_pdfs: {
         Row: {
           category: string | null
           created_at: string | null
           created_by: string | null
+          currency: string | null
           description: string | null
           download_count: number | null
           file_size: number | null
           file_url: string
           id: string
           image_url: string | null
+          is_premium: boolean | null
           is_public: boolean | null
+          price: number | null
           status: string | null
+          stripe_price_id: string | null
           title: string
           updated_at: string | null
-          price: number | null
-          is_premium: boolean | null
-          stripe_price_id: string | null
-          currency: string | null
         }
         Insert: {
           category?: string | null
           created_at?: string | null
           created_by?: string | null
+          currency?: string | null
           description?: string | null
           download_count?: number | null
           file_size?: number | null
           file_url: string
           id?: string
           image_url?: string | null
+          is_premium?: boolean | null
           is_public?: boolean | null
+          price?: number | null
           status?: string | null
+          stripe_price_id?: string | null
           title: string
           updated_at?: string | null
-          price?: number | null
-          is_premium?: boolean | null
-          stripe_price_id?: string | null
-          currency?: string | null
         }
         Update: {
           category?: string | null
           created_at?: string | null
           created_by?: string | null
+          currency?: string | null
           description?: string | null
           download_count?: number | null
           file_size?: number | null
           file_url?: string
           id?: string
           image_url?: string | null
+          is_premium?: boolean | null
           is_public?: boolean | null
+          price?: number | null
           status?: string | null
+          stripe_price_id?: string | null
           title?: string
           updated_at?: string | null
-          price?: number | null
-          is_premium?: boolean | null
-          stripe_price_id?: string | null
-          currency?: string | null
         }
         Relationships: [
           {
@@ -352,6 +399,59 @@ export type Database = {
         }
         Relationships: []
       }
+      purchases: {
+        Row: {
+          amount_paid: number
+          created_at: string | null
+          currency: string | null
+          id: string
+          pdf_id: string | null
+          purchased_at: string | null
+          refunded_at: string | null
+          status: string | null
+          stripe_customer_id: string | null
+          stripe_payment_intent_id: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          pdf_id?: string | null
+          purchased_at?: string | null
+          refunded_at?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          pdf_id?: string | null
+          purchased_at?: string | null
+          refunded_at?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_pdf_id_fkey"
+            columns: ["pdf_id"]
+            isOneToOne: false
+            referencedRelation: "downloadable_pdfs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       section_configurations: {
         Row: {
           config_key: string
@@ -540,6 +640,33 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_customers: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          stripe_customer_id: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          stripe_customer_id: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          stripe_customer_id?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -574,6 +701,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_download_tokens: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       has_role: {
         Args: {
           _user_id: string
