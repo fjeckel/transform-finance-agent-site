@@ -80,9 +80,10 @@ export const useStripePayment = () => {
   };
 
   const processPayment = async (pdfId: string) => {
-    const paymentData = await createPaymentIntent(pdfId);
+    // Create checkout session instead of payment intent for simpler flow
+    const checkoutData = await createCheckoutSession(pdfId);
     
-    if (!paymentData || !paymentData.clientSecret) {
+    if (!checkoutData || !checkoutData.sessionId) {
       return;
     }
 
@@ -99,11 +100,7 @@ export const useStripePayment = () => {
 
     // Redirect to Stripe Checkout
     const { error } = await stripe.redirectToCheckout({
-      mode: 'payment',
-      clientReferenceId: pdfId,
-      successUrl: `${window.location.origin}/purchase-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancelUrl: `${window.location.origin}/episodes?purchase_cancelled=true`,
-      paymentIntentClientSecret: paymentData.clientSecret,
+      sessionId: checkoutData.sessionId,
     });
 
     if (error) {
@@ -113,6 +110,62 @@ export const useStripePayment = () => {
         description: error.message || 'Fehler beim Öffnen des Zahlungsformulars.',
         variant: 'destructive',
       });
+    }
+  };
+
+  const createCheckoutSession = async (pdfId: string) => {
+    if (!user) {
+      toast({
+        title: 'Authentifizierung erforderlich',
+        description: 'Bitte melden Sie sich an, um Inhalte zu kaufen.',
+        variant: 'destructive',
+      });
+      return null;
+    }
+
+    setLoading(true);
+
+    try {
+      // Call Supabase Edge Function to create checkout session
+      const { data, error } = await supabase.functions.invoke('stripe-create-checkout-session', {
+        body: {
+          pdfId: pdfId,
+          userId: user.id,
+          successUrl: `${window.location.origin}/dashboard?payment_success=true`,
+          cancelUrl: `${window.location.origin}/episodes?payment_cancelled=true`,
+        },
+      });
+
+      if (error) {
+        console.error('Error creating checkout session:', error);
+        
+        if (error.message.includes('already purchased')) {
+          toast({
+            title: 'Bereits gekauft',
+            description: 'Sie haben diesen Report bereits erworben.',
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: 'Fehler beim Erstellen der Zahlung',
+            description: 'Bitte versuchen Sie es erneut.',
+            variant: 'destructive',
+          });
+        }
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Checkout session creation failed:', error);
+      toast({
+        title: 'Zahlung fehlgeschlagen',
+        description: 'Ein unerwarteter Fehler ist aufgetreten.',
+        variant: 'destructive',
+      });
+      return null;
+    } finally {
+      setLoading(false);
     }
   };
 

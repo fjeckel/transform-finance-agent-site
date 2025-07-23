@@ -8,6 +8,7 @@ import { useStripePayment } from '@/hooks/useStripePayment';
 import { formatBytes } from '@/lib/utils';
 import { formatPrice } from '@/lib/stripe';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PDFCardProps {
   pdf: PDF;
@@ -20,6 +21,7 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
   const [checkingPurchase, setCheckingPurchase] = useState(false);
   const { loading, processPayment, checkPurchaseStatus } = useStripePayment();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Check if user has already purchased this PDF
   useEffect(() => {
@@ -42,6 +44,10 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
   };
 
   const handlePurchase = async () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
     await processPayment(pdf.id);
   };
 
@@ -196,7 +202,10 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
         {/* Premium Preview Message */}
         {isPremium && !isPurchased && (
           <div className="mt-2 text-xs text-gray-500 text-center">
-            Sichere Zahlung über Stripe • Sofortiger Zugang nach Kauf
+            {!user ? 
+              'Melden Sie sich an, um zu kaufen' : 
+              'Sichere Zahlung über Stripe • Sofortiger Zugang nach Kauf'
+            }
           </div>
         )}
       </CardContent>

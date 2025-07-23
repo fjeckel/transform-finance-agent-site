@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   ArrowLeft, 
   Download, 
@@ -27,6 +28,7 @@ import { formatBytes } from '@/lib/utils';
 const PremiumReport = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { pdfs, loading: pdfsLoading } = usePdfs();
   const { loading: paymentLoading, processPayment, checkPurchaseStatus } = useStripePayment();
   
@@ -59,6 +61,10 @@ const PremiumReport = () => {
   }, [pdf?.is_premium, id, checkPurchaseStatus]);
 
   const handlePurchase = async () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
     if (id) {
       await processPayment(id);
     }

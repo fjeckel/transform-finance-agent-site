@@ -1,0 +1,192 @@
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import Stripe from 'https://esm.sh/stripe@14.21.0'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  try {
+    const { pdfId, userId, successUrl, cancelUrl } = await req.json()
+
+    // Validate inputs
+    if (!pdfId || !userId || !successUrl || !cancelUrl) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required parameters' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    // Initialize Stripe
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
+    if (!stripeKey) {
+      throw new Error('Stripe secret key not configured')
+    }
+    const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' })
+
+    // Get PDF details
+    const { data: pdf, error: pdfError } = await supabase
+      .from('downloadable_pdfs')
+      .select('*')
+      .eq('id', pdfId)
+      .single()
+
+    if (pdfError || !pdf) {
+      return new Response(
+        JSON.stringify({ error: 'PDF not found' }),
+        { 
+          status: 404, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Check if it's premium content
+    if (!pdf.is_premium || !pdf.price || pdf.price <= 0) {
+      return new Response(
+        JSON.stringify({ error: 'PDF is not premium content' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Check if user already purchased this PDF
+    const { data: existingPurchase } = await supabase
+      .from('purchases')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('pdf_id', pdfId)
+      .eq('status', 'completed')
+      .single()
+
+    if (existingPurchase) {
+      return new Response(
+        JSON.stringify({ error: 'User has already purchased this PDF' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Get user details
+    const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(userId)
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'User not found' }),
+        { 
+          status: 404, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Create or get Stripe customer
+    let stripeCustomerId: string
+    const { data: existingCustomer } = await supabase
+      .from('stripe_customers')
+      .select('stripe_customer_id')
+      .eq('user_id', userId)
+      .single()
+
+    if (existingCustomer) {
+      stripeCustomerId = existingCustomer.stripe_customer_id
+    } else {
+      // Create new Stripe customer
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: {
+          user_id: userId,
+        },
+      })
+
+      // Save customer to database
+      await supabase
+        .from('stripe_customers')
+        .insert({
+          user_id: userId,
+          stripe_customer_id: customer.id,
+          email: user.email,
+        })
+
+      stripeCustomerId = customer.id
+    }
+
+    // Create Stripe Checkout Session
+    const session = await stripe.checkout.sessions.create({
+      customer: stripeCustomerId,
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: pdf.currency || 'eur',
+            product_data: {
+              name: pdf.title,
+              description: pdf.description || 'Premium PDF Report',
+              images: pdf.image_url ? [pdf.image_url] : [],
+            },
+            unit_amount: Math.round(pdf.price * 100), // Convert to cents
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata: {
+        pdf_id: pdfId,
+        user_id: userId,
+        pdf_title: pdf.title,
+      },
+      allow_promotion_codes: false,
+      billing_address_collection: 'auto',
+      payment_intent_data: {
+        metadata: {
+          pdf_id: pdfId,
+          user_id: userId,
+          pdf_title: pdf.title,
+        },
+      },
+    })
+
+    return new Response(
+      JSON.stringify({ 
+        sessionId: session.id,
+        url: session.url 
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    )
+
+  } catch (error) {
+    console.error('Error creating checkout session:', error)
+    return new Response(
+      JSON.stringify({ 
+        error: 'Internal server error',
+        message: error.message 
+      }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    )
+  }
+})
