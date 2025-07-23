@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, LogIn, Settings } from 'lucide-react';
+import { Menu, X, LogIn, Settings, User } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -78,6 +78,12 @@ const Navigation = () => {
                   {user ? (
                     <>
                       <span className="text-sm text-gray-600">Welcome, {user.email}</span>
+                      <Link to="/dashboard">
+                        <Button variant="outline" size="sm">
+                          <User size={16} className="mr-2" />
+                          Dashboard
+                        </Button>
+                      </Link>
                       {isAdmin && (
                         <Link to="/admin">
                           <Button variant="outline" size="sm">
@@ -142,6 +148,12 @@ const Navigation = () => {
                 {user ? (
                   <div className="px-6 space-y-3">
                     <p className="text-sm text-gray-600">Welcome, {user.email}</p>
+                    <Link to="/dashboard" onClick={() => setIsOpen(false)}>
+                      <Button variant="outline" size="sm" className="w-full justify-start">
+                        <User size={16} className="mr-2" />
+                        Dashboard
+                      </Button>
+                    </Link>
                     {isAdmin && (
                       <Link to="/admin" onClick={() => setIsOpen(false)}>
                         <Button variant="outline" size="sm" className="w-full justify-start">

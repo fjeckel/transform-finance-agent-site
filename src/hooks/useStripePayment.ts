@@ -13,6 +13,12 @@ export interface Purchase {
   currency: string;
   status: string;
   purchased_at: string;
+  pdf?: {
+    title: string;
+    description: string | null;
+    image_url: string | null;
+    file_url?: string;
+  };
 }
 
 export const useStripePayment = () => {
@@ -145,7 +151,8 @@ export const useStripePayment = () => {
           pdf:downloadable_pdfs (
             title,
             description,
-            image_url
+            image_url,
+            file_url
           )
         `)
         .eq('user_id', user.id)

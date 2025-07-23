@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Calendar, FileText, Lock, CreditCard } from 'lucide-react';
+import { Download, Calendar, FileText, Lock, CreditCard, Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,7 @@ import { PDF } from '@/hooks/usePdfs';
 import { useStripePayment } from '@/hooks/useStripePayment';
 import { formatBytes } from '@/lib/utils';
 import { formatPrice } from '@/lib/stripe';
+import { useNavigate } from 'react-router-dom';
 
 interface PDFCardProps {
   pdf: PDF;
@@ -18,6 +19,7 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
   const [isPurchased, setIsPurchased] = useState(false);
   const [checkingPurchase, setCheckingPurchase] = useState(false);
   const { loading, processPayment, checkPurchaseStatus } = useStripePayment();
+  const navigate = useNavigate();
 
   // Check if user has already purchased this PDF
   useEffect(() => {
@@ -41,6 +43,10 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
 
   const handlePurchase = async () => {
     await processPayment(pdf.id);
+  };
+
+  const handleViewDetails = () => {
+    navigate(`/report/${pdf.id}`);
   };
 
   const isPremium = pdf.is_premium && pdf.price && pdf.price > 0;
@@ -125,44 +131,66 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
         
         {/* Purchase Button for Premium Content */}
         {showPurchaseButton && (
-          <Button 
-            onClick={handlePurchase}
-            disabled={loading || checkingPurchase}
-            className="w-full bg-gradient-to-r from-[#13B87B] to-[#0F9A6A] hover:from-[#0F9A6A] hover:to-[#0D8A5A] text-white font-semibold"
-          >
-            {loading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Verarbeitung...
-              </>
-            ) : (
-              <>
-                <CreditCard size={16} className="mr-2" />
-                Jetzt kaufen - {formatPrice(pdf.price!, pdf.currency)}
-              </>
-            )}
-          </Button>
+          <div className="space-y-2">
+            <Button 
+              onClick={handleViewDetails}
+              variant="outline"
+              className="w-full"
+            >
+              <Eye size={16} className="mr-2" />
+              Details ansehen
+            </Button>
+            <Button 
+              onClick={handlePurchase}
+              disabled={loading || checkingPurchase}
+              className="w-full bg-gradient-to-r from-[#13B87B] to-[#0F9A6A] hover:from-[#0F9A6A] hover:to-[#0D8A5A] text-white font-semibold"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Verarbeitung...
+                </>
+              ) : (
+                <>
+                  <CreditCard size={16} className="mr-2" />
+                  Jetzt kaufen - {formatPrice(pdf.price!, pdf.currency)}
+                </>
+              )}
+            </Button>
+          </div>
         )}
 
         {/* Download Button for Free or Purchased Content */}
         {showDownloadButton && (
-          <Button 
-            onClick={handleDownload}
-            disabled={checkingPurchase}
-            className="w-full bg-[#13B87B] hover:bg-[#0F9A6A] text-white"
-          >
-            {checkingPurchase ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Überprüfung...
-              </>
-            ) : (
-              <>
-                <Download size={16} className="mr-2" />
-                {isPurchased ? 'PDF herunterladen' : 'Kostenlos herunterladen'}
-              </>
+          <div className="space-y-2">
+            {isPremium && (
+              <Button 
+                onClick={handleViewDetails}
+                variant="outline"
+                className="w-full"
+              >
+                <Eye size={16} className="mr-2" />
+                Details ansehen
+              </Button>
             )}
-          </Button>
+            <Button 
+              onClick={handleDownload}
+              disabled={checkingPurchase}
+              className="w-full bg-[#13B87B] hover:bg-[#0F9A6A] text-white"
+            >
+              {checkingPurchase ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Überprüfung...
+                </>
+              ) : (
+                <>
+                  <Download size={16} className="mr-2" />
+                  {isPurchased ? 'PDF herunterladen' : 'Kostenlos herunterladen'}
+                </>
+              )}
+            </Button>
+          </div>
         )}
 
         {/* Premium Preview Message */}
