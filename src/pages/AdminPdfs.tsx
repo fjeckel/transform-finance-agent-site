@@ -66,6 +66,9 @@ const createPdfSchema = z.object({
   description: z.string().optional(),
   category: z.string().min(1, 'Category is required'),
   file_url: z.string().min(1, 'PDF file is required'),
+  is_premium: z.boolean().default(false),
+  price: z.number().min(0, 'Price must be positive').optional(),
+  currency: z.string().default('EUR'),
 });
 
 const editPdfSchema = z.object({
@@ -73,6 +76,9 @@ const editPdfSchema = z.object({
   description: z.string().optional(),
   category: z.string().min(1, 'Category is required'),
   status: z.enum(['active', 'archived']),
+  is_premium: z.boolean().default(false),
+  price: z.number().min(0, 'Price must be positive').optional(),
+  currency: z.string().default('EUR'),
 });
 
 type CreatePdfForm = z.infer<typeof createPdfSchema>;
@@ -111,6 +117,9 @@ const AdminPdfs = () => {
       description: '',
       category: 'general',
       file_url: '',
+      is_premium: false,
+      price: 0,
+      currency: 'EUR',
     },
   });
 
@@ -125,6 +134,9 @@ const AdminPdfs = () => {
       category: data.category,
       file_url: data.file_url,
       file_size: null, // Will be updated when we get file size from upload
+      is_premium: data.is_premium,
+      price: data.is_premium ? data.price : 0,
+      currency: data.currency,
     });
     setIsCreateDialogOpen(false);
     createForm.reset();
@@ -315,6 +327,85 @@ const AdminPdfs = () => {
                           </FormItem>
                         )}
                       />
+                      
+                      {/* Pricing Section */}
+                      <div className="space-y-4 border-t pt-4">
+                        <h4 className="font-medium text-sm">Pricing & Monetization</h4>
+                        
+                        <FormField
+                          control={createForm.control}
+                          name="is_premium"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                              <div className="space-y-0.5">
+                                <FormLabel>Premium Content</FormLabel>
+                                <div className="text-sm text-muted-foreground">
+                                  Require payment to access this PDF
+                                </div>
+                              </div>
+                              <FormControl>
+                                <input
+                                  type="checkbox"
+                                  checked={field.value}
+                                  onChange={field.onChange}
+                                  disabled={isCreating}
+                                  className="h-4 w-4"
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        {createForm.watch('is_premium') && (
+                          <>
+                            <FormField
+                              control={createForm.control}
+                              name="price"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Price</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      placeholder="0.00"
+                                      {...field}
+                                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                      disabled={isCreating}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={createForm.control}
+                              name="currency"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Currency</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isCreating}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select currency" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="EUR">EUR (€)</SelectItem>
+                                      <SelectItem value="USD">USD ($)</SelectItem>
+                                      <SelectItem value="GBP">GBP (£)</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </>
+                        )}
+                      </div>
+
                       <div className="flex justify-end space-x-2">
                         <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)} disabled={isCreating}>
                           Cancel
@@ -385,6 +476,11 @@ const AdminPdfs = () => {
                             <h3 className="font-medium">{pdf.title}</h3>
                             {getCategoryBadge((pdf.category as string) || 'general')}
                             {getStatusBadge((pdf.status as string) || 'active')}
+                            {pdf.is_premium && (
+                              <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
+                                Premium - {pdf.price ? `${pdf.price} ${pdf.currency || 'EUR'}` : 'No Price Set'}
+                              </Badge>
+                            )}
                           </div>
                         {pdf.description && (
                           <p className="text-sm text-gray-600 mb-1">{pdf.description}</p>

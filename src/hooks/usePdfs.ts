@@ -13,6 +13,11 @@ export interface PDF {
   created_at: string | null;
   category?: string | null;
   status?: string | null;
+  // New fields for monetization
+  price?: number;
+  is_premium?: boolean;
+  currency?: string;
+  stripe_price_id?: string;
 }
 
 export const usePdfs = () => {
