@@ -10,6 +10,9 @@ interface CreatePDFData {
   category: string;
   file_url: string;
   file_size?: number;
+  is_premium?: boolean;
+  price?: number;
+  currency?: string;
 }
 
 interface UpdatePDFData {
@@ -17,6 +20,9 @@ interface UpdatePDFData {
   description?: string;
   category?: string;
   status?: 'active' | 'archived';
+  is_premium?: boolean;
+  price?: number;
+  currency?: string;
 }
 
 export const useAdminPdfs = () => {

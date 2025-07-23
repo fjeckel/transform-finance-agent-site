@@ -161,6 +161,9 @@ const AdminPdfs = () => {
       description: pdf.description || '',
       category: (pdf.category as string) || 'general',
       status: (pdf.status as 'active' | 'archived') || 'active',
+      is_premium: pdf.is_premium || false,
+      price: pdf.price || 0,
+      currency: pdf.currency || 'EUR',
     });
     setIsEditDialogOpen(true);
   };
@@ -660,6 +663,85 @@ const AdminPdfs = () => {
                     </FormItem>
                   )}
                 />
+
+                {/* Pricing Section for Edit */}
+                <div className="space-y-4 border-t pt-4">
+                  <h4 className="font-medium text-sm">Pricing & Monetization</h4>
+                  
+                  <FormField
+                    control={editForm.control}
+                    name="is_premium"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <div className="space-y-0.5">
+                          <FormLabel>Premium Content</FormLabel>
+                          <div className="text-sm text-muted-foreground">
+                            Require payment to access this PDF
+                          </div>
+                        </div>
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            disabled={isUpdating}
+                            className="h-4 w-4"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {editForm.watch('is_premium') && (
+                    <>
+                      <FormField
+                        control={editForm.control}
+                        name="price"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Price</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                {...field}
+                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                disabled={isUpdating}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={editForm.control}
+                        name="currency"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Currency</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={isUpdating}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select currency" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="EUR">EUR (€)</SelectItem>
+                                <SelectItem value="USD">USD ($)</SelectItem>
+                                <SelectItem value="GBP">GBP (£)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
+                  )}
+                </div>
+
                 <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)} disabled={isUpdating}>
                     Cancel

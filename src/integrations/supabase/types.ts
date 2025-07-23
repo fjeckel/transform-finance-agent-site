@@ -29,6 +29,10 @@ export type Database = {
           status: string | null
           title: string
           updated_at: string | null
+          price: number | null
+          is_premium: boolean | null
+          stripe_price_id: string | null
+          currency: string | null
         }
         Insert: {
           category?: string | null
@@ -44,6 +48,10 @@ export type Database = {
           status?: string | null
           title: string
           updated_at?: string | null
+          price?: number | null
+          is_premium?: boolean | null
+          stripe_price_id?: string | null
+          currency?: string | null
         }
         Update: {
           category?: string | null
@@ -59,6 +67,10 @@ export type Database = {
           status?: string | null
           title?: string
           updated_at?: string | null
+          price?: number | null
+          is_premium?: boolean | null
+          stripe_price_id?: string | null
+          currency?: string | null
         }
         Relationships: [
           {
