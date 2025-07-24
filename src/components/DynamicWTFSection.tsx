@@ -15,9 +15,9 @@ const DynamicWTFSection: React.FC<DynamicWTFSectionProps> = ({ section }) => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
-            <h2 className="text-4xl lg:text-5xl font-bold text-foreground">
-              {section.title}
-            </h2>
+          <h2 className="text-4xl lg:text-5xl font-bold text-foreground font-cooper">
+            {section.title}
+          </h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
               {section.description}
             </p>

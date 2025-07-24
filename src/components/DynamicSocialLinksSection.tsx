@@ -23,7 +23,7 @@ const DynamicSocialLinksSection: React.FC<DynamicSocialLinksSectionProps> = ({ s
       <div className="container mx-auto px-4">
         <div className="text-center space-y-12">
           <div className="space-y-4">
-            <h2 className="text-4xl lg:text-5xl font-bold text-foreground">
+            <h2 className="text-4xl lg:text-5xl font-bold text-foreground font-cooper">
               {section.title}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">

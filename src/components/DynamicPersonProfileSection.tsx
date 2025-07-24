@@ -37,7 +37,7 @@ const DynamicPersonProfileSection: React.FC<DynamicPersonProfileSectionProps> = 
           isTimTeuscher ? '' : 'lg:grid-flow-col-dense'
         }`}>
           <div className={`space-y-6 ${isTimTeuscher ? 'order-1' : 'order-2 lg:order-1'}`}>
-            <h2 className="text-4xl lg:text-5xl font-bold text-foreground">
+            <h2 className="text-4xl lg:text-5xl font-bold text-foreground font-cooper">
               {section.title}
             </h2>
             {section.subtitle && (
