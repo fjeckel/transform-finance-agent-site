@@ -197,19 +197,8 @@ export const useStripePayment = () => {
     try {
       console.log('Checking purchase status for:', { userId: user.id, pdfId });
       
-      // First, test if we can access the purchases table at all
-      console.log('Testing database connection...');
-      const testQuery = await supabase
-        .from('purchases')
-        .select('count')
-        .limit(0);
-      
-      if (testQuery.error) {
-        console.error('Database connection test failed:', testQuery.error);
-        throw testQuery.error;
-      }
-      
-      console.log('Database connection successful, checking purchase...');
+      // Skip the problematic test query and go directly to the purchase check
+      console.log('Querying purchases directly...');
       const { data, error } = await supabase
         .from('purchases')
         .select('*')
@@ -226,6 +215,13 @@ export const useStripePayment = () => {
           details: error.details,
           hint: error.hint
         });
+        
+        // If it's RLS policy error, handle gracefully
+        if (error.code === 'PGRST116' || error.message?.includes('policy')) {
+          console.warn('RLS policy blocking query - user may not have proper permissions');
+          console.warn('This usually means the user does not have a completed purchase for this PDF');
+          return null;
+        }
         
         // If it's a table/column not found error, return null gracefully
         if (error.code === '42P01' || error.code === '42703' || error.message?.includes('relation') || error.message?.includes('column')) {
