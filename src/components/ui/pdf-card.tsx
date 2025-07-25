@@ -28,9 +28,26 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
     const checkPurchase = async () => {
       if (pdf.is_premium) {
         setCheckingPurchase(true);
-        const purchase = await checkPurchaseStatus(pdf.id);
-        setIsPurchased(!!purchase);
-        setCheckingPurchase(false);
+        
+        // Add timeout to prevent infinite loading
+        const timeoutId = setTimeout(() => {
+          console.warn('Purchase check timed out for PDF:', pdf.id);
+          setCheckingPurchase(false);
+          setIsPurchased(false);
+        }, 5000); // 5 second timeout
+        
+        try {
+          const purchase = await checkPurchaseStatus(pdf.id);
+          clearTimeout(timeoutId);
+          setIsPurchased(!!purchase);
+        } catch (error) {
+          console.error('Error checking purchase status:', error);
+          clearTimeout(timeoutId);
+          // Don't leave button disabled on error
+          setIsPurchased(false);
+        } finally {
+          setCheckingPurchase(false);
+        }
       }
     };
 
@@ -58,6 +75,20 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
   const isPremium = pdf.is_premium && pdf.price && pdf.price > 0;
   const showPurchaseButton = isPremium && !isPurchased;
   const showDownloadButton = !isPremium || isPurchased;
+  
+  // Debug info
+  if (isPremium && user) {
+    console.log('PDF Debug:', {
+      pdfId: pdf.id,
+      title: pdf.title,
+      isPremium,
+      isPurchased,
+      checkingPurchase,
+      loading,
+      buttonDisabled: loading || checkingPurchase,
+      user: user?.email
+    });
+  }
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -150,6 +181,7 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
               onClick={handlePurchase}
               disabled={loading || checkingPurchase}
               className="w-full bg-gradient-to-r from-[#13B87B] to-[#0F9A6A] hover:from-[#0F9A6A] hover:to-[#0D8A5A] text-white font-semibold"
+              title={loading ? 'Verarbeitung...' : checkingPurchase ? 'Überprüfung...' : 'Jetzt kaufen'}
             >
               {loading ? (
                 <>
