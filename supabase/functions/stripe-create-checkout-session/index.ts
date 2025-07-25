@@ -129,6 +129,31 @@ serve(async (req) => {
       stripeCustomerId = customer.id
     }
 
+    // Create preliminary purchase record (will be completed by webhook)
+    const { data: preliminaryPurchase, error: purchaseError } = await supabase
+      .from('purchases')
+      .insert({
+        user_id: userId,
+        pdf_id: pdfId,
+        amount_paid: pdf.price,
+        currency: pdf.currency || 'eur',
+        status: 'pending',
+        created_at: new Date().toISOString()
+      })
+      .select('*')
+      .single()
+
+    if (purchaseError) {
+      console.error('Error creating preliminary purchase:', purchaseError)
+      return new Response(
+        JSON.stringify({ error: 'Failed to create purchase record' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
     // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
@@ -154,6 +179,7 @@ serve(async (req) => {
         pdf_id: pdfId,
         user_id: userId,
         pdf_title: pdf.title,
+        purchase_id: preliminaryPurchase.id,
       },
       allow_promotion_codes: false,
       billing_address_collection: 'auto',
@@ -162,9 +188,24 @@ serve(async (req) => {
           pdf_id: pdfId,
           user_id: userId,
           pdf_title: pdf.title,
+          purchase_id: preliminaryPurchase.id,
         },
       },
     })
+
+    // Update purchase record with checkout session ID
+    const { error: updateError } = await supabase
+      .from('purchases')
+      .update({ 
+        stripe_checkout_session_id: session.id,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', preliminaryPurchase.id)
+
+    if (updateError) {
+      console.error('Error updating purchase with session ID:', updateError)
+      // Continue anyway - webhook can still process this
+    }
 
     return new Response(
       JSON.stringify({ 

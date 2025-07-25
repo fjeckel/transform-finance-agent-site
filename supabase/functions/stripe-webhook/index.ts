@@ -49,7 +49,26 @@ serve(async (req) => {
 
     // Handle the event
     switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session
+        await handleCheckoutSessionCompleted(supabase, session)
+        break
+      }
+
+      case 'checkout.session.expired': {
+        const session = event.data.object as Stripe.Checkout.Session
+        await handleCheckoutSessionExpired(supabase, session)
+        break
+      }
+
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object as Stripe.Invoice
+        await handleInvoicePaymentSucceeded(supabase, invoice)
+        break
+      }
+
       case 'payment_intent.succeeded': {
+        // Keep for backward compatibility or direct payment intent usage
         const paymentIntent = event.data.object as Stripe.PaymentIntent
         await handlePaymentSuccess(supabase, paymentIntent)
         break
@@ -80,6 +99,127 @@ serve(async (req) => {
     return new Response('Webhook handler error', { status: 500 })
   }
 })
+
+async function handleCheckoutSessionCompleted(supabase: any, session: Stripe.Checkout.Session) {
+  try {
+    console.log('Processing completed checkout session:', session.id)
+
+    // Extract metadata
+    const pdfId = session.metadata?.pdf_id
+    const userId = session.metadata?.user_id
+    const pdfTitle = session.metadata?.pdf_title
+
+    if (!pdfId || !userId) {
+      console.error('Missing metadata in checkout session:', session.id)
+      return
+    }
+
+    // Create or update purchase record
+    const purchaseData = {
+      user_id: userId,
+      pdf_id: pdfId,
+      stripe_payment_intent_id: session.payment_intent as string,
+      stripe_checkout_session_id: session.id,
+      amount_paid: session.amount_total! / 100, // Convert from cents
+      currency: session.currency!.toUpperCase(),
+      status: 'completed',
+      purchased_at: new Date().toISOString()
+    }
+
+    // Use upsert to handle potential duplicates
+    const { data: purchase, error: upsertError } = await supabase
+      .from('purchases')
+      .upsert(purchaseData, {
+        onConflict: 'stripe_checkout_session_id',
+        ignoreDuplicates: false
+      })
+      .select('*')
+      .single()
+
+    if (upsertError) {
+      console.error('Error upserting purchase:', upsertError)
+      return
+    }
+
+    console.log('Purchase record created/updated:', purchase.id)
+
+    // Generate download token
+    const downloadToken = crypto.randomUUID()
+    const expiresAt = new Date()
+    expiresAt.setHours(expiresAt.getHours() + 48) // 48 hours expiry
+
+    const { error: tokenError } = await supabase
+      .from('download_tokens')
+      .insert({
+        purchase_id: purchase.id,
+        token: downloadToken,
+        expires_at: expiresAt.toISOString(),
+        max_downloads: 5
+      })
+
+    if (tokenError) {
+      console.error('Error creating download token:', tokenError)
+      return
+    }
+
+    // Send confirmation email
+    await sendPurchaseConfirmationEmail(supabase, purchase, downloadToken)
+
+    console.log('Successfully processed checkout session:', session.id)
+
+  } catch (error) {
+    console.error('Error handling checkout session completed:', error)
+  }
+}
+
+async function handleCheckoutSessionExpired(supabase: any, session: Stripe.Checkout.Session) {
+  try {
+    console.log('Processing expired checkout session:', session.id)
+
+    // Mark any pending purchases as expired
+    const { error } = await supabase
+      .from('purchases')
+      .update({ 
+        status: 'expired',
+        updated_at: new Date().toISOString()
+      })
+      .eq('stripe_checkout_session_id', session.id)
+      .eq('status', 'pending')
+
+    if (error) {
+      console.error('Error updating expired purchase:', error)
+    }
+
+  } catch (error) {
+    console.error('Error handling checkout session expired:', error)
+  }
+}
+
+async function handleInvoicePaymentSucceeded(supabase: any, invoice: Stripe.Invoice) {
+  try {
+    console.log('Processing successful invoice payment:', invoice.id)
+
+    // This is useful for subscription-based payments or future recurring charges
+    // For now, we'll log it for future implementation
+    
+    const customerId = invoice.customer as string
+    const subscriptionId = invoice.subscription as string
+
+    console.log('Invoice payment succeeded:', {
+      invoiceId: invoice.id,
+      customerId,
+      subscriptionId,
+      amount: invoice.amount_paid / 100,
+      currency: invoice.currency
+    })
+
+    // TODO: Implement subscription-based purchase handling
+    // This would be used for monthly/yearly subscription access to premium content
+
+  } catch (error) {
+    console.error('Error handling invoice payment succeeded:', error)
+  }
+}
 
 async function handlePaymentSuccess(supabase: any, paymentIntent: Stripe.PaymentIntent) {
   try {

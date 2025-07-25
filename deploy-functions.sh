@@ -19,22 +19,31 @@ if ! supabase db list &> /dev/null; then
     exit 1
 fi
 
-# Deploy RSS Feed function
-echo "📡 Deploying RSS Feed function..."
-supabase functions deploy rss-feed
+# Deploy all functions
+FUNCTIONS=("rss-feed" "stripe-create-checkout-session" "stripe-webhook" "download-pdf" "stripe-create-payment-intent")
 
-if [ $? -eq 0 ]; then
-    echo "✅ RSS Feed function deployed successfully!"
+for func in "${FUNCTIONS[@]}"; do
+    echo "📡 Deploying $func function..."
+    supabase functions deploy $func
+    
+    if [ $? -eq 0 ]; then
+        echo "✅ $func function deployed successfully!"
+    else
+        echo "❌ $func deployment failed. Continuing with other functions..."
+    fi
     echo ""
-    echo "📋 Your RSS feeds are now available at:"
-    echo "   - All episodes: [PROJECT_URL]/functions/v1/rss-feed"
-    echo "   - WTF: [PROJECT_URL]/functions/v1/rss-feed/wtf"
-    echo "   - Finance Transformers: [PROJECT_URL]/functions/v1/rss-feed/finance_transformers"
-    echo "   - CFO Memo: [PROJECT_URL]/functions/v1/rss-feed/cfo_memo"
-else
-    echo "❌ Deployment failed. Please check the error messages above."
-    exit 1
-fi
+done
+
+echo "📋 Your RSS feeds are now available at:"
+echo "   - All episodes: [PROJECT_URL]/functions/v1/rss-feed"
+echo "   - WTF: [PROJECT_URL]/functions/v1/rss-feed/wtf"
+echo "   - Finance Transformers: [PROJECT_URL]/functions/v1/rss-feed/finance_transformers"
+echo "   - CFO Memo: [PROJECT_URL]/functions/v1/rss-feed/cfo_memo"
+echo ""
+echo "💳 Stripe payment functions deployed:"
+echo "   - Checkout session creation: [PROJECT_URL]/functions/v1/stripe-create-checkout-session"
+echo "   - Webhook handler: [PROJECT_URL]/functions/v1/stripe-webhook"
+echo "   - PDF download: [PROJECT_URL]/functions/v1/download-pdf"
 
 # List all deployed functions
 echo ""

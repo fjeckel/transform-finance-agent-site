@@ -8,8 +8,8 @@ const getStripe = () => {
     const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
     
     if (!publishableKey) {
-      console.error('Missing Stripe publishable key');
-      return null;
+      console.error('Missing Stripe publishable key. Please set VITE_STRIPE_PUBLISHABLE_KEY in your .env.local file');
+      return Promise.resolve(null);
     }
     
     stripePromise = loadStripe(publishableKey);

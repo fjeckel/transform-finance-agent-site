@@ -91,10 +91,11 @@ export const useStripePayment = () => {
     
     if (!stripe) {
       toast({
-        title: 'Stripe-Fehler',
-        description: 'Zahlungsanbieter konnte nicht geladen werden.',
+        title: 'Stripe-Konfigurationsfehler',
+        description: 'Zahlungsanbieter konnte nicht geladen werden. Bitte kontaktieren Sie den Support.',
         variant: 'destructive',
       });
+      console.error('Stripe could not be initialized. Check VITE_STRIPE_PUBLISHABLE_KEY environment variable.');
       return;
     }
 
@@ -145,10 +146,28 @@ export const useStripePayment = () => {
             description: 'Sie haben diesen Report bereits erworben.',
             variant: 'destructive',
           });
+        } else if (error.message.includes('PDF not found')) {
+          toast({
+            title: 'Report nicht gefunden',
+            description: 'Der gewählte Report existiert nicht.',
+            variant: 'destructive',
+          });
+        } else if (error.message.includes('not premium content')) {
+          toast({
+            title: 'Kein Premium-Content',
+            description: 'Dieser Report ist kostenlos verfügbar.',
+            variant: 'destructive',
+          });
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          toast({
+            title: 'Netzwerkfehler',
+            description: 'Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.',
+            variant: 'destructive',
+          });
         } else {
           toast({
             title: 'Fehler beim Erstellen der Zahlung',
-            description: 'Bitte versuchen Sie es erneut.',
+            description: `Bitte versuchen Sie es erneut. Details: ${error.message}`,
             variant: 'destructive',
           });
         }
@@ -170,25 +189,73 @@ export const useStripePayment = () => {
   };
 
   const checkPurchaseStatus = async (pdfId: string): Promise<Purchase | null> => {
-    if (!user) return null;
+    if (!user) {
+      console.log('No user logged in for purchase status check');
+      return null;
+    }
 
     try {
+      console.log('Checking purchase status for:', { userId: user.id, pdfId });
+      
+      // First, test if we can access the purchases table at all
+      console.log('Testing database connection...');
+      const testQuery = await supabase
+        .from('purchases')
+        .select('count')
+        .limit(0);
+      
+      if (testQuery.error) {
+        console.error('Database connection test failed:', testQuery.error);
+        throw testQuery.error;
+      }
+      
+      console.log('Database connection successful, checking purchase...');
       const { data, error } = await supabase
         .from('purchases')
         .select('*')
         .eq('user_id', user.id)
         .eq('pdf_id', pdfId)
         .eq('status', 'completed')
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to avoid errors when no rows found
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.error('Error checking purchase status:', error);
+      if (error) {
+        console.error('Purchase status check error:', {
+          error,
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        
+        // If it's a table/column not found error, return null gracefully
+        if (error.code === '42P01' || error.code === '42703' || error.message?.includes('relation') || error.message?.includes('column')) {
+          console.warn('Purchases table or column not found - database migration may be needed');
+          toast({
+            title: 'Setup erforderlich',
+            description: 'Kaufsystem wird konfiguriert. Bitte versuchen Sie es später erneut.',
+            variant: 'destructive',
+          });
+          return null;
+        }
+        
         return null;
       }
 
+      console.log('Purchase status check result:', data ? 'Found purchase' : 'No purchase found');
       return data;
     } catch (error) {
-      console.error('Purchase status check failed:', error);
+      console.error('Purchase status check failed with exception:', error);
+      
+      // Check if it's a network error
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.error('Network error detected - check internet connection or Supabase service status');
+        toast({
+          title: 'Netzwerkfehler',
+          description: 'Verbindung zum Server fehlgeschlagen. Bitte überprüfen Sie Ihre Internetverbindung.',
+          variant: 'destructive',
+        });
+      }
+      
       return null;
     }
   };

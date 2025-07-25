@@ -9,6 +9,10 @@ import { formatBytes } from '@/lib/utils';
 import { formatPrice } from '@/lib/stripe';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
+import { PurchaseDebug } from './purchase-debug';
+import { DatabaseDiagnostic } from './database-diagnostic';
+import { NetworkTest } from './network-test';
 
 interface PDFCardProps {
   pdf: PDF;
@@ -31,10 +35,10 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
         
         // Add timeout to prevent infinite loading
         const timeoutId = setTimeout(() => {
-          console.warn('Purchase check timed out for PDF:', pdf.id);
+          console.warn('Purchase check timed out for PDF:', pdf.id, '- This may indicate database/network issues');
           setCheckingPurchase(false);
           setIsPurchased(false);
-        }, 5000); // 5 second timeout
+        }, 10000); // Increased to 10 second timeout
         
         try {
           const purchase = await checkPurchaseStatus(pdf.id);
@@ -65,6 +69,23 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
       navigate('/auth');
       return;
     }
+    
+    // Double-check purchase status before proceeding
+    try {
+      const existingPurchase = await checkPurchaseStatus(pdf.id);
+      if (existingPurchase) {
+        setIsPurchased(true);
+        toast({
+          title: 'Bereits gekauft',
+          description: 'Sie haben diesen Report bereits erworben.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    } catch (error) {
+      console.warn('Could not verify purchase status before payment:', error);
+    }
+    
     await processPayment(pdf.id);
   };
 
@@ -240,6 +261,18 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
             }
           </div>
         )}
+
+        {/* Debug components - only shown in development */}
+        <PurchaseDebug 
+          pdf={pdf}
+          isPurchased={isPurchased}
+          checkingPurchase={checkingPurchase}
+          loading={loading}
+        />
+        
+        <DatabaseDiagnostic />
+        
+        <NetworkTest />
       </CardContent>
     </Card>
   );
