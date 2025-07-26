@@ -4,15 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PDF } from '@/hooks/usePdfs';
-import { useStripePayment } from '@/hooks/useStripePayment';
+import { useSimplePayment } from '@/hooks/useSimplePayment';
 import { formatBytes } from '@/lib/utils';
 import { formatPrice } from '@/lib/stripe';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { PurchaseDebug } from './purchase-debug';
-import { DatabaseDiagnostic } from './database-diagnostic';
-import { NetworkTest } from './network-test';
+import CheckoutDialog from '@/components/checkout/CheckoutDialog';
 
 interface PDFCardProps {
   pdf: PDF;
@@ -23,7 +21,8 @@ interface PDFCardProps {
 export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
   const [isPurchased, setIsPurchased] = useState(false);
   const [checkingPurchase, setCheckingPurchase] = useState(false);
-  const { loading, processPayment, checkPurchaseStatus } = useStripePayment();
+  const [showCheckout, setShowCheckout] = useState(false);
+  const { loading, checkPurchaseStatus } = useSimplePayment();
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -86,7 +85,24 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
       console.warn('Could not verify purchase status before payment:', error);
     }
     
-    await processPayment(pdf.id);
+    // Open checkout dialog
+    setShowCheckout(true);
+  };
+
+  const handlePaymentSuccess = async () => {
+    // Refresh purchase status
+    setIsPurchased(true);
+    toast({
+      title: 'Payment Successful!',
+      description: `Successfully purchased ${pdf.title}`,
+    });
+    
+    // Recheck purchase status to be sure
+    try {
+      await checkPurchaseStatus(pdf.id);
+    } catch (error) {
+      console.warn('Could not recheck purchase status after payment');
+    }
   };
 
   const handleViewDetails = () => {
@@ -262,18 +278,18 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
           </div>
         )}
 
-        {/* Debug components - only shown in development */}
-        <PurchaseDebug 
-          pdf={pdf}
-          isPurchased={isPurchased}
-          checkingPurchase={checkingPurchase}
-          loading={loading}
-        />
-        
-        <DatabaseDiagnostic />
-        
-        <NetworkTest />
       </CardContent>
+      
+      {/* Simple Checkout Dialog */}
+      <CheckoutDialog
+        isOpen={showCheckout}
+        onClose={() => setShowCheckout(false)}
+        pdfId={pdf.id}
+        pdfTitle={pdf.title}
+        price={pdf.price || 0}
+        currency={pdf.currency || 'EUR'}
+        onSuccess={handlePaymentSuccess}
+      />
     </Card>
   );
 };

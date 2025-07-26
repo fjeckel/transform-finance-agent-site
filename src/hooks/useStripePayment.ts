@@ -21,110 +21,137 @@ export interface Purchase {
   };
 }
 
+// Enhanced error classes for better error handling
+class PaymentError extends Error {
+  constructor(
+    message: string,
+    public category: 'USER_ERROR' | 'NETWORK_ERROR' | 'SYSTEM_ERROR',
+    public code?: string,
+    public retryable: boolean = false
+  ) {
+    super(message);
+    this.name = 'PaymentError';
+  }
+}
+
+// Retry utility with exponential backoff
+const withRetry = async <T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> => {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      const isLastAttempt = attempt === maxRetries - 1;
+      const isRetryable = error instanceof PaymentError && error.retryable;
+      
+      if (isLastAttempt || !isRetryable) {
+        throw error;
+      }
+      
+      // Exponential backoff with jitter
+      const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
+      await new Promise(resolve => setTimeout(resolve, delay));
+      
+      console.log(`Retrying payment operation, attempt ${attempt + 2}/${maxRetries}`);
+    }
+  }
+  
+  throw new Error('Unexpected retry loop exit');
+};
+
 export const useStripePayment = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
-  const createPaymentIntent = async (pdfId: string) => {
+  const processPayment = async (pdfId: string) => {
     if (!user) {
       toast({
         title: 'Authentifizierung erforderlich',
         description: 'Bitte melden Sie sich an, um Inhalte zu kaufen.',
         variant: 'destructive',
       });
-      return null;
+      return;
     }
 
     setLoading(true);
 
     try {
-      // Call Supabase Edge Function to create payment intent
-      const { data, error } = await supabase.functions.invoke('stripe-create-payment-intent', {
-        body: {
-          pdfId: pdfId,
-          userId: user.id,
-        },
+      // Use retry logic for creating checkout session
+      const checkoutData = await withRetry(
+        () => createCheckoutSession(pdfId),
+        3,
+        1000
+      );
+      
+      if (!checkoutData?.sessionId) {
+        throw new PaymentError(
+          'Checkout-Session konnte nicht erstellt werden',
+          'SYSTEM_ERROR',
+          'NO_SESSION_ID'
+        );
+      }
+
+      // Initialize Stripe
+      const stripe = await getStripe();
+      if (!stripe) {
+        throw new PaymentError(
+          'Stripe konnte nicht initialisiert werden',
+          'SYSTEM_ERROR',
+          'STRIPE_INIT_FAILED'
+        );
+      }
+
+      // Direct redirect to checkout URL for better reliability
+      if (checkoutData.url) {
+        window.location.href = checkoutData.url;
+        return;
+      }
+
+      // Fallback to redirectToCheckout
+      const { error } = await stripe.redirectToCheckout({
+        sessionId: checkoutData.sessionId,
       });
 
       if (error) {
-        console.error('Error creating payment intent:', error);
-        
-        if (error.message.includes('already purchased')) {
-          toast({
-            title: 'Bereits gekauft',
-            description: 'Sie haben diesen Report bereits erworben.',
-            variant: 'destructive',
-          });
-        } else {
-          toast({
-            title: 'Fehler beim Erstellen der Zahlung',
-            description: 'Bitte versuchen Sie es erneut.',
-            variant: 'destructive',
-          });
-        }
-        return null;
+        throw new PaymentError(
+          error.message || 'Checkout-Fehler',
+          'SYSTEM_ERROR',
+          'CHECKOUT_REDIRECT_FAILED'
+        );
       }
 
-      return data;
     } catch (error) {
-      console.error('Payment intent creation failed:', error);
-      toast({
-        title: 'Zahlung fehlgeschlagen',
-        description: 'Ein unerwarteter Fehler ist aufgetreten.',
-        variant: 'destructive',
-      });
-      return null;
+      console.error('Payment processing failed:', error);
+      
+      if (error instanceof PaymentError) {
+        toast({
+          title: 'Zahlungsfehler',
+          description: error.message,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Unerwarteter Fehler',
+          description: 'Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const processPayment = async (pdfId: string) => {
-    // Create checkout session instead of payment intent for simpler flow
-    const checkoutData = await createCheckoutSession(pdfId);
-    
-    if (!checkoutData || !checkoutData.sessionId) {
-      return;
-    }
-
-    const stripe = await getStripe();
-    
-    if (!stripe) {
-      toast({
-        title: 'Stripe-Konfigurationsfehler',
-        description: 'Zahlungsanbieter konnte nicht geladen werden. Bitte kontaktieren Sie den Support.',
-        variant: 'destructive',
-      });
-      console.error('Stripe could not be initialized. Check VITE_STRIPE_PUBLISHABLE_KEY environment variable.');
-      return;
-    }
-
-    // Redirect to Stripe Checkout
-    const { error } = await stripe.redirectToCheckout({
-      sessionId: checkoutData.sessionId,
-    });
-
-    if (error) {
-      console.error('Stripe checkout error:', error);
-      toast({
-        title: 'Checkout-Fehler',
-        description: error.message || 'Fehler beim Öffnen des Zahlungsformulars.',
-        variant: 'destructive',
-      });
-    }
-  };
-
   const createCheckoutSession = async (pdfId: string) => {
     if (!user) {
-      toast({
-        title: 'Authentifizierung erforderlich',
-        description: 'Bitte melden Sie sich an, um Inhalte zu kaufen.',
-        variant: 'destructive',
-      });
-      return null;
+      throw new PaymentError(
+        'Authentifizierung erforderlich',
+        'USER_ERROR',
+        'NOT_AUTHENTICATED'
+      );
     }
-
-    setLoading(true);
 
     try {
       // Call Supabase Edge Function to create checkout session
@@ -140,51 +167,74 @@ export const useStripePayment = () => {
       if (error) {
         console.error('Error creating checkout session:', error);
         
+        // Categorize errors for better handling
         if (error.message.includes('already purchased')) {
-          toast({
-            title: 'Bereits gekauft',
-            description: 'Sie haben diesen Report bereits erworben.',
-            variant: 'destructive',
-          });
+          throw new PaymentError(
+            'Sie haben diesen Report bereits erworben.',
+            'USER_ERROR',
+            'ALREADY_PURCHASED'
+          );
         } else if (error.message.includes('PDF not found')) {
-          toast({
-            title: 'Report nicht gefunden',
-            description: 'Der gewählte Report existiert nicht.',
-            variant: 'destructive',
-          });
+          throw new PaymentError(
+            'Der gewählte Report existiert nicht.',
+            'USER_ERROR',
+            'PDF_NOT_FOUND'
+          );
         } else if (error.message.includes('not premium content')) {
-          toast({
-            title: 'Kein Premium-Content',
-            description: 'Dieser Report ist kostenlos verfügbar.',
-            variant: 'destructive',
-          });
+          throw new PaymentError(
+            'Dieser Report ist kostenlos verfügbar.',
+            'USER_ERROR',
+            'NOT_PREMIUM'
+          );
         } else if (error.message.includes('network') || error.message.includes('fetch')) {
-          toast({
-            title: 'Netzwerkfehler',
-            description: 'Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.',
-            variant: 'destructive',
-          });
+          throw new PaymentError(
+            'Netzwerkfehler - bitte überprüfen Sie Ihre Internetverbindung.',
+            'NETWORK_ERROR',
+            'NETWORK_FAILURE',
+            true // retryable
+          );
         } else {
-          toast({
-            title: 'Fehler beim Erstellen der Zahlung',
-            description: `Bitte versuchen Sie es erneut. Details: ${error.message}`,
-            variant: 'destructive',
-          });
+          throw new PaymentError(
+            `Fehler beim Erstellen der Zahlung: ${error.message}`,
+            'SYSTEM_ERROR',
+            'CHECKOUT_SESSION_FAILED',
+            true // retryable
+          );
         }
-        return null;
+      }
+
+      if (!data) {
+        throw new PaymentError(
+          'Keine Antwort vom Zahlungsanbieter erhalten.',
+          'SYSTEM_ERROR',
+          'NO_RESPONSE_DATA'
+        );
       }
 
       return data;
     } catch (error) {
+      // Re-throw PaymentError instances
+      if (error instanceof PaymentError) {
+        throw error;
+      }
+      
+      // Handle unexpected errors
       console.error('Checkout session creation failed:', error);
-      toast({
-        title: 'Zahlung fehlgeschlagen',
-        description: 'Ein unerwarteter Fehler ist aufgetreten.',
-        variant: 'destructive',
-      });
-      return null;
-    } finally {
-      setLoading(false);
+      
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new PaymentError(
+          'Verbindung zum Server fehlgeschlagen.',
+          'NETWORK_ERROR',
+          'CONNECTION_FAILED',
+          true // retryable
+        );
+      }
+      
+      throw new PaymentError(
+        'Ein unerwarteter Fehler ist aufgetreten.',
+        'SYSTEM_ERROR',
+        'UNEXPECTED_ERROR'
+      );
     }
   };
 

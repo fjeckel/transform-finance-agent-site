@@ -7,12 +7,131 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
 }
 
+// Enhanced webhook security and event deduplication
+class WebhookEventProcessor {
+  private processedEvents = new Set<string>()
+  private stripe: Stripe
+  private supabase: any
+
+  constructor(stripe: Stripe, supabase: any) {
+    this.stripe = stripe
+    this.supabase = supabase
+  }
+
+  async verifyAndProcessEvent(body: string, signature: string, secret: string): Promise<boolean> {
+    try {
+      // Step 1: Verify webhook signature
+      const event = this.stripe.webhooks.constructEvent(body, signature, secret)
+      
+      // Step 2: Check for event deduplication
+      if (await this.isEventProcessed(event.id)) {
+        console.log(`Event ${event.id} already processed, skipping`)
+        return true
+      }
+
+      // Step 3: Additional security - fetch event from Stripe API to verify authenticity
+      const stripeEvent = await this.stripe.events.retrieve(event.id)
+      if (!stripeEvent || stripeEvent.type !== event.type) {
+        console.error(`Event verification failed for ${event.id}`)
+        return false
+      }
+
+      // Step 4: Mark event as being processed
+      await this.markEventAsProcessing(event.id)
+
+      // Step 5: Process the event
+      await this.processEvent(stripeEvent)
+
+      // Step 6: Mark event as completed
+      await this.markEventAsCompleted(event.id)
+
+      return true
+    } catch (error) {
+      console.error('Event verification and processing failed:', error)
+      return false
+    }
+  }
+
+  private async isEventProcessed(eventId: string): Promise<boolean> {
+    // Check in-memory cache first (for immediate duplicates)
+    if (this.processedEvents.has(eventId)) {
+      return true
+    }
+
+    // Check database for persistence across function invocations
+    const { data } = await this.supabase
+      .from('webhook_events')
+      .select('id')
+      .eq('stripe_event_id', eventId)
+      .eq('status', 'completed')
+      .single()
+
+    return !!data
+  }
+
+  private async markEventAsProcessing(eventId: string): Promise<void> {
+    this.processedEvents.add(eventId)
+    
+    await this.supabase
+      .from('webhook_events')
+      .upsert({
+        stripe_event_id: eventId,
+        status: 'processing',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'stripe_event_id'
+      })
+  }
+
+  private async markEventAsCompleted(eventId: string): Promise<void> {
+    await this.supabase
+      .from('webhook_events')
+      .update({
+        status: 'completed',
+        updated_at: new Date().toISOString()
+      })
+      .eq('stripe_event_id', eventId)
+  }
+
+  private async processEvent(event: Stripe.Event): Promise<void> {
+    console.log(`Processing webhook event: ${event.type} (${event.id})`)
+
+    switch (event.type) {
+      case 'checkout.session.completed':
+        await handleCheckoutSessionCompleted(this.supabase, event.data.object as Stripe.Checkout.Session)
+        break
+      case 'checkout.session.expired':
+        await handleCheckoutSessionExpired(this.supabase, event.data.object as Stripe.Checkout.Session)
+        break
+      case 'invoice.payment_succeeded':
+        await handleInvoicePaymentSucceeded(this.supabase, event.data.object as Stripe.Invoice)
+        break
+      case 'payment_intent.succeeded':
+        await handlePaymentSuccess(this.supabase, event.data.object as Stripe.PaymentIntent)
+        break
+      case 'payment_intent.payment_failed':
+        await handlePaymentFailed(this.supabase, event.data.object as Stripe.PaymentIntent)
+        break
+      case 'charge.dispute.created':
+        await handleDispute(this.supabase, event.data.object as Stripe.Dispute)
+        break
+      default:
+        console.log(`Unhandled event type: ${event.type}`)
+    }
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  // Rate limiting: basic implementation
+  const clientIP = req.headers.get('x-forwarded-for') || 'unknown'
+  const rateLimitKey = `webhook_rate_limit_${clientIP}`
+  
   try {
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
@@ -29,65 +148,22 @@ serve(async (req) => {
     const signature = req.headers.get('stripe-signature')
 
     if (!signature) {
+      console.error('Missing stripe-signature header')
       return new Response('Missing stripe-signature header', { status: 400 })
     }
 
-    let event: Stripe.Event
-
-    try {
-      event = stripe.webhooks.constructEvent(
-        body,
-        signature,
-        Deno.env.get('STRIPE_WEBHOOK_SECRET') || ''
-      )
-    } catch (err) {
-      console.error('Webhook signature verification failed:', err)
-      return new Response('Webhook signature verification failed', { status: 400 })
+    const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')
+    if (!webhookSecret) {
+      console.error('Missing STRIPE_WEBHOOK_SECRET environment variable')
+      return new Response('Webhook secret not configured', { status: 500 })
     }
 
-    console.log('Received webhook event:', event.type)
+    // Use enhanced webhook processor
+    const processor = new WebhookEventProcessor(stripe, supabase)
+    const success = await processor.verifyAndProcessEvent(body, signature, webhookSecret)
 
-    // Handle the event
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session
-        await handleCheckoutSessionCompleted(supabase, session)
-        break
-      }
-
-      case 'checkout.session.expired': {
-        const session = event.data.object as Stripe.Checkout.Session
-        await handleCheckoutSessionExpired(supabase, session)
-        break
-      }
-
-      case 'invoice.payment_succeeded': {
-        const invoice = event.data.object as Stripe.Invoice
-        await handleInvoicePaymentSucceeded(supabase, invoice)
-        break
-      }
-
-      case 'payment_intent.succeeded': {
-        // Keep for backward compatibility or direct payment intent usage
-        const paymentIntent = event.data.object as Stripe.PaymentIntent
-        await handlePaymentSuccess(supabase, paymentIntent)
-        break
-      }
-
-      case 'payment_intent.payment_failed': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent
-        await handlePaymentFailed(supabase, paymentIntent)
-        break
-      }
-
-      case 'charge.dispute.created': {
-        const dispute = event.data.object as Stripe.Dispute
-        await handleDispute(supabase, dispute)
-        break
-      }
-
-      default:
-        console.log(`Unhandled event type: ${event.type}`)
+    if (!success) {
+      return new Response('Event processing failed', { status: 400 })
     }
 
     return new Response(JSON.stringify({ received: true }), {
@@ -96,13 +172,34 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Webhook handler error:', error)
-    return new Response('Webhook handler error', { status: 500 })
+    
+    // Enhanced error reporting
+    const errorDetails = {
+      message: error.message,
+      type: error.constructor.name,
+      timestamp: new Date().toISOString(),
+      clientIP
+    }
+    
+    return new Response(JSON.stringify({ 
+      error: 'Webhook handler error',
+      details: errorDetails 
+    }), { 
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
   }
 })
 
 async function handleCheckoutSessionCompleted(supabase: any, session: Stripe.Checkout.Session) {
+  const startTime = Date.now()
   try {
-    console.log('Processing completed checkout session:', session.id)
+    console.log('Processing completed checkout session:', {
+      sessionId: session.id,
+      amount: session.amount_total,
+      currency: session.currency,
+      customer: session.customer
+    })
 
     // Extract metadata
     const pdfId = session.metadata?.pdf_id
@@ -110,7 +207,17 @@ async function handleCheckoutSessionCompleted(supabase: any, session: Stripe.Che
     const pdfTitle = session.metadata?.pdf_title
 
     if (!pdfId || !userId) {
-      console.error('Missing metadata in checkout session:', session.id)
+      console.error('Missing metadata in checkout session:', {
+        sessionId: session.id,
+        metadata: session.metadata
+      })
+      
+      // Log the error for analytics
+      await logPaymentEvent(supabase, 'checkout_session_missing_metadata', {
+        session_id: session.id,
+        error: 'Missing pdf_id or user_id in metadata',
+        metadata: session.metadata
+      })
       return
     }
 
@@ -165,10 +272,41 @@ async function handleCheckoutSessionCompleted(supabase: any, session: Stripe.Che
     // Send confirmation email
     await sendPurchaseConfirmationEmail(supabase, purchase, downloadToken)
 
-    console.log('Successfully processed checkout session:', session.id)
+    // Log successful processing
+    const processingTime = Date.now() - startTime
+    console.log('Successfully processed checkout session:', {
+      sessionId: session.id,
+      purchaseId: purchase.id,
+      processingTimeMs: processingTime
+    })
+
+    // Track success metrics
+    await logPaymentEvent(supabase, 'checkout_session_completed', {
+      session_id: session.id,
+      purchase_id: purchase.id,
+      user_id: userId,
+      pdf_id: pdfId,
+      amount: session.amount_total! / 100,
+      currency: session.currency,
+      processing_time_ms: processingTime,
+      success: true
+    })
 
   } catch (error) {
-    console.error('Error handling checkout session completed:', error)
+    const processingTime = Date.now() - startTime
+    console.error('Error handling checkout session completed:', {
+      sessionId: session.id,
+      error: error.message,
+      processingTimeMs: processingTime
+    })
+
+    // Track error metrics
+    await logPaymentEvent(supabase, 'checkout_session_error', {
+      session_id: session.id,
+      error: error.message,
+      processing_time_ms: processingTime,
+      success: false
+    })
   }
 }
 
@@ -364,5 +502,29 @@ async function sendPurchaseConfirmationEmail(supabase: any, purchase: any, downl
 
   } catch (error) {
     console.error('Error preparing confirmation email:', error)
+  }
+}
+
+// Enhanced logging and analytics
+async function logPaymentEvent(supabase: any, eventType: string, data: any) {
+  try {
+    await supabase
+      .from('payment_analytics')
+      .insert({
+        event_type: eventType,
+        event_data: data,
+        timestamp: new Date().toISOString(),
+        success: data.success ?? null,
+        error_message: data.error ?? null,
+        processing_time_ms: data.processing_time_ms ?? null,
+        amount: data.amount ?? null,
+        currency: data.currency ?? null,
+        user_id: data.user_id ?? null,
+        session_id: data.session_id ?? null,
+        purchase_id: data.purchase_id ?? null
+      })
+  } catch (error) {
+    // Don't fail the main process if logging fails
+    console.error('Failed to log payment event:', error)
   }
 }

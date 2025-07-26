@@ -8,6 +8,10 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // DEPRECATED: This function is deprecated in favor of stripe-create-checkout-session
+  // for better security and user experience. This function will be removed in a future version.
+  console.warn('DEPRECATED: stripe-create-payment-intent function is deprecated. Use stripe-create-checkout-session instead.')
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })

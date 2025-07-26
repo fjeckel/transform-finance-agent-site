@@ -67,6 +67,35 @@ serve(async (req) => {
       )
     }
 
+    // Validate payment amount against Stripe limits
+    const currency = pdf.currency || 'eur'
+    const minimumAmount = currency.toLowerCase() === 'eur' ? 0.50 : 0.50 // EUR minimum
+    const maximumAmount = 999999.99 // Stripe maximum
+    
+    if (pdf.price < minimumAmount) {
+      return new Response(
+        JSON.stringify({ 
+          error: `Price must be at least ${minimumAmount} ${currency.toUpperCase()}` 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    if (pdf.price > maximumAmount) {
+      return new Response(
+        JSON.stringify({ 
+          error: `Price cannot exceed ${maximumAmount} ${currency.toUpperCase()}` 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
     // Check if user already purchased this PDF
     const { data: existingPurchase } = await supabase
       .from('purchases')
@@ -154,10 +183,10 @@ serve(async (req) => {
       )
     }
 
-    // Create Stripe Checkout Session
+    // Create Stripe Checkout Session with enhanced configuration
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
-      payment_method_types: ['card'],
+      payment_method_types: ['card', 'sepa_debit'], // Support SEPA for European customers
       line_items: [
         {
           price_data: {
@@ -166,6 +195,10 @@ serve(async (req) => {
               name: pdf.title,
               description: pdf.description || 'Premium PDF Report',
               images: pdf.image_url ? [pdf.image_url] : [],
+              metadata: {
+                pdf_id: pdfId,
+                content_type: 'premium_pdf',
+              },
             },
             unit_amount: Math.round(pdf.price * 100), // Convert to cents
           },
@@ -180,17 +213,33 @@ serve(async (req) => {
         user_id: userId,
         pdf_title: pdf.title,
         purchase_id: preliminaryPurchase.id,
+        product_type: 'premium_pdf',
+        version: 'v2', // For tracking implementation versions
       },
-      allow_promotion_codes: false,
+      allow_promotion_codes: true, // Enable promo codes
       billing_address_collection: 'auto',
+      shipping_address_collection: {
+        allowed_countries: ['DE', 'AT', 'CH', 'FR', 'NL', 'BE'], // European focus
+      },
+      tax_id_collection: {
+        enabled: true, // Collect VAT numbers for business customers
+      },
       payment_intent_data: {
         metadata: {
           pdf_id: pdfId,
           user_id: userId,
           pdf_title: pdf.title,
           purchase_id: preliminaryPurchase.id,
+          product_type: 'premium_pdf',
         },
+        description: `Premium PDF: ${pdf.title}`,
+        statement_descriptor: 'FINANCE*REPORT', // 22 chars max, shows on bank statement
       },
+      customer_update: {
+        address: 'auto',
+        name: 'auto',
+      },
+      expires_at: Math.floor(Date.now() / 1000) + (30 * 60), // 30 minutes expiry
     })
 
     // Update purchase record with checkout session ID
