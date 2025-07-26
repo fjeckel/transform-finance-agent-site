@@ -64,7 +64,10 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
   };
 
   const handlePurchase = async () => {
+    console.log('Handle purchase clicked for PDF:', pdf.id, pdf.title);
+    
     if (!user) {
+      console.log('No user, redirecting to auth');
       navigate('/auth');
       return;
     }
@@ -73,6 +76,7 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
     try {
       const existingPurchase = await checkPurchaseStatus(pdf.id);
       if (existingPurchase) {
+        console.log('User already purchased this PDF');
         setIsPurchased(true);
         toast({
           title: 'Bereits gekauft',
@@ -86,6 +90,7 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
     }
     
     // Open checkout dialog
+    console.log('Opening checkout dialog');
     setShowCheckout(true);
   };
 

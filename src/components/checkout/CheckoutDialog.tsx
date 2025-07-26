@@ -5,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import CardCheckout from './CardCheckout';
+import SimpleCheckout from './SimpleCheckout';
 
 interface CheckoutDialogProps {
   isOpen: boolean;
@@ -38,7 +38,7 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({
           <DialogTitle>Purchase {pdfTitle}</DialogTitle>
         </DialogHeader>
         
-        <CardCheckout
+        <SimpleCheckout
           pdfId={pdfId}
           pdfTitle={pdfTitle}
           price={price}
