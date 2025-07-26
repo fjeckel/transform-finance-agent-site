@@ -26,6 +26,7 @@ import BulkUploadEpisodes from "./pages/BulkUploadEpisodes";
 import Legal from "./pages/Legal";
 import PremiumReport from "./pages/PremiumReport";
 import Dashboard from "./pages/Dashboard";
+import TestCheckout from "./pages/TestCheckout";
 
 import NotFound from "./pages/NotFound";
 
@@ -99,6 +100,7 @@ const App = () => {
                 <Route path="/admin/episodes/:id/edit" element={<AdminRoute><EditEpisode /></AdminRoute>} />
                 <Route path="/report/:id" element={<PremiumReport />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/test-checkout" element={<TestCheckout />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
