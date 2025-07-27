@@ -21,7 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { usePdfs, PDF } from '@/hooks/usePdfs';
-import { useStripePayment } from '@/hooks/useStripePayment';
+import SimplePurchaseButton from '@/components/purchase/SimplePurchaseButton';
 import { formatPrice } from '@/lib/stripe';
 import { formatBytes } from '@/lib/utils';
 
@@ -30,11 +30,8 @@ const PremiumReport = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { pdfs, loading: pdfsLoading } = usePdfs();
-  const { loading: paymentLoading, processPayment, checkPurchaseStatus } = useStripePayment();
   
   const [pdf, setPdf] = useState<PDF | null>(null);
-  const [isPurchased, setIsPurchased] = useState(false);
-  const [checkingPurchase, setCheckingPurchase] = useState(false);
 
   useEffect(() => {
     if (!pdfsLoading && pdfs.length > 0 && id) {
@@ -47,28 +44,7 @@ const PremiumReport = () => {
     }
   }, [pdfs, pdfsLoading, id, navigate]);
 
-  useEffect(() => {
-    const checkPurchase = async () => {
-      if (pdf?.is_premium && id) {
-        setCheckingPurchase(true);
-        const purchase = await checkPurchaseStatus(id);
-        setIsPurchased(!!purchase);
-        setCheckingPurchase(false);
-      }
-    };
 
-    checkPurchase();
-  }, [pdf?.is_premium, id, checkPurchaseStatus]);
-
-  const handlePurchase = async () => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-    if (id) {
-      await processPayment(id);
-    }
-  };
 
   const handleDownload = () => {
     if (pdf?.file_url) {
@@ -85,7 +61,6 @@ const PremiumReport = () => {
   }
 
   const isPremium = pdf.is_premium && pdf.price && pdf.price > 0;
-  const showPurchaseSection = isPremium && !isPurchased;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -136,14 +111,6 @@ const PremiumReport = () => {
                   </div>
                 )}
 
-                {isPurchased && (
-                  <div className="absolute top-4 left-4">
-                    <Badge className="bg-green-500 text-white">
-                      <CheckCircle size={12} className="mr-1" />
-                      Gekauft
-                    </Badge>
-                  </div>
-                )}
               </div>
 
               <CardHeader className="pb-4">
@@ -238,7 +205,7 @@ const PremiumReport = () => {
                       <span>Seite 28</span>
                     </div>
                     <div className="text-center pt-2 text-gray-500">
-                      {isPremium && !isPurchased && (
+                      {isPremium && (
                         <div className="flex items-center justify-center gap-2">
                           <Lock size={14} />
                           <span>Vollständiger Inhalt nach dem Kauf verfügbar</span>
@@ -290,69 +257,22 @@ const PremiumReport = () => {
             <Card className="sticky top-4">
               <CardHeader>
                 <CardTitle className="text-lg">
-                  {showPurchaseSection ? 'Report kaufen' : 'Report herunterladen'}
+                  {isPremium ? 'Report kaufen' : 'Report herunterladen'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {showPurchaseSection && (
-                  <>
-                    <div className="text-center py-4">
-                      <div className="text-3xl font-bold text-[#13B87B] mb-2">
-                        {formatPrice(pdf.price!, pdf.currency)}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        Einmaliger Kauf • Sofortiger Download
-                      </div>
+                {isPremium && (
+                  <div className="text-center py-4">
+                    <div className="text-3xl font-bold text-[#13B87B] mb-2">
+                      {formatPrice(pdf.price!, pdf.currency)}
                     </div>
-                    
-                    <Button
-                      onClick={handlePurchase}
-                      disabled={paymentLoading || checkingPurchase}
-                      className="w-full bg-gradient-to-r from-[#13B87B] to-[#0F9A6A] hover:from-[#0F9A6A] hover:to-[#0D8A5A] text-white font-semibold py-3"
-                      size="lg"
-                    >
-                      {paymentLoading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Verarbeitung...
-                        </>
-                      ) : (
-                        <>
-                          <CreditCard size={16} className="mr-2" />
-                          Jetzt kaufen
-                        </>
-                      )}
-                    </Button>
-                    
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
-                        <Shield size={12} />
-                        <span>Sichere Zahlung über Stripe</span>
-                      </div>
+                    <div className="text-sm text-gray-600">
+                      Einmaliger Kauf • Sofortiger E-Mail Versand
                     </div>
-                  </>
+                  </div>
                 )}
-
-                {(!isPremium || isPurchased) && (
-                  <Button
-                    onClick={handleDownload}
-                    disabled={checkingPurchase}
-                    className="w-full bg-[#13B87B] hover:bg-[#0F9A6A] text-white py-3"
-                    size="lg"
-                  >
-                    {checkingPurchase ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Überprüfung...
-                      </>
-                    ) : (
-                      <>
-                        <Download size={16} className="mr-2" />
-                        {isPurchased ? 'PDF herunterladen' : 'Kostenlos herunterladen'}
-                      </>
-                    )}
-                  </Button>
-                )}
+                
+                <SimplePurchaseButton pdf={pdf} />
 
                 <Separator />
 

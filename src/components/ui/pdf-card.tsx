@@ -213,27 +213,28 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
           <div className="space-y-2">
             <Button 
               onClick={handleViewDetails}
-              variant="outline"
-              className="w-full"
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold"
+              size="lg"
             >
               <Eye size={16} className="mr-2" />
-              Details ansehen
+              Vorschau & Details
             </Button>
             <Button 
               onClick={handlePurchase}
               disabled={loading || checkingPurchase}
-              className="w-full bg-gradient-to-r from-[#13B87B] to-[#0F9A6A] hover:from-[#0F9A6A] hover:to-[#0D8A5A] text-white font-semibold"
+              variant="outline"
+              className="w-full border-[#13B87B] text-[#13B87B] hover:bg-[#13B87B] hover:text-white"
               title={loading ? 'Verarbeitung...' : checkingPurchase ? 'Überprüfung...' : 'Jetzt kaufen'}
             >
               {loading ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
                   Verarbeitung...
                 </>
               ) : (
                 <>
                   <CreditCard size={16} className="mr-2" />
-                  Jetzt kaufen - {formatPrice(pdf.price!, pdf.currency)}
+                  Schnellkauf - {formatPrice(pdf.price!, pdf.currency)}
                 </>
               )}
             </Button>
@@ -246,11 +247,11 @@ export const PDFCard = ({ pdf, onDownload }: PDFCardProps) => {
             {isPremium && (
               <Button 
                 onClick={handleViewDetails}
-                variant="outline"
-                className="w-full"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold"
+                size="lg"
               >
                 <Eye size={16} className="mr-2" />
-                Details ansehen
+                Vorschau & Details
               </Button>
             )}
             <Button 
