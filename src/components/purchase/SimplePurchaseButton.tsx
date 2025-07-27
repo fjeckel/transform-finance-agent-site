@@ -53,7 +53,7 @@ const SimplePurchaseButton: React.FC<SimplePurchaseButtonProps> = ({ pdf }) => {
       // Create new payment link
       console.log('Creating payment link for PDF:', pdf.id);
       
-      const { data, error } = await supabase.functions.invoke('create-payment-link', {
+      const { data, error } = await supabase.functions.invoke('create-payment-link-simple', {
         body: { pdfId: pdf.id }
       });
 
