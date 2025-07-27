@@ -27,6 +27,7 @@ import Legal from "./pages/Legal";
 import PremiumReport from "./pages/PremiumReport";
 import Dashboard from "./pages/Dashboard";
 import TestCheckout from "./pages/TestCheckout";
+import ThankYou from "./pages/ThankYou";
 
 import NotFound from "./pages/NotFound";
 
@@ -101,6 +102,7 @@ const App = () => {
                 <Route path="/report/:id" element={<PremiumReport />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/test-checkout" element={<TestCheckout />} />
+                <Route path="/thank-you" element={<ThankYou />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

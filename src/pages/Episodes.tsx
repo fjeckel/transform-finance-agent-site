@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select';
 import { useEpisodes } from '@/hooks/useEpisodes';
 import { usePdfs } from '@/hooks/usePdfs';
-import { PDFCard } from '@/components/ui/pdf-card';
+import { SimplePDFCard } from '@/components/purchase/SimplePurchaseButton';
 import { Input } from '@/components/ui/input';
 import RssSubscribeButton from '@/components/RssSubscribeButton';
 
@@ -461,10 +461,9 @@ const Episodes = () => {
                   {/* PDFs Grid */}
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredPdfs.slice(0, pdfsDisplayCount).map((pdf) => (
-                      <PDFCard 
+                      <SimplePDFCard 
                         key={pdf.id} 
-                        pdf={pdf} 
-                        onDownload={incrementDownloadCount}
+                        pdf={pdf}
                       />
                     ))}
                   </div>
