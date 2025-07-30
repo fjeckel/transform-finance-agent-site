@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import { supabase } from "@/integrations/supabase/client";
 import AdminRoute from "./components/AdminRoute";
 import CookieConsent from "./components/CookieConsent";
@@ -81,11 +82,12 @@ const App = () => {
       <NetworkIndicator />
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <CookieConsent />
-          <Toaster />
-          <Sonner />
-          <AuthProvider>
-            <BrowserRouter>
+          <ThemeProvider>
+            <CookieConsent />
+            <Toaster />
+            <Sonner />
+            <AuthProvider>
+              <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/episode/:slug" element={<DynamicEpisode />} />
@@ -106,8 +108,9 @@ const App = () => {
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </BrowserRouter>
-          </AuthProvider>
+              </BrowserRouter>
+            </AuthProvider>
+          </ThemeProvider>
         </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>

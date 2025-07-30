@@ -6,6 +6,7 @@ import { CreditCard, Mail, Download, Loader2, ShoppingCart } from 'lucide-react'
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/stripe';
+import { SecurityBadges, PurchaseGuarantee } from '@/components/ui/trust-signals';
 
 interface PDF {
   id: string;
@@ -88,7 +89,7 @@ const SimplePurchaseButton: React.FC<SimplePurchaseButtonProps> = ({ pdf }) => {
       <Button
         onClick={handlePurchase}
         disabled={loading}
-        className="w-full bg-gradient-to-r from-[#FF6B6B] to-[#E55555] hover:from-[#E55555] hover:to-[#CC4444] text-white font-semibold shadow-lg"
+        className="w-full bg-gradient-to-r from-[#FF6B6B] to-[#E55555] hover:from-[#E55555] hover:to-[#CC4444] text-white font-semibold shadow-lg touch-target-lg"
         size="lg"
       >
         {loading ? (
@@ -105,23 +106,16 @@ const SimplePurchaseButton: React.FC<SimplePurchaseButtonProps> = ({ pdf }) => {
       </Button>
 
       {/* Trust signals */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-center space-x-4 text-sm text-gray-600">
-          <div className="flex items-center">
-            <CreditCard size={14} className="mr-1 text-[#13B87B]" />
-            <span>Secure Payment</span>
-          </div>
-          <div className="flex items-center">
-            <Mail size={14} className="mr-1 text-[#13B87B]" />
-            <span>Email Delivery</span>
-          </div>
-        </div>
+      <div className="space-y-3">
+        <SecurityBadges />
         
-        <div className="text-xs text-center text-gray-500 space-y-1">
-          <p>✅ Instant PDF delivery to your email</p>
-          <p>🔒 No account required • Secure checkout via Stripe</p>
-          <p>📧 Need help? Contact support after purchase</p>
+        <div className="text-xs text-center text-gray-500 dark:text-gray-400 space-y-1">
+          <p>✅ Sofortige PDF-Lieferung per E-Mail</p>
+          <p>🔒 Kein Konto erforderlich • Sichere Zahlung über Stripe</p>
+          <p>📧 Fragen? Kontaktieren Sie den Support nach dem Kauf</p>
         </div>
+
+        <PurchaseGuarantee />
       </div>
     </div>
   );

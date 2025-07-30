@@ -4,6 +4,7 @@ import { Menu, X, LogIn, Settings, User } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -75,6 +76,7 @@ const Navigation = () => {
                 
                 {/* Auth Section */}
                 <div className="flex items-center space-x-4 border-l border-gray-200 pl-6">
+                  <ThemeToggle />
                   {user ? (
                     <>
                       <span className="text-sm text-gray-600">Welcome, {user.email}</span>
@@ -120,12 +122,15 @@ const Navigation = () => {
                 Finance Transformers
               </div>
             </div>
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2 text-gray-800 hover:text-[#13B87B] transition-colors"
-            >
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+            <div className="flex items-center space-x-2">
+              <ThemeToggle />
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="p-2 text-gray-800 hover:text-[#13B87B] transition-colors"
+              >
+                {isOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
           </div>
         </div>
         

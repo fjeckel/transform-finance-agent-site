@@ -348,7 +348,7 @@ const Episodes = () => {
                           
                           <div className="flex flex-col space-y-2">
                             {/* Primary CTA button - varies based on audio availability */}
-                            <Button className="w-full bg-[#13B87B] hover:bg-[#0F9A6A] text-white">
+                            <Button className="w-full bg-[#13B87B] hover:bg-[#0F9A6A] text-white touch-target">
                               {episode.audio_url ? (
                                 <>
                                   <Play size={16} className="mr-2" />
