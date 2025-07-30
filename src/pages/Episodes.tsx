@@ -289,14 +289,15 @@ const Episodes = () => {
                   {/* Episodes Grid */}
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {sortedEpisodes.slice(0, displayCount).map((episode) => (
-                      <Card key={episode.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                        <div className="aspect-square overflow-hidden">
-                          <img
-                            src={episode.image_url || '/img/wtf-cover.png'}
-                            alt={episode.title}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
+                      <Link key={episode.id} to={`/episode/${episode.slug}`} className="block">
+                        <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer h-full">
+                          <div className="aspect-square overflow-hidden">
+                            <img
+                              src={episode.image_url || '/img/wtf-cover.png'}
+                              alt={episode.title}
+                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
                         
                         <CardHeader className="pb-3">
                           <div className="mb-2 flex items-center space-x-2">
@@ -346,13 +347,11 @@ const Episodes = () => {
                           </p>
                           
                           <div className="flex flex-col space-y-2">
-                            {/* Always show "View Episode" button */}
-                            <Link to={`/episode/${episode.slug}`} className="w-full">
-                              <Button className="w-full bg-[#13B87B] hover:bg-[#0F9A6A] text-white">
-                                <Play size={16} className="mr-2" />
-                                Episode ansehen
-                              </Button>
-                            </Link>
+                            {/* Primary CTA button */}
+                            <Button className="w-full bg-[#13B87B] hover:bg-[#0F9A6A] text-white">
+                              <Play size={16} className="mr-2" />
+                              Zur Episode
+                            </Button>
                             
                             {/* Show platform links if available */}
                             {episode.platforms.length > 0 && (
@@ -364,6 +363,7 @@ const Episodes = () => {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex-1"
+                                    onClick={(e) => e.stopPropagation()}
                                   >
                                     <Button variant="outline" className="w-full text-xs">
                                       {platform.platform_name}
@@ -374,7 +374,8 @@ const Episodes = () => {
                             )}
                           </div>
                         </CardContent>
-                      </Card>
+                        </Card>
+                      </Link>
                     ))}
                   </div>
 
