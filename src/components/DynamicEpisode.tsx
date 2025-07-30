@@ -130,18 +130,45 @@ const DynamicEpisode = () => {
               </div>
               
               <div className="flex flex-wrap gap-3 mb-6">
-                <Button
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  className="bg-[#13B87B] hover:bg-[#0F9A6A] text-white px-6 py-3"
-                >
-                  {isPlaying ? <Pause size={20} className="mr-2" /> : <Play size={20} className="mr-2" />}
-                  {isPlaying ? 'Pause' : 'Abspielen'}
-                </Button>
+                {episode.audio_url ? (
+                  // Show play button when audio file exists
+                  <Button
+                    onClick={() => setIsPlaying(!isPlaying)}
+                    className="bg-[#13B87B] hover:bg-[#0F9A6A] text-white px-6 py-3"
+                  >
+                    {isPlaying ? <Pause size={20} className="mr-2" /> : <Play size={20} className="mr-2" />}
+                    {isPlaying ? 'Pause' : 'Abspielen'}
+                  </Button>
+                ) : (
+                  // Show platform links when no audio file
+                  platformLinks.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {platformLinks.slice(0, 2).map((platform, index) => (
+                        <a
+                          key={index}
+                          href={platform.platform_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Button 
+                            variant="default"
+                            className={index === 0 ? "bg-[#13B87B] hover:bg-[#0F9A6A] text-white" : ""}
+                          >
+                            <ExternalLink size={16} className="mr-2" />
+                            Auf {platform.platform_name} hören
+                          </Button>
+                        </a>
+                      ))}
+                    </div>
+                  )
+                )}
                 
-                <Button variant="outline" className="px-4 py-3">
-                  <Download size={16} className="mr-2" />
-                  Download
-                </Button>
+                {episode.audio_url && (
+                  <Button variant="outline" className="px-4 py-3">
+                    <Download size={16} className="mr-2" />
+                    Download
+                  </Button>
+                )}
                 
                 <Button variant="outline" className="px-4 py-3">
                   <Share2 size={16} className="mr-2" />
@@ -175,15 +202,17 @@ const DynamicEpisode = () => {
           </Card>
         )}
 
-        {/* Platform Links */}
-        {platformLinks.length > 0 && (
+        {/* Platform Links - Only show if audio exists or more than 2 platforms */}
+        {platformLinks.length > 0 && (episode.audio_url || platformLinks.length > 2) && (
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle>Auf anderen Plattformen anhören</CardTitle>
+              <CardTitle>
+                {episode.audio_url ? 'Auf anderen Plattformen anhören' : 'Weitere Plattformen'}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {platformLinks.map((platform, index) => (
+                {(episode.audio_url ? platformLinks : platformLinks.slice(2)).map((platform, index) => (
                   <a
                     key={index}
                     href={platform.platform_url}

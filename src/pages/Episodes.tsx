@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { ArrowLeft, Play, Clock, Calendar, User, Search, X } from 'lucide-react';
+import { ArrowLeft, Play, Clock, Calendar, User, Search, X, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -347,10 +347,19 @@ const Episodes = () => {
                           </p>
                           
                           <div className="flex flex-col space-y-2">
-                            {/* Primary CTA button */}
+                            {/* Primary CTA button - varies based on audio availability */}
                             <Button className="w-full bg-[#13B87B] hover:bg-[#0F9A6A] text-white">
-                              <Play size={16} className="mr-2" />
-                              Zur Episode
+                              {episode.audio_url ? (
+                                <>
+                                  <Play size={16} className="mr-2" />
+                                  Zur Episode
+                                </>
+                              ) : (
+                                <>
+                                  <ExternalLink size={16} className="mr-2" />
+                                  Zur Episode
+                                </>
+                              )}
                             </Button>
                             
                             {/* Show platform links if available */}
