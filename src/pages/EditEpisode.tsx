@@ -46,6 +46,7 @@ const EditEpisode = () => {
   const [episodeNumber, setEpisodeNumber] = useState(1);
   const [description, setDescription] = useState('');
   const [content, setContent] = useState('');
+  const [summary, setSummary] = useState('');
   const [transcript, setTranscript] = useState('');
   const [publishDate, setPublishDate] = useState('');
   const [status, setStatus] = useState<'draft' | 'published' | 'scheduled' | 'archived'>('draft');
@@ -63,7 +64,7 @@ const EditEpisode = () => {
 
   // Auto-save functionality
   const formData = {
-    title, slug, season, episodeNumber, description, content, transcript, publishDate, status,
+    title, slug, season, episodeNumber, description, content, summary, transcript, publishDate, status,
     audioUrl, imageUrl, duration, showNotes, guests, platformLinks
   };
   
@@ -140,6 +141,7 @@ const EditEpisode = () => {
         setEpisodeNumber(data.episode_number);
         setDescription(data.description || '');
         setContent(data.content || '');
+        setSummary(data.summary || '');
         setTranscript(data.transcript || '');
         setPublishDate(data.publish_date ? new Date(data.publish_date).toISOString().split('T')[0] : '');
         setStatus(data.status || 'draft');
@@ -172,6 +174,7 @@ const EditEpisode = () => {
           slug,
           description,
           content,
+          summary: summary || null,
           transcript: transcript || null,
           season,
           episode_number: episodeNumber,
@@ -356,7 +359,23 @@ const EditEpisode = () => {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="min-h-[80px]"
+                  placeholder="Short episode preview for listings..."
                 />
+              </div>
+              <div>
+                <label htmlFor="summary" className="block text-sm font-medium mb-1">
+                  Episode Summary
+                </label>
+                <Textarea
+                  id="summary"
+                  value={summary}
+                  onChange={(e) => setSummary(e.target.value)}
+                  className="min-h-[100px]"
+                  placeholder="Concise episode summary (500-2000 characters) highlighting key takeaways..."
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  This summary will be displayed on the episode page to give listeners an overview of key points.
+                </p>
               </div>
                 </TabsContent>
 

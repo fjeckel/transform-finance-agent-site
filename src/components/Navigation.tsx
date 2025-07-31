@@ -2,10 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, LogIn, Settings, User } from 'lucide-react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { SearchBox } from '@/components/ui/search-box';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,6 +15,7 @@ const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAdmin, signOut } = useAuth();
+  const { t } = useTranslation('common');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,18 +27,24 @@ const Navigation = () => {
 
   const navItems = [
     { 
-      label: 'ÜBERBLICK', 
+      label: t('navigation.overview'), 
       href: '/overview', 
       type: 'route', 
       isActive: location.pathname === '/overview'
     },
-    { label: 'WARUM FT?', href: '#wtf', type: 'section', isActive: false },
-    { label: 'ÜBER UNS', href: '#finance-transformers', type: 'section', isActive: false },
+    { label: t('navigation.whyFT'), href: '#wtf', type: 'section', isActive: false },
+    { label: t('navigation.aboutUs'), href: '#finance-transformers', type: 'section', isActive: false },
     { 
-      label: 'INHALTE', 
+      label: t('navigation.content'), 
       href: '/episodes', 
       type: 'route', 
       isActive: location.pathname.startsWith('/episodes') || location.pathname.startsWith('/episode') || location.pathname.startsWith('/report')
+    },
+    { 
+      label: t('navigation.insights'), 
+      href: '/insights', 
+      type: 'route', 
+      isActive: location.pathname.startsWith('/insights')
     },
   ];
 
@@ -105,6 +114,7 @@ const Navigation = () => {
                 
                 {/* Auth Section */}
                 <div className="flex items-center space-x-3 border-l border-border pl-6">
+                  <LanguageSwitcher />
                   <ThemeToggle />
                   {user ? (
                     <>
@@ -156,6 +166,7 @@ const Navigation = () => {
               </div>
             </div>
             <div className="flex items-center space-x-2">
+              <LanguageSwitcher />
               <ThemeToggle />
               <button
                 onClick={() => setIsOpen(!isOpen)}

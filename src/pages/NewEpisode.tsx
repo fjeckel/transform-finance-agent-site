@@ -45,6 +45,7 @@ const NewEpisode = () => {
   const [episodeNumber, setEpisodeNumber] = useState(1);
   const [description, setDescription] = useState('');
   const [content, setContent] = useState('');
+  const [summary, setSummary] = useState('');
   const [transcript, setTranscript] = useState('');
   const [publishDate, setPublishDate] = useState('');
   const [status, setStatus] = useState<'draft' | 'published' | 'scheduled' | 'archived'>('draft');
@@ -61,7 +62,7 @@ const NewEpisode = () => {
 
   // Auto-save functionality
   const formData = {
-    title, slug, season, episodeNumber, description, content, transcript, publishDate, status, series,
+    title, slug, season, episodeNumber, description, content, summary, transcript, publishDate, status, series,
     imageUrl, audioUrl, duration, showNotes, guests, platformLinks
   };
   
@@ -91,6 +92,7 @@ const NewEpisode = () => {
           setEpisodeNumber(data.episodeNumber || 1);
           setDescription(data.description || '');
           setContent(data.content || '');
+          setSummary(data.summary || '');
           setTranscript(data.transcript || '');
           setPublishDate(data.publishDate || '');
           setStatus(data.status || 'draft');
@@ -155,6 +157,7 @@ const NewEpisode = () => {
           slug: slug || slugify(title || 'untitled-episode'),
           description,
           content,
+          summary: summary || null,
           transcript: transcript || null,
           season,
           episode_number: episodeNumber,
@@ -250,6 +253,7 @@ const NewEpisode = () => {
           slug,
           description,
           content,
+          summary: summary || null,
           transcript: transcript || null,
           season,
           episode_number: episodeNumber,
@@ -411,7 +415,23 @@ const NewEpisode = () => {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="min-h-[80px]"
+                  placeholder="Short episode preview for listings..."
                 />
+              </div>
+              <div>
+                <label htmlFor="summary" className="block text-sm font-medium mb-1">
+                  Episode Summary
+                </label>
+                <Textarea
+                  id="summary"
+                  value={summary}
+                  onChange={(e) => setSummary(e.target.value)}
+                  className="min-h-[100px]"
+                  placeholder="Concise episode summary (500-2000 characters) highlighting key takeaways..."
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  This summary will be displayed on the episode page to give listeners an overview of key points.
+                </p>
               </div>
                 </TabsContent>
 

@@ -13,10 +13,13 @@ import ErrorBoundary from "./components/ui/error-boundary";
 import { useServiceWorker } from "./hooks/useServiceWorker";
 import { usePerformanceMonitoring } from "./hooks/usePerformanceMonitoring";
 import { NetworkIndicator } from "./components/ui/network-indicator";
+import "./i18n";
 import Index from "./pages/Index";
 import Overview from "./pages/Overview";
 import DynamicEpisode from "./components/DynamicEpisode";
 import Episodes from "./pages/Episodes";
+import Insights from "./pages/Insights";
+import InsightDetail from "./pages/InsightDetail";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import AdminAnalytics from "./pages/AdminAnalytics";
@@ -25,6 +28,9 @@ import AdminRssFeeds from "./pages/AdminRssFeeds";
 import NewEpisode from "./pages/NewEpisode";
 import EditEpisode from "./pages/EditEpisode";
 import BulkUploadEpisodes from "./pages/BulkUploadEpisodes";
+import AdminInsights from "./pages/AdminInsights";
+import NewInsight from "./pages/NewInsight";
+import EditInsight from "./pages/EditInsight";
 import Legal from "./pages/Legal";
 import PremiumReport from "./pages/PremiumReport";
 import Dashboard from "./pages/Dashboard";
@@ -94,6 +100,8 @@ const App = () => {
                 <Route path="/overview" element={<Overview />} />
                 <Route path="/episode/:slug" element={<DynamicEpisode />} />
                 <Route path="/episodes" element={<Episodes />} />
+                <Route path="/insights" element={<Insights />} />
+                <Route path="/insights/:slug" element={<InsightDetail />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/legal" element={<Legal />} />
                 <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
@@ -103,6 +111,9 @@ const App = () => {
                 <Route path="/admin/episodes/new" element={<AdminRoute><NewEpisode /></AdminRoute>} />
                 <Route path="/admin/episodes/upload" element={<AdminRoute><BulkUploadEpisodes /></AdminRoute>} />
                 <Route path="/admin/episodes/:id/edit" element={<AdminRoute><EditEpisode /></AdminRoute>} />
+                <Route path="/admin/insights" element={<AdminRoute><AdminInsights /></AdminRoute>} />
+                <Route path="/admin/insights/new" element={<AdminRoute><NewInsight /></AdminRoute>} />
+                <Route path="/admin/insights/:id/edit" element={<AdminRoute><EditInsight /></AdminRoute>} />
                 <Route path="/report/:id" element={<PremiumReport />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/test-checkout" element={<TestCheckout />} />

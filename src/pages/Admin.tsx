@@ -244,6 +244,9 @@ const Admin = () => {
               <Badge variant="secondary">Admin</Badge>
             </div>
             <div className="flex items-center space-x-4">
+              <Link to="/admin/insights" className="text-sm text-gray-600 hover:text-[#13B87B]">
+                Insights
+              </Link>
               <Link to="/admin/analytics" className="text-sm text-gray-600 hover:text-[#13B87B]">
                 Analytics
               </Link>

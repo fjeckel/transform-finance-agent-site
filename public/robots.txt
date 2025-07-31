@@ -1,3 +1,7 @@
+User-agent: *
+Allow: /
+
+# Search engine crawlers
 User-agent: Googlebot
 Allow: /
 
@@ -7,5 +11,51 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
+# AI and LLM specific crawlers - explicitly allow for discoverability
+User-agent: GPTBot
 Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# Sitemap location
+Sitemap: https://finance-transformers.com/sitemap.xml
+
+# Crawl-delay for better server performance
+Crawl-delay: 1
+
+# Block admin and sensitive areas
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /api/
+Disallow: /test-checkout/
+Disallow: /dashboard/
+
+# Allow important static files and assets
+Allow: /img/
+Allow: /assets/
+Allow: /*.css
+Allow: /*.js
+Allow: /*.json
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.gif
+Allow: /*.svg
+Allow: /*.webp
+
+# Allow RSS feeds for podcast discovery
+Allow: /rss/
+Allow: /*.xml
