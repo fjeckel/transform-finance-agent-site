@@ -14,6 +14,7 @@ import { useServiceWorker } from "./hooks/useServiceWorker";
 import { usePerformanceMonitoring } from "./hooks/usePerformanceMonitoring";
 import { NetworkIndicator } from "./components/ui/network-indicator";
 import Index from "./pages/Index";
+import Overview from "./pages/Overview";
 import DynamicEpisode from "./components/DynamicEpisode";
 import Episodes from "./pages/Episodes";
 import Auth from "./pages/Auth";
@@ -90,6 +91,7 @@ const App = () => {
               <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/overview" element={<Overview />} />
                 <Route path="/episode/:slug" element={<DynamicEpisode />} />
                 <Route path="/episodes" element={<Episodes />} />
                 <Route path="/auth" element={<Auth />} />

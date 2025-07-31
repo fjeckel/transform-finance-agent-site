@@ -23,6 +23,12 @@ const Navigation = () => {
   }, []);
 
   const navItems = [
+    { 
+      label: 'ÜBERBLICK', 
+      href: '/overview', 
+      type: 'route', 
+      isActive: location.pathname === '/overview'
+    },
     { label: 'WARUM FT?', href: '#wtf', type: 'section', isActive: false },
     { label: 'ÜBER UNS', href: '#finance-transformers', type: 'section', isActive: false },
     { 

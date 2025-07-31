@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Headphones, FileText, User, Search } from 'lucide-react';
+import { Home, Headphones, FileText, User, Search, Info } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -71,16 +71,16 @@ export const BottomNavigation: React.FC<{ onSearchOpen?: () => void }> = ({ onSe
       isActive: location.pathname === '/',
     },
     {
-      href: '/episodes',
-      icon: Headphones,
-      label: 'Episoden',
-      isActive: isEpisodesTab || isEpisodePage,
+      href: '/overview',
+      icon: Info,
+      label: 'Überblick',
+      isActive: location.pathname === '/overview',
     },
     {
-      href: '/episodes?tab=memos',
-      icon: FileText,
-      label: 'Memos',
-      isActive: isMemosTab,
+      href: '/episodes',
+      icon: Headphones,
+      label: 'Inhalte',
+      isActive: isEpisodesTab || isEpisodePage || isMemosTab,
     },
     {
       icon: Search,
