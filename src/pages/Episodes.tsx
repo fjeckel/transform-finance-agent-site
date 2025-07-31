@@ -184,7 +184,7 @@ const Episodes = () => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-6 pb-20 lg:pb-8">
         {/* Page Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -200,65 +200,101 @@ const Episodes = () => {
           </div>
         </div>
 
-        {/* Main Content Tabs */}
+        {/* Main Content Tabs - Mobile Optimized */}
         <div className="mb-8">
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="episodes" className="text-sm">
-                Alle Episoden ({episodes.length})
+            <TabsList className="grid w-full grid-cols-2 h-12">
+              <TabsTrigger value="episodes" className="text-sm font-medium data-[state=active]:bg-[#13B87B] data-[state=active]:text-white">
+                <div className="flex flex-col items-center">
+                  <span>Alle Episoden</span>
+                  <span className="text-xs opacity-75">({episodes.length})</span>
+                </div>
               </TabsTrigger>
-              <TabsTrigger value="memos" className="text-sm">
-                Memos ({pdfs.length})
+              <TabsTrigger value="memos" className="text-sm font-medium data-[state=active]:bg-[#13B87B] data-[state=active]:text-white">
+                <div className="flex flex-col items-center">
+                  <span>CFO Memos</span>
+                  <span className="text-xs opacity-75">({pdfs.length})</span>
+                </div>
               </TabsTrigger>
             </TabsList>
             
             <TabsContent value="episodes" className="mt-8">
-              {/* Series Filter for Episodes */}
-              <div className="mb-8">
-                <Tabs value={selectedSeries} onValueChange={setSelectedSeries} className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
+              {/* Series Filter for Episodes - Mobile Responsive */}
+              <div className="mb-6">
+                <div className="flex flex-col space-y-4">
+                  <h3 className="text-sm font-semibold text-foreground">Filter nach Serie:</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {seriesOptions.map((option) => (
-                      <TabsTrigger key={option.value} value={option.value} className="text-sm">
-                        {option.label} ({option.count})
-                      </TabsTrigger>
+                      <button
+                        key={option.value}
+                        onClick={() => setSelectedSeries(option.value)}
+                        className={`px-3 py-2 text-xs sm:text-sm font-medium rounded-lg border transition-all duration-200 ${
+                          selectedSeries === option.value
+                            ? 'bg-[#13B87B] text-white border-[#13B87B]'
+                            : 'bg-background text-muted-foreground border-border hover:bg-accent hover:text-foreground'
+                        }`}
+                      >
+                        <span className="block truncate">{option.label}</span>
+                        <span className="block text-xs opacity-75">({option.count})</span>
+                      </button>
                     ))}
-                  </TabsList>
-                </Tabs>
+                  </div>
+                </div>
               </div>
 
-              {/* Search and Sort Controls */}
-              <div className="mb-6 flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              {/* Search and Sort Controls - Mobile Optimized */}
+              <div className="mb-6 space-y-4">
+                {/* Search Input */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
                   <Input
                     type="text"
                     placeholder="Suche nach Titel, Gast oder Beschreibung..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-10 h-11"
                   />
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery('')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label="Suche zurücksetzen"
                     >
-                      <X size={20} />
+                      <X size={18} />
                     </button>
                   )}
                 </div>
-                <Select value={sortOption} onValueChange={(value) => setSortOption(value as typeof sortOption)}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Sortierung" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="episode_desc">Neueste Episode zuerst</SelectItem>
-                    <SelectItem value="episode_asc">Älteste Episode zuerst</SelectItem>
-                    <SelectItem value="date_desc">Neueste nach Datum</SelectItem>
-                    <SelectItem value="date_asc">Älteste nach Datum</SelectItem>
-                    <SelectItem value="title_asc">Titel A-Z</SelectItem>
-                    <SelectItem value="title_desc">Titel Z-A</SelectItem>
-                  </SelectContent>
-                </Select>
+                
+                {/* Sort Controls */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-foreground mb-2">Sortierung:</label>
+                    <Select value={sortOption} onValueChange={(value) => setSortOption(value as typeof sortOption)}>
+                      <SelectTrigger className="w-full h-11">
+                        <SelectValue placeholder="Sortierung wählen" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="episode_desc">Neueste Episode zuerst</SelectItem>
+                        <SelectItem value="episode_asc">Älteste Episode zuerst</SelectItem>
+                        <SelectItem value="date_desc">Neueste nach Datum</SelectItem>
+                        <SelectItem value="date_asc">Älteste nach Datum</SelectItem>
+                        <SelectItem value="title_asc">Titel A-Z</SelectItem>
+                        <SelectItem value="title_desc">Titel Z-A</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Results Count - Mobile Info */}
+                  <div className="flex items-end">
+                    <div className="text-sm text-muted-foreground bg-accent px-3 py-2 rounded-lg h-11 flex items-center">
+                      {(() => {
+                        const count = sortedEpisodes.slice(0, displayCount).length;
+                        const total = sortedEpisodes.length;
+                        return `${count} von ${total} Episoden`;
+                      })()}
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {searchQuery && filteredEpisodes.length > 0 && (
@@ -393,13 +429,16 @@ const Episodes = () => {
 
                   {/* Load More Button */}
                   {displayCount < sortedEpisodes.length && (
-                    <div className="text-center mt-12">
+                    <div className="text-center mt-12 mb-8">
                       <Button 
                         variant="outline" 
-                        className="px-8 py-3"
+                        className="px-6 py-3 h-12 min-w-[200px]"
                         onClick={() => setDisplayCount(prev => Math.min(prev + 9, sortedEpisodes.length))}
                       >
-                        Weitere Episoden laden ({sortedEpisodes.length - displayCount} verbleibend)
+                        <div className="flex flex-col items-center">
+                          <span className="font-medium">Weitere Episoden laden</span>
+                          <span className="text-xs opacity-75">({sortedEpisodes.length - displayCount} verbleibend)</span>
+                        </div>
                       </Button>
                     </div>
                   )}
@@ -408,24 +447,51 @@ const Episodes = () => {
             </TabsContent>
 
             <TabsContent value="memos" className="mt-8">
-              {/* Search for Memos */}
-              <div className="mb-6">
+              {/* Search for Memos - Mobile Optimized */}
+              <div className="mb-6 space-y-4">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
                   <Input
                     type="text"
                     placeholder="Suche nach Memo-Titel oder Beschreibung..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-10 h-11"
                   />
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery('')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label="Suche zurücksetzen"
                     >
-                      <X size={20} />
+                      <X size={18} />
                     </button>
+                  )}
+                </div>
+                
+                {/* Results Info for Memos */}
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-muted-foreground">
+                    {(() => {
+                      const filteredCount = searchQuery.trim() 
+                        ? pdfs.filter(pdf => {
+                            const query = searchQuery.toLowerCase();
+                            return pdf.title?.toLowerCase().includes(query) || 
+                                   pdf.description?.toLowerCase().includes(query);
+                          }).length
+                        : pdfs.length;
+                      return `${Math.min(filteredCount, pdfsDisplayCount)} von ${filteredCount} Memos`;
+                    })()}
+                  </div>
+                  {searchQuery && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSearchQuery('')}
+                      className="text-xs"
+                    >
+                      Filter zurücksetzen
+                    </Button>
                   )}
                 </div>
               </div>
@@ -482,13 +548,16 @@ const Episodes = () => {
                   </div>
                   {/* Load More Button for PDFs */}
                   {pdfsDisplayCount < filteredPdfs.length && (
-                    <div className="text-center mt-12">
+                    <div className="text-center mt-12 mb-8">
                       <Button 
                         variant="outline" 
-                        className="px-8 py-3"
+                        className="px-6 py-3 h-12 min-w-[200px]"
                         onClick={() => setPdfsDisplayCount(prev => Math.min(prev + 9, filteredPdfs.length))}
                       >
-                        Weitere Memos laden ({filteredPdfs.length - pdfsDisplayCount} verbleibend)
+                        <div className="flex flex-col items-center">
+                          <span className="font-medium">Weitere Memos laden</span>
+                          <span className="text-xs opacity-75">({filteredPdfs.length - pdfsDisplayCount} verbleibend)</span>
+                        </div>
                       </Button>
                     </div>
                   )}
