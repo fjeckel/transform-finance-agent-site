@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, X, Clock, Headphones, FileText, Loader2 } from 'lucide-react';
+import { Search, X, Clock, Headphones, FileText, Loader2, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/command';
 import { useEpisodes } from '@/hooks/useEpisodes';
 import { usePdfs } from '@/hooks/usePdfs';
+import { useSearchHistory } from '@/hooks/useSearchHistory';
+import { highlightSearchTerms } from '@/utils/searchHighlight';
 import { cn } from '@/lib/utils';
 
 // Custom hook for debounced value
@@ -52,6 +54,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
   const navigate = useNavigate();
   const { episodes, loading: episodesLoading } = useEpisodes();
   const { pdfs, loading: pdfsLoading } = usePdfs();
+  const { addToHistory, getRecentSearches, removeFromHistory, clearHistory } = useSearchHistory();
   
   // Use controlled or internal state
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
@@ -62,6 +65,9 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
   
   // Loading state
   const isLoading = episodesLoading || pdfsLoading || isSearching;
+  
+  // Get recent searches
+  const recentSearches = getRecentSearches(mobile ? 8 : 5);
 
   // Keyboard shortcut to open search
   useEffect(() => {
@@ -106,14 +112,16 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
   }, [debouncedQuery, episodes, pdfs, mobile]);
 
   const handleSelect = (type: string, id: string, slug?: string) => {
+    // Add search to history if there was a query
+    if (query.trim()) {
+      const resultCount = filteredEpisodes.length + filteredPdfs.length;
+      const searchType = type === 'episode' ? 'episode' : type === 'pdf' ? 'pdf' : 'general';
+      addToHistory(query, resultCount, searchType);
+    }
+    
     setOpen(false);
     setQuery('');
     setIsSearching(false);
-    
-    // Add search to history (placeholder for future implementation)
-    if (query) {
-      // TODO: Add to search history
-    }
     
     if (type === 'episode') {
       navigate(`/episode/${slug}`);
@@ -121,6 +129,10 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
       navigate(`/report/${id}`);
     } else if (type === 'route') {
       navigate(id);
+    } else if (type === 'search-history') {
+      // Handle search history item selection
+      setQuery(id); // id contains the search query for history items
+      // Don't close the search, let user see results
     }
   };
   
@@ -181,11 +193,32 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
           <CommandEmpty>
             <div className="py-6 text-center text-sm">
               <Search className="mx-auto h-6 w-6 text-muted-foreground mb-2" />
-              <p className="text-muted-foreground">Keine Ergebnisse gefunden.</p>
-              {query && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Probieren Sie andere Suchbegriffe
-                </p>
+              <p className="text-muted-foreground">Keine Ergebnisse für "{query}" gefunden.</p>
+              <div className="text-xs text-muted-foreground mt-2 space-y-1">
+                <p>Versuchen Sie:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Andere Suchbegriffe</li>
+                  <li>Allgemeinere Begriffe</li>
+                  <li>Überprüfen Sie die Rechtschreibung</li>
+                </ul>
+              </div>
+              {recentSearches.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs text-muted-foreground mb-2">Oder wählen Sie eine vorherige Suche:</p>
+                  <div className="flex flex-wrap gap-1 justify-center">
+                    {recentSearches.slice(0, 3).map((item) => (
+                      <Button
+                        key={item.id}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-6 px-2"
+                        onClick={() => handleSelect('search-history', item.query)}
+                      >
+                        {item.query}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </CommandEmpty>
@@ -235,14 +268,16 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
                 >
                   <Headphones className="h-4 w-4 mt-0.5 text-muted-foreground" />
                   <div className="flex flex-col flex-1 min-w-0">
-                    <span className="font-medium line-clamp-2 text-sm">{episode.title}</span>
+                    <span className="font-medium line-clamp-2 text-sm">
+                      {highlightSearchTerms(episode.title || '', debouncedQuery)}
+                    </span>
                     <span className="text-xs text-muted-foreground">
                       S{episode.season}E{episode.episode_number}
                       {episode.duration && ` • ${episode.duration}`}
                     </span>
                     {episode.description && mobile && (
                       <span className="text-xs text-muted-foreground mt-1 line-clamp-1">
-                        {episode.description}
+                        {highlightSearchTerms(episode.description, debouncedQuery)}
                       </span>
                     )}
                   </div>
@@ -264,14 +299,16 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
                 >
                   <FileText className="h-4 w-4 mt-0.5 text-muted-foreground" />
                   <div className="flex flex-col flex-1 min-w-0">
-                    <span className="font-medium line-clamp-2 text-sm">{pdf.title}</span>
+                    <span className="font-medium line-clamp-2 text-sm">
+                      {highlightSearchTerms(pdf.title || '', debouncedQuery)}
+                    </span>
                     <span className="text-xs text-muted-foreground">
                       {pdf.is_premium ? 'Premium' : 'Kostenlos'}
                       {pdf.price && ` • €${pdf.price}`}
                     </span>
                     {pdf.description && mobile && (
                       <span className="text-xs text-muted-foreground mt-1 line-clamp-1">
-                        {pdf.description}
+                        {highlightSearchTerms(pdf.description, debouncedQuery)}
                       </span>
                     )}
                   </div>
@@ -281,11 +318,55 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
           )}
 
           {/* Recent Searches */}
-          {!query && (
+          {!query && recentSearches.length > 0 && (
+            <CommandGroup heading="Zuletzt gesucht">
+              {recentSearches.map((item) => (
+                <CommandItem
+                  key={item.id}
+                  onSelect={() => handleSelect('search-history', item.query)}
+                  className="flex items-center justify-between gap-2 cursor-pointer group"
+                  role="option"
+                  aria-label={`Suche wiederholen: ${item.query}`}
+                >
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm truncate">{item.query}</span>
+                    <span className="text-xs text-muted-foreground">({item.resultCount})</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeFromHistory(item.id);
+                    }}
+                    aria-label={`Lösche Suche: ${item.query}`}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </CommandItem>
+              ))}
+              {recentSearches.length > 0 && (
+                <CommandItem
+                  onSelect={clearHistory}
+                  className="flex items-center gap-2 text-muted-foreground cursor-pointer justify-center mt-2"
+                  role="option"
+                  aria-label="Suchverlauf löschen"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="text-xs">Verlauf löschen</span>
+                </CommandItem>
+              )}
+            </CommandGroup>
+          )}
+          
+          {/* Empty recent searches state */}
+          {!query && recentSearches.length === 0 && (
             <CommandGroup heading="Zuletzt gesucht">
               <CommandItem className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="h-4 w-4" />
-                <span className="text-sm">Ihre Suchverlauf wird hier angezeigt</span>
+                <span className="text-sm">Ihr Suchverlauf wird hier angezeigt</span>
               </CommandItem>
             </CommandGroup>
           )}
