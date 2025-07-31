@@ -170,11 +170,11 @@ const Episodes = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="bg-background border-b border-border sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <Link to="/" className="inline-flex items-center text-gray-600 hover:text-[#13B87B] transition-colors">
+          <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-[#13B87B] transition-colors">
             <ArrowLeft size={20} className="mr-2" />
             Zurück zur Startseite
           </Link>
@@ -186,10 +186,10 @@ const Episodes = () => {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4 font-cooper">
+              <h1 className="text-4xl font-bold text-foreground mb-4 font-cooper">
                 Alle Inhalte
               </h1>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-muted-foreground">
                 Entdecke alle Episoden unserer Podcast-Serien und unsere CFO Memos
               </p>
             </div>

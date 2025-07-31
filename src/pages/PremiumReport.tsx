@@ -63,20 +63,20 @@ const PremiumReport = () => {
   const isPremium = pdf.is_premium && pdf.price && pdf.price > 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white shadow-sm">
+      <div className="bg-background shadow-sm border-b border-border">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
               onClick={() => navigate('/episodes')}
-              className="text-gray-600 hover:text-[#13B87B]"
+              className="text-muted-foreground hover:text-[#13B87B]"
             >
               <ArrowLeft size={20} className="mr-2" />
               Zurück zu den Reports
             </Button>
-            <Link to="/" className="text-2xl font-bold text-gray-900 font-cooper">
+            <Link to="/" className="text-2xl font-bold text-foreground font-cooper">
               Finance Transformers
             </Link>
           </div>

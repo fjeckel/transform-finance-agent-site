@@ -26,7 +26,7 @@ const Index = () => {
   }, [sections]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <SEOHead />
       {/* Navigation */}
       <Navigation />

@@ -49,12 +49,12 @@ const Navigation = () => {
     <>
       {/* Desktop Navigation - Horizontal at top */}
       <nav className={`fixed top-0 left-0 right-0 z-50 hidden lg:block transition-all duration-300 ${isScrolled ? 'py-2' : 'py-4'}`}>
-        <div className={`bg-white/95 backdrop-blur-sm shadow-lg transition-all duration-300 ${isScrolled ? 'scale-98' : 'scale-100'}`}>
+        <div className={`bg-background/95 backdrop-blur-sm shadow-lg transition-all duration-300 border-b border-border/50 ${isScrolled ? 'scale-98' : 'scale-100'}`}>
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex items-center justify-between">
               {/* Logo/Brand */}
               <div className="flex items-center">
-                <div className="text-xl font-bold text-gray-900 font-cooper">
+                <div className="text-xl font-bold text-foreground font-cooper">
                   Finance Transformers
                 </div>
               </div>
@@ -66,7 +66,7 @@ const Navigation = () => {
                     <li key={item.href}>
                       <button
                         onClick={() => handleNavClick(item)}
-                        className="text-xs font-bold text-gray-800 hover:text-[#13B87B] transition-colors duration-200 py-2 px-3 rounded hover:bg-gray-50 uppercase tracking-wide whitespace-nowrap font-cooper"
+                        className="text-xs font-bold text-foreground hover:text-[#13B87B] transition-colors duration-200 py-2 px-3 rounded hover:bg-accent uppercase tracking-wide whitespace-nowrap font-cooper"
                       >
                         {item.label}
                       </button>
@@ -75,11 +75,11 @@ const Navigation = () => {
                 </ul>
                 
                 {/* Auth Section */}
-                <div className="flex items-center space-x-4 border-l border-gray-200 pl-6">
+                <div className="flex items-center space-x-4 border-l border-border pl-6">
                   <ThemeToggle />
                   {user ? (
                     <>
-                      <span className="text-sm text-gray-600">Welcome, {user.email}</span>
+                      <span className="text-sm text-muted-foreground">Welcome, {user.email}</span>
                       <Link to="/dashboard">
                         <Button variant="outline" size="sm">
                           <User size={16} className="mr-2" />
@@ -115,10 +115,10 @@ const Navigation = () => {
 
       {/* Mobile Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 lg:hidden">
-        <div className={`bg-white/95 backdrop-blur-sm shadow-lg transition-all duration-300 ${isScrolled ? 'py-2' : 'py-4'}`}>
+        <div className={`bg-background/95 backdrop-blur-sm shadow-lg border-b border-border/50 transition-all duration-300 ${isScrolled ? 'py-2' : 'py-4'}`}>
           <div className="flex justify-between items-center px-4">
             <div className="flex items-center">
-              <div className="text-lg font-bold text-gray-900 font-cooper">
+              <div className="text-lg font-bold text-foreground font-cooper">
                 Finance Transformers
               </div>
             </div>
@@ -126,7 +126,7 @@ const Navigation = () => {
               <ThemeToggle />
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2 text-gray-800 hover:text-[#13B87B] transition-colors"
+                className="p-2 text-foreground hover:text-[#13B87B] transition-colors"
               >
                 {isOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
@@ -135,13 +135,13 @@ const Navigation = () => {
         </div>
         
         {isOpen && (
-          <div className="bg-white/95 backdrop-blur-sm shadow-lg">
+          <div className="bg-background/95 backdrop-blur-sm shadow-lg border-b border-border/50">
             <ul className="py-4">
               {navItems.map((item) => (
                 <li key={item.href}>
                   <button
                     onClick={() => handleNavClick(item)}
-                    className="block w-full text-left text-sm font-bold text-gray-800 hover:text-[#13B87B] transition-colors duration-200 py-3 px-6 hover:bg-gray-50 uppercase tracking-wide font-cooper"
+                    className="block w-full text-left text-sm font-bold text-foreground hover:text-[#13B87B] transition-colors duration-200 py-3 px-6 hover:bg-accent uppercase tracking-wide font-cooper"
                   >
                     {item.label}
                   </button>
@@ -149,10 +149,10 @@ const Navigation = () => {
               ))}
               
               {/* Mobile Auth Section */}
-              <li className="border-t border-gray-200 mt-4 pt-4">
+              <li className="border-t border-border mt-4 pt-4">
                 {user ? (
                   <div className="px-6 space-y-3">
-                    <p className="text-sm text-gray-600">Welcome, {user.email}</p>
+                    <p className="text-sm text-muted-foreground">Welcome, {user.email}</p>
                     <Link to="/dashboard" onClick={() => setIsOpen(false)}>
                       <Button variant="outline" size="sm" className="w-full justify-start">
                         <User size={16} className="mr-2" />

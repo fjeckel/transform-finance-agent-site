@@ -62,7 +62,7 @@ const DynamicEpisode = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <SEOHead 
         title={`${episode.title} | Finance Transformers`}
         description={episode.description || `S${episode.season}E${episode.episode_number} - ${episode.title}`}
@@ -77,9 +77,9 @@ const DynamicEpisode = () => {
         }}
       />
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="bg-background border-b border-border sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
-          <Link to="/" className="inline-flex items-center text-gray-600 hover:text-[#13B87B] transition-colors">
+          <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-[#13B87B] transition-colors">
             <ArrowLeft size={20} className="mr-2" />
             Zurück zur Startseite
           </Link>
@@ -88,7 +88,7 @@ const DynamicEpisode = () => {
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Episode Overview */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+        <div className="bg-card rounded-2xl shadow-lg p-8 mb-8">
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1">
               <ImageWithFallback
@@ -106,17 +106,17 @@ const DynamicEpisode = () => {
                 </span>
               </div>
               
-              <h1 className="text-3xl font-bold text-gray-900 mb-4 font-cooper">
+              <h1 className="text-3xl font-bold text-foreground mb-4 font-cooper">
                 {episode.title}
               </h1>
               
               {episode.description && (
-                <p className="text-lg text-gray-700 mb-6">
+                <p className="text-lg text-muted-foreground mb-6">
                   {episode.description}
                 </p>
               )}
               
-              <div className="flex items-center space-x-6 mb-6 text-gray-600">
+              <div className="flex items-center space-x-6 mb-6 text-muted-foreground">
                 {episode.duration && (
                   <div className="flex items-center">
                     <Clock size={16} className="mr-2" />
