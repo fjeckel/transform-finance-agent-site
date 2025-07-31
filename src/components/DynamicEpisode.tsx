@@ -9,6 +9,7 @@ import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { toast } from '@/hooks/use-toast';
 import SEOHead from '@/components/SEOHead';
 import ImageWithFallback from '@/components/ui/image-with-fallback';
+import { BottomNavigation } from '@/components/ui/bottom-navigation';
 
 const DynamicEpisode = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -348,6 +349,9 @@ const DynamicEpisode = () => {
           </Card>
         )}
       </div>
+      
+      {/* Bottom Navigation - Mobile Only */}
+      <BottomNavigation />
     </div>
   );
 };

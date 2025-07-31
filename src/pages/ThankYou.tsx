@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Mail, Download, ArrowLeft, RefreshCw } from 'lucide-react';
+import { BottomNavigation } from '@/components/ui/bottom-navigation';
 
 const ThankYou: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -38,6 +39,9 @@ const ThankYou: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+        
+        {/* Bottom Navigation - Mobile Only */}
+        <BottomNavigation />
       </div>
     );
   }
@@ -129,6 +133,9 @@ const ThankYou: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Bottom Navigation - Mobile Only */}
+      <BottomNavigation />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Hero from '@/components/Hero';
 import Footer from '@/components/Footer';
@@ -9,9 +9,12 @@ import { useMainPageSections } from '@/hooks/useMainPageSections';
 import { Skeleton } from '@/components/ui/skeleton';
 import TimTeuscherSection from '@/components/TimTeuscherSection';
 import FabianJeckelSection from '@/components/FabianJeckelSection';
+import { BottomNavigation } from '@/components/ui/bottom-navigation';
+import { SearchBox } from '@/components/ui/search-box';
 
 const Index = () => {
   const { data: sections, isLoading } = useMainPageSections();
+  const [searchOpen, setSearchOpen] = useState(false);
   
   // Debug: Log sections to console
   React.useEffect(() => {
@@ -64,6 +67,9 @@ const Index = () => {
         {/* Footer */}
         <Footer />
       </div>
+      
+      {/* Bottom Navigation - Mobile Only */}
+      <BottomNavigation onSearchOpen={() => setSearchOpen(true)} />
     </div>
   );
 };

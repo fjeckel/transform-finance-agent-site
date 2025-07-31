@@ -5,6 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { SearchBox } from '@/components/ui/search-box';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -21,9 +22,9 @@ const Navigation = () => {
   }, []);
 
   const navItems = [
-    { label: 'WTF?! WARUM FINANCE TRANSFORMIEREN', href: '#wtf', type: 'section' },
-    { label: 'FINANCE TRANSFORMERS', href: '#finance-transformers', type: 'section' },
-    { label: 'ALLE INHALTE', href: '/episodes', type: 'route' },
+    { label: 'WARUM FT?', href: '#wtf', type: 'section' },
+    { label: 'ÜBER UNS', href: '#finance-transformers', type: 'section' },
+    { label: 'INHALTE', href: '/episodes', type: 'route' },
   ];
 
   const handleNavClick = (item: typeof navItems[0]) => {
@@ -61,12 +62,17 @@ const Navigation = () => {
               
               {/* Menu Items */}
               <div className="flex items-center space-x-8">
-                <ul className="flex items-center space-x-8">
+                {/* Search */}
+                <div className="hidden md:block">
+                  <SearchBox />
+                </div>
+                
+                <ul className="flex items-center space-x-6">
                   {navItems.map((item) => (
                     <li key={item.href}>
                       <button
                         onClick={() => handleNavClick(item)}
-                        className="text-xs font-bold text-foreground hover:text-[#13B87B] transition-colors duration-200 py-2 px-3 rounded hover:bg-accent uppercase tracking-wide whitespace-nowrap font-cooper"
+                        className="text-sm font-bold text-foreground hover:text-[#13B87B] transition-colors duration-200 py-2 px-3 rounded hover:bg-accent tracking-wide whitespace-nowrap font-cooper"
                       >
                         {item.label}
                       </button>
@@ -75,7 +81,7 @@ const Navigation = () => {
                 </ul>
                 
                 {/* Auth Section */}
-                <div className="flex items-center space-x-4 border-l border-border pl-6">
+                <div className="flex items-center space-x-3 border-l border-border pl-6">
                   <ThemeToggle />
                   {user ? (
                     <>

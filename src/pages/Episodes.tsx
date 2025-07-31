@@ -18,6 +18,7 @@ import { usePdfs } from '@/hooks/usePdfs';
 import { SimplePDFCard } from '@/components/purchase/SimplePurchaseButton';
 import { Input } from '@/components/ui/input';
 import RssSubscribeButton from '@/components/RssSubscribeButton';
+import { BottomNavigation } from '@/components/ui/bottom-navigation';
 
 const Episodes = () => {
   const { episodes, loading: episodesLoading, error: episodesError } = useEpisodes();
@@ -496,6 +497,9 @@ const Episodes = () => {
           </Tabs>
         </div>
       </div>
+      
+      {/* Bottom Navigation - Mobile Only */}
+      <BottomNavigation />
     </div>
   );
 };
