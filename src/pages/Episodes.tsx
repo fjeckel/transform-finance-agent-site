@@ -19,6 +19,7 @@ import { SimplePDFCard } from '@/components/purchase/SimplePurchaseButton';
 import { Input } from '@/components/ui/input';
 import RssSubscribeButton from '@/components/RssSubscribeButton';
 import { BottomNavigation } from '@/components/ui/bottom-navigation';
+import { MobileSearch } from '@/components/ui/mobile-search';
 
 const Episodes = () => {
   const { episodes, loading: episodesLoading, error: episodesError } = useEpisodes();
@@ -29,6 +30,7 @@ const Episodes = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [displayCount, setDisplayCount] = useState<number>(9); // Show 9 episodes initially
   const [pdfsDisplayCount, setPdfsDisplayCount] = useState<number>(9); // Show 9 PDFs initially
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   // Reset display count when search query or series filter changes
   useEffect(() => {
@@ -498,8 +500,11 @@ const Episodes = () => {
         </div>
       </div>
       
+      {/* Mobile Search */}
+      <MobileSearch open={mobileSearchOpen} onOpenChange={setMobileSearchOpen} />
+      
       {/* Bottom Navigation - Mobile Only */}
-      <BottomNavigation />
+      <BottomNavigation onSearchOpen={() => setMobileSearchOpen(true)} />
     </div>
   );
 };

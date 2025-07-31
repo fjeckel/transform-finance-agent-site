@@ -30,14 +30,24 @@ const NavItem: React.FC<NavItemProps> = ({ href, icon: Icon, label, isActive, on
 
   if (onClick) {
     return (
-      <button className="flex-1 flex justify-center">
+      <button 
+        className="flex-1 flex justify-center" 
+        aria-label={label}
+        role="button"
+        tabIndex={0}
+      >
         {content}
       </button>
     );
   }
 
   return (
-    <Link to={href} className="flex-1 flex justify-center">
+    <Link 
+      to={href} 
+      className="flex-1 flex justify-center" 
+      aria-label={`Navigiere zu ${label}`}
+      role="link"
+    >
       {content}
     </Link>
   );
@@ -85,9 +95,13 @@ export const BottomNavigation: React.FC<{ onSearchOpen?: () => void }> = ({ onSe
       <div className="h-16 lg:hidden" />
       
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden">
+      <nav 
+        className="fixed bottom-0 left-0 right-0 z-40 lg:hidden" 
+        role="navigation" 
+        aria-label="Mobile Navigation"
+      >
         <div className="bg-background/95 backdrop-blur-sm border-t border-border shadow-lg">
-          <div className="flex items-center justify-around px-2 py-1 safe-area-inset-bottom">
+          <div className="flex items-center justify-around px-2 py-1 safe-area-inset-bottom" role="tablist">
             {navItems.map((item, index) => (
               <NavItem
                 key={item.href || index}

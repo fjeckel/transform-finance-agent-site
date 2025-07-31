@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import TimTeuscherSection from '@/components/TimTeuscherSection';
 import FabianJeckelSection from '@/components/FabianJeckelSection';
 import { BottomNavigation } from '@/components/ui/bottom-navigation';
-import { SearchBox } from '@/components/ui/search-box';
+import { MobileSearch } from '@/components/ui/mobile-search';
 
 const Index = () => {
   const { data: sections, isLoading } = useMainPageSections();
@@ -67,6 +67,9 @@ const Index = () => {
         {/* Footer */}
         <Footer />
       </div>
+      
+      {/* Mobile Search */}
+      <MobileSearch open={searchOpen} onOpenChange={setSearchOpen} />
       
       {/* Bottom Navigation - Mobile Only */}
       <BottomNavigation onSearchOpen={() => setSearchOpen(true)} />

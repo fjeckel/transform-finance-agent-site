@@ -10,6 +10,7 @@ import { toast } from '@/hooks/use-toast';
 import SEOHead from '@/components/SEOHead';
 import ImageWithFallback from '@/components/ui/image-with-fallback';
 import { BottomNavigation } from '@/components/ui/bottom-navigation';
+import { MobileSearch } from '@/components/ui/mobile-search';
 
 const DynamicEpisode = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -17,6 +18,7 @@ const DynamicEpisode = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
   const [showNotesSection, setShowNotesSection] = useState(true);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const handleCopyTranscript = async () => {
     if (!episode?.transcript) return;
@@ -350,8 +352,11 @@ const DynamicEpisode = () => {
         )}
       </div>
       
+      {/* Mobile Search */}
+      <MobileSearch open={mobileSearchOpen} onOpenChange={setMobileSearchOpen} />
+      
       {/* Bottom Navigation - Mobile Only */}
-      <BottomNavigation />
+      <BottomNavigation onSearchOpen={() => setMobileSearchOpen(true)} />
     </div>
   );
 };
