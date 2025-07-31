@@ -57,6 +57,12 @@ export const BottomNavigation: React.FC<{ onSearchOpen?: () => void }> = ({ onSe
   const location = useLocation();
   const { user } = useAuth();
 
+  // Determine if we're on episodes tab or memos tab
+  const currentTab = new URLSearchParams(location.search).get('tab');
+  const isEpisodesTab = location.pathname.startsWith('/episodes') && currentTab !== 'memos';
+  const isMemosTab = location.pathname.startsWith('/episodes') && currentTab === 'memos';
+  const isEpisodePage = location.pathname.startsWith('/episode');
+
   const navItems = [
     {
       href: '/',
@@ -68,13 +74,13 @@ export const BottomNavigation: React.FC<{ onSearchOpen?: () => void }> = ({ onSe
       href: '/episodes',
       icon: Headphones,
       label: 'Episoden',
-      isActive: location.pathname.startsWith('/episodes') || location.pathname.startsWith('/episode'),
+      isActive: isEpisodesTab || isEpisodePage,
     },
     {
       href: '/episodes?tab=memos',
       icon: FileText,
       label: 'Memos',
-      isActive: false, // Will be handled by Episodes tab logic
+      isActive: isMemosTab,
     },
     {
       icon: Search,
