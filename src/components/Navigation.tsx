@@ -49,7 +49,11 @@ const Navigation = () => {
   return (
     <>
       {/* Desktop Navigation - Horizontal at top */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 hidden lg:block transition-all duration-300 ${isScrolled ? 'py-2' : 'py-4'}`}>
+      <nav 
+        className={`fixed top-0 left-0 right-0 z-50 hidden lg:block transition-all duration-300 ${isScrolled ? 'py-2' : 'py-4'}`}
+        role="navigation"
+        aria-label="Desktop Navigation"
+      >
         <div className={`bg-background/95 backdrop-blur-sm shadow-lg transition-all duration-300 border-b border-border/50 ${isScrolled ? 'scale-98' : 'scale-100'}`}>
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex items-center justify-between">
@@ -67,12 +71,14 @@ const Navigation = () => {
                   <SearchBox />
                 </div>
                 
-                <ul className="flex items-center space-x-6">
+                <ul className="flex items-center space-x-6" role="menubar">
                   {navItems.map((item) => (
-                    <li key={item.href}>
+                    <li key={item.href} role="none">
                       <button
                         onClick={() => handleNavClick(item)}
                         className="text-sm font-bold text-foreground hover:text-[#13B87B] transition-colors duration-200 py-2 px-3 rounded hover:bg-accent tracking-wide whitespace-nowrap font-cooper"
+                        role="menuitem"
+                        aria-label={`Navigiere zu ${item.label}`}
                       >
                         {item.label}
                       </button>
@@ -120,7 +126,11 @@ const Navigation = () => {
       </nav>
 
       {/* Mobile Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 lg:hidden">
+      <nav 
+        className="fixed top-0 left-0 right-0 z-50 lg:hidden"
+        role="navigation"
+        aria-label="Mobile Navigation"
+      >
         <div className={`bg-background/95 backdrop-blur-sm shadow-lg border-b border-border/50 transition-all duration-300 ${isScrolled ? 'py-2' : 'py-4'}`}>
           <div className="flex justify-between items-center px-4">
             <div className="flex items-center">
@@ -133,6 +143,9 @@ const Navigation = () => {
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="p-2 text-foreground hover:text-[#13B87B] transition-colors"
+                aria-label={isOpen ? 'Menü schließen' : 'Menü öffnen'}
+                aria-expanded={isOpen}
+                aria-controls="mobile-menu"
               >
                 {isOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
@@ -141,13 +154,19 @@ const Navigation = () => {
         </div>
         
         {isOpen && (
-          <div className="bg-background/95 backdrop-blur-sm shadow-lg border-b border-border/50">
-            <ul className="py-4">
+          <div 
+            className="bg-background/95 backdrop-blur-sm shadow-lg border-b border-border/50"
+            id="mobile-menu"
+            role="menu"
+          >
+            <ul className="py-4" role="none">
               {navItems.map((item) => (
-                <li key={item.href}>
+                <li key={item.href} role="none">
                   <button
                     onClick={() => handleNavClick(item)}
                     className="block w-full text-left text-sm font-bold text-foreground hover:text-[#13B87B] transition-colors duration-200 py-3 px-6 hover:bg-accent uppercase tracking-wide font-cooper"
+                    role="menuitem"
+                    aria-label={`Navigiere zu ${item.label}`}
                   >
                     {item.label}
                   </button>

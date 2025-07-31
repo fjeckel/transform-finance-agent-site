@@ -70,10 +70,15 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
         e.preventDefault();
         setOpen((open) => !open);
       }
+      // Escape key to close search
+      if (e.key === 'Escape' && open) {
+        e.preventDefault();
+        setOpen(false);
+      }
     };
     document.addEventListener('keydown', down);
     return () => document.removeEventListener('keydown', down);
-  }, []);
+  }, [open, setOpen]);
 
   // Filter episodes and PDFs based on debounced search query
   const { filteredEpisodes, filteredPdfs } = useMemo(() => {
@@ -157,6 +162,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
         open={open} 
         onOpenChange={setOpen}
         aria-describedby="search-description"
+        aria-label="Suchfenster"
       >
         <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
           <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
