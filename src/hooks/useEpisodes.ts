@@ -8,6 +8,7 @@ export interface Episode {
   slug: string;
   description: string;
   content: string;
+  summary?: string; // New field for episode summaries (500-2000 chars)
   season: number;
   episode_number: number;
   duration: string;

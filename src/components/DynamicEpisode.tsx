@@ -205,6 +205,25 @@ const DynamicEpisode = () => {
           </Card>
         )}
 
+        {/* Episode Summary */}
+        {episode.summary && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <div className="w-6 h-6 bg-[#13B87B] rounded mr-3"></div>
+                Episode Zusammenfassung
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="prose prose-gray max-w-none">
+                <p className="text-muted-foreground leading-relaxed text-base">
+                  {episode.summary}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Platform Links - Only show if audio exists or more than 2 platforms */}
         {platformLinks.length > 0 && (episode.audio_url || platformLinks.length > 2) && (
           <Card className="mb-8">

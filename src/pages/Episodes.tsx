@@ -45,6 +45,8 @@ const Episodes = () => {
           try {
             return episode.title?.toLowerCase().includes(query) ||
               (episode.description && episode.description.toLowerCase().includes(query)) ||
+              (episode.summary && episode.summary.toLowerCase().includes(query)) ||
+              (episode.content && episode.content.toLowerCase().includes(query)) ||
               (episode.guests && Array.isArray(episode.guests) && episode.guests.some(guest => 
                 guest && guest.name && guest.name.toLowerCase().includes(query)
               )) ||

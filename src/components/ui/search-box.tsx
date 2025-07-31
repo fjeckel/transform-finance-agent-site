@@ -97,7 +97,8 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
     const episodeResults = episodes.filter(episode =>
       episode.title?.toLowerCase().includes(searchTerm) ||
       episode.description?.toLowerCase().includes(searchTerm) ||
-      episode.content?.toLowerCase().includes(searchTerm)
+      episode.content?.toLowerCase().includes(searchTerm) ||
+      episode.summary?.toLowerCase().includes(searchTerm)
     ).slice(0, mobile ? 8 : 5);
 
     const pdfResults = pdfs.filter(pdf =>
