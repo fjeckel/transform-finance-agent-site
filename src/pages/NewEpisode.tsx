@@ -346,8 +346,9 @@ const NewEpisode = () => {
                     type="number"
                     min="1"
                     value={season}
-                    onChange={(e) => setSeason(parseInt(e.target.value))}
+                    onChange={(e) => setSeason(Number(e.target.value) || 1)}
                   />
+                  <FormFieldError error={validationErrors.season} />
                 </div>
                 <div>
                   <label htmlFor="episodeNumber" className="block text-sm font-medium mb-1">
@@ -358,8 +359,9 @@ const NewEpisode = () => {
                     type="number"
                     min="1"
                     value={episodeNumber}
-                    onChange={(e) => setEpisodeNumber(parseInt(e.target.value))}
+                    onChange={(e) => setEpisodeNumber(Number(e.target.value) || 1)}
                   />
+                  <FormFieldError error={validationErrors['episode_number']} />
                 </div>
               </div>
               <div>
