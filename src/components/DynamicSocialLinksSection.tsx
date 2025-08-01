@@ -42,10 +42,10 @@ const DynamicSocialLinksSection: React.FC<DynamicSocialLinksSectionProps> = ({ s
               >
                 <div className="flex flex-col items-center space-y-4">
                   <div 
-                    className="p-4 rounded-full transition-colors duration-300"
-                    style={{ backgroundColor: link.color, opacity: 0.1 }}
+                    className="p-4 rounded-full transition-all duration-300 group-hover:scale-110 shadow-lg"
+                    style={{ backgroundColor: link.color }}
                   >
-                    <div style={{ color: link.color }}>
+                    <div className="text-white">
                       {getIcon(link.icon)}
                     </div>
                   </div>

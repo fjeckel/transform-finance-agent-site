@@ -1,18 +1,18 @@
 import React from 'react';
-import { LinkedinIcon } from 'lucide-react';
+import { Linkedin, Youtube } from 'lucide-react';
 
 const SocialHandlesSection = () => {
   const socialLinks = [
     {
       name: 'LinkedIn',
-      icon: <LinkedinIcon className="w-8 h-8" />,
+      icon: <Linkedin className="w-8 h-8" />,
       url: 'https://www.linkedin.com/company/86932507/admin/dashboard/',
       color: 'bg-[#0077B5] hover:bg-[#005885]',
       description: 'Professionelle Einblicke und Branchendiskussionen'
     },
     {
       name: 'YouTube',
-      icon: <div className="w-8 h-8 text-white font-bold flex items-center justify-center">YT</div>,
+      icon: <Youtube className="w-8 h-8" />,
       url: 'https://www.youtube.com/channel/UC2sXuBElJDyzxKv3J8kmyng',
       color: 'bg-[#FF0000] hover:bg-[#CC0000]',
       description: 'Video-Content und Podcast-Episoden'
@@ -72,7 +72,9 @@ const SocialHandlesSection = () => {
                   className={`p-2 rounded-full ${social.color} transition-all duration-300 hover:scale-110`}
                 >
                   <div className="w-5 h-5 text-white flex items-center justify-center">
-                    {social.name === 'YouTube' ? '📺' : social.name === 'LinkedIn' ? '💼' : '🐦'}
+                    {social.name === 'YouTube' ? <Youtube className="w-4 h-4" /> : 
+                     social.name === 'LinkedIn' ? <Linkedin className="w-4 h-4" /> : 
+                     <div className="w-4 h-4">🐦</div>}
                   </div>
                 </a>
               ))}
