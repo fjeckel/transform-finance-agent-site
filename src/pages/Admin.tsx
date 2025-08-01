@@ -337,6 +337,8 @@ const Admin = () => {
         <Tabs defaultValue="episodes" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="episodes">Episodes</TabsTrigger>
+            <TabsTrigger value="insights">Insights</TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="main-page">Main Page</TabsTrigger>
           </TabsList>
           
@@ -450,6 +452,132 @@ const Admin = () => {
                       No episodes yet. Create your first episode to get started.
                     </div>
                   )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="insights">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Insights Management</CardTitle>
+                  <Link to="/admin/insights">
+                    <Button className="bg-[#13B87B] hover:bg-[#0F9A6A]">
+                      <Plus size={16} className="mr-2" />
+                      Manage Insights
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">
+                  Manage your insights, book summaries, and blog-style articles. 
+                  Click "Manage Insights" to access the full insights management interface.
+                </p>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-medium mb-2">Quick Actions</h4>
+                    <div className="space-y-2">
+                      <Link to="/admin/insights/new" className="block">
+                        <Button variant="outline" size="sm" className="w-full justify-start">
+                          <Plus size={14} className="mr-2" />
+                          Create New Insight
+                        </Button>
+                      </Link>
+                      <Link to="/insights" className="block">
+                        <Button variant="outline" size="sm" className="w-full justify-start">
+                          <Eye size={14} className="mr-2" />
+                          View Public Insights
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-medium mb-2">Content Types</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Book Summaries</li>
+                      <li>• Blog Articles</li>
+                      <li>• Market Analysis</li>
+                      <li>• Industry Reports</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="overview">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Overview Tab Management</CardTitle>
+                  <Link to="/overview">
+                    <Button variant="outline">
+                      <Eye size={16} className="mr-2" />
+                      View Live Overview
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h4 className="font-medium text-blue-900 mb-2">Overview Tab Content</h4>
+                  <p className="text-blue-800 text-sm mb-3">
+                    The Overview tab explains "World of Finance Transformers", "What is WTF?!", 
+                    "What is CFO Memo", and "What is Tool Time by WTF?!"
+                  </p>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Current Sections</h4>
+                    <div className="space-y-2">
+                      <div className="p-3 bg-gray-50 rounded border">
+                        <h5 className="font-medium text-sm">World of Finance Transformers</h5>
+                        <p className="text-xs text-gray-600 mt-1">Main mission and vision statement</p>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded border">
+                        <h5 className="font-medium text-sm">What is WTF?!</h5>
+                        <p className="text-xs text-gray-600 mt-1">Podcast series description</p>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded border">
+                        <h5 className="font-medium text-sm">What is CFO Memo</h5>
+                        <p className="text-xs text-gray-600 mt-1">CFO Memo series explanation</p>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded border">
+                        <h5 className="font-medium text-sm">Tool Time by WTF?!</h5>
+                        <p className="text-xs text-gray-600 mt-1">Tool review segment description</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Management Actions</h4>
+                    <div className="space-y-2">
+                      <Button variant="outline" size="sm" className="w-full justify-start" disabled>
+                        <Edit size={14} className="mr-2" />
+                        Edit Overview Content (Coming Soon)
+                      </Button>
+                      <Button variant="outline" size="sm" className="w-full justify-start" disabled>
+                        <FileText size={14} className="mr-2" />
+                        Manage Sections (Coming Soon)
+                      </Button>
+                      <Link to="/overview" className="block">
+                        <Button variant="outline" size="sm" className="w-full justify-start">
+                          <Eye size={14} className="mr-2" />
+                          Preview Overview Page
+                        </Button>
+                      </Link>
+                    </div>
+                    
+                    <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200">
+                      <p className="text-xs text-yellow-800">
+                        💡 <strong>Note:</strong> Full CMS integration for Overview content coming soon. 
+                        Currently managed through static content.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -32,8 +32,6 @@ const Navigation = () => {
       type: 'route', 
       isActive: location.pathname === '/overview'
     },
-    { label: t('navigation.whyFT'), href: '#wtf', type: 'section', isActive: false },
-    { label: t('navigation.aboutUs'), href: '#finance-transformers', type: 'section', isActive: false },
     { 
       label: t('navigation.content'), 
       href: '/episodes', 
