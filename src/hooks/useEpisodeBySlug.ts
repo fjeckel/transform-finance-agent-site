@@ -44,34 +44,58 @@ export const useEpisodesBySeriesPublished = (series: 'wtf' | 'finance_transforme
   return useQuery({
     queryKey: ['episodes', series, 'published', limit],
     queryFn: async () => {
-      let query = supabase
-        .from('episodes')
-        .select(`
-          *,
-          episode_platforms!left(
-            platform_name,
-            platform_url
-          ),
-          episode_guests!left(
-            guests!left(
-              id,
-              name,
-              bio,
-              image_url
+      try {
+        let query = supabase
+          .from('episodes')
+          .select(`
+            *,
+            episode_platforms!left(
+              platform_name,
+              platform_url
+            ),
+            episode_guests!left(
+              guests!left(
+                id,
+                name,
+                bio,
+                image_url
+              )
             )
-          )
-        `)
-        .eq('series', series)
-        .eq('status', 'published')
-        .order('episode_number', { ascending: false });
+          `)
+          .eq('series', series)
+          .eq('status', 'published')
+          .order('episode_number', { ascending: false });
 
-      if (limit) {
-        query = query.limit(limit);
+        if (limit) {
+          query = query.limit(limit);
+        }
+
+        const { data, error } = await query;
+        if (error) {
+          console.error(`Error fetching ${series} episodes:`, error);
+          throw error;
+        }
+        
+        // Ensure we always return an array, even if data is null
+        const episodes = data || [];
+        
+        // Validate episode data structure
+        const validEpisodes = episodes.filter(episode => {
+          if (!episode || !episode.id || !episode.title) {
+            console.warn('Invalid episode data:', episode);
+            return false;
+          }
+          return true;
+        });
+        
+        return validEpisodes;
+      } catch (error) {
+        console.error(`Failed to fetch ${series} episodes:`, error);
+        throw error;
       }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data || [];
     },
+    // Add retry and error handling
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 };

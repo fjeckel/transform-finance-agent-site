@@ -6,10 +6,33 @@ import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 
 const FinanceTransformersSection = () => {
   const [currentEpisode, setCurrentEpisode] = useState(0);
-  const { data: episodes, isLoading } = useEpisodesBySeriesPublished('finance_transformers', 3);
+  const { data: episodes, isLoading, error } = useEpisodesBySeriesPublished('finance_transformers', 3);
+
+  // Reset current episode if it's out of bounds
+  React.useEffect(() => {
+    if (episodes && episodes.length > 0 && currentEpisode >= episodes.length) {
+      setCurrentEpisode(0);
+    }
+  }, [episodes, currentEpisode]);
 
   if (isLoading) {
     return <LoadingSkeleton />;
+  }
+
+  if (error) {
+    console.error('Error loading Finance Transformers episodes:', error);
+    return (
+      <section id="finance-transformers" className="py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center">
+            <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 uppercase tracking-tight font-cooper">
+              Finance <span className="text-[#003FA5]">Transformers</span>
+            </h2>
+            <p className="text-xl text-gray-600">Fehler beim Laden der Episoden. Bitte versuchen Sie es später erneut.</p>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   if (!episodes || episodes.length === 0) {
@@ -27,9 +50,11 @@ const FinanceTransformersSection = () => {
     );
   }
   const nextEpisode = () => {
+    if (!episodes || episodes.length === 0) return;
     setCurrentEpisode(prev => (prev + 1) % episodes.length);
   };
   const prevEpisode = () => {
+    if (!episodes || episodes.length === 0) return;
     setCurrentEpisode(prev => (prev - 1 + episodes.length) % episodes.length);
   };
 
@@ -42,10 +67,11 @@ const FinanceTransformersSection = () => {
     });
   };
 
-  const currentEp = episodes[currentEpisode];
+  // Safely get current episode with bounds checking
+  const currentEp = episodes && episodes.length > 0 ? episodes[Math.min(currentEpisode, episodes.length - 1)] : null;
   const platformLinks = currentEp?.episode_platforms || [];
-  const spotifyLink = platformLinks.find(p => p.platform_name.toLowerCase().includes('spotify'))?.platform_url;
-  const appleLink = platformLinks.find(p => p.platform_name.toLowerCase().includes('apple'))?.platform_url;
+  const spotifyLink = platformLinks.find(p => p?.platform_name?.toLowerCase()?.includes('spotify'))?.platform_url;
+  const appleLink = platformLinks.find(p => p?.platform_name?.toLowerCase()?.includes('apple'))?.platform_url;
   const touchStartX = useRef<number | null>(null);
   const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
     touchStartX.current = event.touches[0].clientX;
@@ -79,7 +105,7 @@ const FinanceTransformersSection = () => {
             <div>
               <div className="mb-4">
                 <span className="inline-block bg-[#003FA5] text-white px-3 py-1 rounded-full text-sm font-bold uppercase tracking-wide">
-                  Episode {currentEpisode + 1}
+                  Episode {episodes && episodes.length > 0 ? currentEpisode + 1 : 1}
                 </span>
               </div>
               
@@ -122,7 +148,11 @@ const FinanceTransformersSection = () => {
               <img 
                 src={currentEp?.image_url || '/img/wtf-cover.png'} 
                 alt={currentEp?.title || 'Episode'} 
-                className="aspect-square object-cover w-full h-full rounded-xl shadow-lg" 
+                className="aspect-square object-cover w-full h-full rounded-xl shadow-lg"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = '/img/wtf-cover.png';
+                }}
               />
             </div>
           </div>
@@ -134,18 +164,22 @@ const FinanceTransformersSection = () => {
             </button>
             
             <div className="flex space-x-2">
-              {episodes.map((episode, index) => (
+              {episodes && episodes.length > 0 && episodes.map((episode, index) => (
                 <button 
-                  key={episode.id} 
+                  key={episode?.id || `episode-${index}`} 
                   onClick={() => setCurrentEpisode(index)} 
                   className={`relative w-10 h-10 rounded-full overflow-hidden border-2 transition-all duration-300 ${
                     index === currentEpisode ? 'border-[#003FA5] scale-105' : 'border-transparent hover:border-gray-300'
                   }`}
                 >
                   <img 
-                    src={episode.image_url || '/img/wtf-cover.png'} 
-                    alt={episode.title} 
-                    className="w-full h-full object-cover" 
+                    src={episode?.image_url || '/img/wtf-cover.png'} 
+                    alt={episode?.title || 'Episode'} 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/img/wtf-cover.png';
+                    }}
                   />
                 </button>
               ))}
