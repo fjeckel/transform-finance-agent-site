@@ -46,8 +46,8 @@ const NewInsight = () => {
   const [content, setContent] = useState('');
   const [insightType, setInsightType] = useState<InsightType>('blog_article');
   const [status, setStatus] = useState<InsightStatus>('draft');
-  const [difficultyLevel, setDifficultyLevel] = useState<DifficultyLevel | ''>('');
-  const [categoryId, setCategoryId] = useState('');
+  const [difficultyLevel, setDifficultyLevel] = useState<DifficultyLevel | 'none'>('none');
+  const [categoryId, setCategoryId] = useState('none');
   const [featured, setFeatured] = useState(false);
   const [readingTimeMinutes, setReadingTimeMinutes] = useState<number | ''>('');
   const [publishDate, setPublishDate] = useState('');
@@ -111,8 +111,8 @@ const NewInsight = () => {
           setContent(data.content || '');
           setInsightType(data.insightType || 'blog_article');
           setStatus(data.status || 'draft');
-          setDifficultyLevel(data.difficultyLevel || '');
-          setCategoryId(data.categoryId || '');
+          setDifficultyLevel(data.difficultyLevel || 'none');
+          setCategoryId(data.categoryId || 'none');
           setFeatured(data.featured || false);
           setReadingTimeMinutes(data.readingTimeMinutes || '');
           setPublishDate(data.publishDate || '');
@@ -203,8 +203,8 @@ const NewInsight = () => {
           content: content || 'Draft content...',
           insight_type: insightType,
           status: 'draft',
-          difficulty_level: difficultyLevel || null,
-          category_id: categoryId || null,
+          difficulty_level: difficultyLevel === 'none' ? null : difficultyLevel || null,
+          category_id: categoryId === 'none' ? null : categoryId || null,
           featured: featured,
           reading_time_minutes: readingTimeMinutes || null,
           published_at: null,
@@ -267,8 +267,8 @@ const NewInsight = () => {
           content,
           insight_type: insightType,
           status,
-          difficulty_level: difficultyLevel || null,
-          category_id: categoryId || null,
+          difficulty_level: difficultyLevel === 'none' ? null : difficultyLevel || null,
+          category_id: categoryId === 'none' ? null : categoryId || null,
           featured: featured,
           reading_time_minutes: readingTimeMinutes || null,
           published_at: publishedAt,
@@ -454,12 +454,12 @@ const NewInsight = () => {
                       <label htmlFor="difficultyLevel" className="block text-sm font-medium mb-1">
                         Difficulty Level
                       </label>
-                      <Select value={difficultyLevel} onValueChange={(v) => setDifficultyLevel(v as DifficultyLevel | '')}>
+                      <Select value={difficultyLevel} onValueChange={(v) => setDifficultyLevel(v as DifficultyLevel | 'none')}>
                         <SelectTrigger id="difficultyLevel">
                           <SelectValue placeholder="Select difficulty" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
                           <SelectItem value="beginner">Beginner</SelectItem>
                           <SelectItem value="intermediate">Intermediate</SelectItem>
                           <SelectItem value="advanced">Advanced</SelectItem>
@@ -476,7 +476,7 @@ const NewInsight = () => {
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No Category</SelectItem>
+                          <SelectItem value="none">No Category</SelectItem>
                           {categories.map((category) => (
                             <SelectItem key={category.id} value={category.id}>
                               {category.name}
