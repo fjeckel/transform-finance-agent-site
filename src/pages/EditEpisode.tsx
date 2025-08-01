@@ -50,6 +50,7 @@ const EditEpisode = () => {
   const [transcript, setTranscript] = useState('');
   const [publishDate, setPublishDate] = useState('');
   const [status, setStatus] = useState<'draft' | 'published' | 'scheduled' | 'archived'>('draft');
+  const [series, setSeries] = useState<'wtf' | 'finance_transformers' | 'cfo_memo'>('finance_transformers');
   const [audioUrl, setAudioUrl] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [duration, setDuration] = useState('');
@@ -64,7 +65,7 @@ const EditEpisode = () => {
 
   // Auto-save functionality
   const formData = {
-    title, slug, season, episodeNumber, description, content, summary, transcript, publishDate, status,
+    title, slug, season, episodeNumber, description, content, summary, transcript, publishDate, status, series,
     audioUrl, imageUrl, duration, showNotes, guests, platformLinks
   };
   
@@ -145,6 +146,7 @@ const EditEpisode = () => {
         setTranscript(data.transcript || '');
         setPublishDate(data.publish_date ? new Date(data.publish_date).toISOString().split('T')[0] : '');
         setStatus(data.status || 'draft');
+        setSeries(data.series || 'finance_transformers');
         setAudioUrl(data.audio_url || '');
         setImageUrl(data.image_url || '');
         setDuration(data.duration || '');
@@ -178,6 +180,7 @@ const EditEpisode = () => {
           transcript: transcript || null,
           season,
           episode_number: episodeNumber,
+          series,
           publish_date: publishDate ? new Date(publishDate).toISOString() : null,
           status,
           audio_url: audioUrl || null,
@@ -334,10 +337,26 @@ const EditEpisode = () => {
                   onChange={(e) => setPublishDate(e.target.value)}
                 />
               </div>
-              <div>
-                <label htmlFor="status" className="block text-sm font-medium mb-1">
-                  Status
-                </label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="series" className="block text-sm font-medium mb-1">
+                    Podcast Series
+                  </label>
+                  <Select value={series} onValueChange={(v) => setSeries(v as any)}>
+                    <SelectTrigger id="series">
+                      <SelectValue placeholder="Select series" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="wtf">WTF?!</SelectItem>
+                      <SelectItem value="finance_transformers">Finance Transformers</SelectItem>
+                      <SelectItem value="cfo_memo">CFO Memo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label htmlFor="status" className="block text-sm font-medium mb-1">
+                    Status
+                  </label>
                 <Select value={status} onValueChange={(v) => setStatus(v as any)}>
                   <SelectTrigger id="status">
                     <SelectValue placeholder="Select status" />
@@ -349,6 +368,7 @@ const EditEpisode = () => {
                     <SelectItem value="archived">Archived</SelectItem>
                   </SelectContent>
                 </Select>
+                </div>
               </div>
               <div>
                 <label htmlFor="description" className="block text-sm font-medium mb-1">
