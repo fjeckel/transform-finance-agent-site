@@ -14,6 +14,8 @@ interface FeedInfo {
   episodeCount: number;
   lastUpdated: string | null;
   feedUrl: string;
+  language: string;
+  languageLabel: string;
 }
 
 const AdminRssFeeds = () => {
@@ -41,26 +43,50 @@ const AdminRssFeeds = () => {
 
       const seriesInfo = {
         all: {
-          title: 'All Episodes',
-          description: 'Complete feed with all published episodes',
+          de: {
+            title: 'Alle Episoden',
+            description: 'Vollständiger Feed mit allen veröffentlichten Episoden',
+          },
+          en: {
+            title: 'All Episodes',
+            description: 'Complete feed with all published episodes',
+          },
           episodeCount: 0,
           lastUpdated: null as string | null,
         },
         wtf: {
-          title: 'WTF?! Finance',
-          description: 'Understanding complex financial topics in simple terms',
+          de: {
+            title: 'WTF?! Finance',
+            description: 'Komplexe Finanzthemen verständlich erklärt',
+          },
+          en: {
+            title: 'WTF?! Finance',
+            description: 'Understanding complex financial topics in simple terms',
+          },
           episodeCount: 0,
           lastUpdated: null as string | null,
         },
         finance_transformers: {
-          title: 'Finance Transformers',
-          description: 'Transforming finance through technology and innovation',
+          de: {
+            title: 'Finance Transformers',
+            description: 'Finanzwesen durch Technologie und Innovation transformieren',
+          },
+          en: {
+            title: 'Finance Transformers',
+            description: 'Transforming finance through technology and innovation',
+          },
           episodeCount: 0,
           lastUpdated: null as string | null,
         },
         cfo_memo: {
-          title: 'CFO Memo',
-          description: 'Strategic insights for finance leaders',
+          de: {
+            title: 'CFO Memo',
+            description: 'Strategische Einblicke für Finanzführungskräfte',
+          },
+          en: {
+            title: 'CFO Memo',
+            description: 'Strategic insights for finance leaders',
+          },
           episodeCount: 0,
           lastUpdated: null as string | null,
         },
@@ -85,16 +111,38 @@ const AdminRssFeeds = () => {
         }
       });
 
-      const feedList: FeedInfo[] = Object.entries(seriesInfo).map(([key, info]) => ({
-        series: key,
-        title: info.title,
-        description: info.description,
-        episodeCount: info.episodeCount,
-        lastUpdated: info.lastUpdated,
-        feedUrl: key === 'all' 
-          ? `${rssBaseUrl}?baseUrl=${baseUrl}`
-          : `${rssBaseUrl}/${key}?baseUrl=${baseUrl}`,
-      }));
+      const feedList: FeedInfo[] = [];
+      
+      // Generate feeds for both languages
+      Object.entries(seriesInfo).forEach(([key, info]) => {
+        // German feed
+        feedList.push({
+          series: key,
+          title: info.de.title,
+          description: info.de.description,
+          episodeCount: info.episodeCount,
+          lastUpdated: info.lastUpdated,
+          language: 'de',
+          languageLabel: 'Deutsch',
+          feedUrl: key === 'all' 
+            ? `${rssBaseUrl}?baseUrl=${baseUrl}&lang=de`
+            : `${rssBaseUrl}/${key}?baseUrl=${baseUrl}&lang=de`,
+        });
+        
+        // English feed
+        feedList.push({
+          series: key,
+          title: info.en.title,
+          description: info.en.description,
+          episodeCount: info.episodeCount,
+          lastUpdated: info.lastUpdated,
+          language: 'en',
+          languageLabel: 'English',
+          feedUrl: key === 'all' 
+            ? `${rssBaseUrl}?baseUrl=${baseUrl}&lang=en`
+            : `${rssBaseUrl}/${key}?baseUrl=${baseUrl}&lang=en`,
+        });
+      });
 
       setFeeds(feedList);
     } catch (error) {
@@ -169,12 +217,18 @@ const AdminRssFeeds = () => {
 
         <div className="grid gap-6">
           {feeds.map((feed) => (
-            <Card key={feed.series} className="overflow-hidden">
+            <Card key={`${feed.series}-${feed.language}`} className="overflow-hidden">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <CardTitle className="text-xl">{feed.title}</CardTitle>
+                      <Badge 
+                        variant="outline" 
+                        className={feed.language === 'en' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-green-50 text-green-700 border-green-200'}
+                      >
+                        {feed.languageLabel}
+                      </Badge>
                       {feed.series !== 'all' && (
                         <Badge className={getSeriesColor(feed.series)}>
                           {feed.series}

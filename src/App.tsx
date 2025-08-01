@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -14,30 +14,36 @@ import { useServiceWorker } from "./hooks/useServiceWorker";
 import { usePerformanceMonitoring } from "./hooks/usePerformanceMonitoring";
 import { NetworkIndicator } from "./components/ui/network-indicator";
 import "./i18n";
-import Index from "./pages/Index";
-import Overview from "./pages/Overview";
-import DynamicEpisode from "./components/DynamicEpisode";
-import Episodes from "./pages/Episodes";
-import Insights from "./pages/Insights";
-import InsightDetail from "./pages/InsightDetail";
-import Auth from "./pages/Auth";
-import Admin from "./pages/Admin";
-import AdminAnalytics from "./pages/AdminAnalytics";
-import AdminPdfs from "./pages/AdminPdfs";
-import AdminRssFeeds from "./pages/AdminRssFeeds";
-import NewEpisode from "./pages/NewEpisode";
-import EditEpisode from "./pages/EditEpisode";
-import BulkUploadEpisodes from "./pages/BulkUploadEpisodes";
-import AdminInsights from "./pages/AdminInsights";
-import NewInsight from "./pages/NewInsight";
-import EditInsight from "./pages/EditInsight";
-import Legal from "./pages/Legal";
-import PremiumReport from "./pages/PremiumReport";
-import Dashboard from "./pages/Dashboard";
-import TestCheckout from "./pages/TestCheckout";
-import ThankYou from "./pages/ThankYou";
+import { PageLoadingSkeleton } from "./components/ui/loading-skeleton";
 
+// Eager load critical pages
+import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+
+// Lazy load non-critical pages
+const Overview = lazy(() => import("./pages/Overview"));
+const DynamicEpisode = lazy(() => import("./components/DynamicEpisode"));
+const Episodes = lazy(() => import("./pages/Episodes"));
+const Insights = lazy(() => import("./pages/Insights"));
+const InsightDetail = lazy(() => import("./pages/InsightDetail"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Legal = lazy(() => import("./pages/Legal"));
+const PremiumReport = lazy(() => import("./pages/PremiumReport"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const TestCheckout = lazy(() => import("./pages/TestCheckout"));
+const ThankYou = lazy(() => import("./pages/ThankYou"));
+
+// Lazy load admin pages (heavy components)
+const Admin = lazy(() => import("./pages/Admin"));
+const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
+const AdminPdfs = lazy(() => import("./pages/AdminPdfs"));
+const AdminRssFeeds = lazy(() => import("./pages/AdminRssFeeds"));
+const NewEpisode = lazy(() => import("./pages/NewEpisode"));
+const EditEpisode = lazy(() => import("./pages/EditEpisode"));
+const BulkUploadEpisodes = lazy(() => import("./pages/BulkUploadEpisodes"));
+const AdminInsights = lazy(() => import("./pages/AdminInsights"));
+const NewInsight = lazy(() => import("./pages/NewInsight"));
+const EditInsight = lazy(() => import("./pages/EditInsight"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -95,32 +101,34 @@ const App = () => {
             <Sonner />
             <AuthProvider>
               <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/overview" element={<Overview />} />
-                <Route path="/episode/:slug" element={<DynamicEpisode />} />
-                <Route path="/episodes" element={<Episodes />} />
-                <Route path="/insights" element={<Insights />} />
-                <Route path="/insights/:slug" element={<InsightDetail />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/legal" element={<Legal />} />
-                <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
-                <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
-                <Route path="/admin/pdfs" element={<AdminRoute><AdminPdfs /></AdminRoute>} />
-                <Route path="/admin/rss-feeds" element={<AdminRoute><AdminRssFeeds /></AdminRoute>} />
-                <Route path="/admin/episodes/new" element={<AdminRoute><NewEpisode /></AdminRoute>} />
-                <Route path="/admin/episodes/upload" element={<AdminRoute><BulkUploadEpisodes /></AdminRoute>} />
-                <Route path="/admin/episodes/:id/edit" element={<AdminRoute><EditEpisode /></AdminRoute>} />
-                <Route path="/admin/insights" element={<AdminRoute><AdminInsights /></AdminRoute>} />
-                <Route path="/admin/insights/new" element={<AdminRoute><NewInsight /></AdminRoute>} />
-                <Route path="/admin/insights/:id/edit" element={<AdminRoute><EditInsight /></AdminRoute>} />
-                <Route path="/report/:id" element={<PremiumReport />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/test-checkout" element={<TestCheckout />} />
-                <Route path="/thank-you" element={<ThankYou />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Suspense fallback={<PageLoadingSkeleton />}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/overview" element={<Overview />} />
+                  <Route path="/episode/:slug" element={<DynamicEpisode />} />
+                  <Route path="/episodes" element={<Episodes />} />
+                  <Route path="/insights" element={<Insights />} />
+                  <Route path="/insights/:slug" element={<InsightDetail />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/legal" element={<Legal />} />
+                  <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+                  <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
+                  <Route path="/admin/pdfs" element={<AdminRoute><AdminPdfs /></AdminRoute>} />
+                  <Route path="/admin/rss-feeds" element={<AdminRoute><AdminRssFeeds /></AdminRoute>} />
+                  <Route path="/admin/episodes/new" element={<AdminRoute><NewEpisode /></AdminRoute>} />
+                  <Route path="/admin/episodes/upload" element={<AdminRoute><BulkUploadEpisodes /></AdminRoute>} />
+                  <Route path="/admin/episodes/:id/edit" element={<AdminRoute><EditEpisode /></AdminRoute>} />
+                  <Route path="/admin/insights" element={<AdminRoute><AdminInsights /></AdminRoute>} />
+                  <Route path="/admin/insights/new" element={<AdminRoute><NewInsight /></AdminRoute>} />
+                  <Route path="/admin/insights/:id/edit" element={<AdminRoute><EditInsight /></AdminRoute>} />
+                  <Route path="/report/:id" element={<PremiumReport />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/test-checkout" element={<TestCheckout />} />
+                  <Route path="/thank-you" element={<ThankYou />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
               </BrowserRouter>
             </AuthProvider>
           </ThemeProvider>

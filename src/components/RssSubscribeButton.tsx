@@ -12,12 +12,14 @@ import { useToast } from '@/hooks/use-toast';
 
 interface RssSubscribeButtonProps {
   series?: 'wtf' | 'finance_transformers' | 'cfo_memo';
+  language?: 'de' | 'en';
   variant?: 'default' | 'outline' | 'ghost';
   size?: 'default' | 'sm' | 'lg';
 }
 
 const RssSubscribeButton: React.FC<RssSubscribeButtonProps> = ({
   series,
+  language = 'de',
   variant = 'outline',
   size = 'default',
 }) => {
@@ -29,8 +31,8 @@ const RssSubscribeButton: React.FC<RssSubscribeButtonProps> = ({
   const rssBaseUrl = `${supabaseUrl}/functions/v1/rss-feed`;
   
   const feedUrl = series 
-    ? `${rssBaseUrl}/${series}?baseUrl=${baseUrl}`
-    : `${rssBaseUrl}?baseUrl=${baseUrl}`;
+    ? `${rssBaseUrl}/${series}?baseUrl=${baseUrl}&lang=${language}`
+    : `${rssBaseUrl}?baseUrl=${baseUrl}&lang=${language}`;
 
   const handleCopyFeed = async () => {
     try {

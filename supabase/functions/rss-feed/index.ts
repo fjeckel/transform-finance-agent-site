@@ -42,31 +42,53 @@ const formatDuration = (duration: string): string => {
   return duration;
 };
 
-const getSeriesInfo = (series: string) => {
-  const seriesMap: Record<string, { title: string; description: string; category: string }> = {
+const getSeriesInfo = (series: string, language: string = 'de') => {
+  const seriesMap: Record<string, Record<string, { title: string; description: string; category: string }>> = {
     'wtf': {
-      title: 'WTF?! Finance',
-      description: 'Understanding complex financial topics in simple terms',
-      category: 'Business',
+      'de': {
+        title: 'WTF?! Finance',
+        description: 'Komplexe Finanzthemen verständlich erklärt',
+        category: 'Business',
+      },
+      'en': {
+        title: 'WTF?! Finance',
+        description: 'Understanding complex financial topics in simple terms',
+        category: 'Business',
+      },
     },
     'finance_transformers': {
-      title: 'Finance Transformers',
-      description: 'Transforming finance through technology and innovation',
-      category: 'Technology',
+      'de': {
+        title: 'Finance Transformers',
+        description: 'Finanzwesen durch Technologie und Innovation transformieren',
+        category: 'Technology',
+      },
+      'en': {
+        title: 'Finance Transformers',
+        description: 'Transforming finance through technology and innovation',
+        category: 'Technology',
+      },
     },
     'cfo_memo': {
-      title: 'CFO Memo',
-      description: 'Strategic insights for finance leaders',
-      category: 'Business',
+      'de': {
+        title: 'CFO Memo',
+        description: 'Strategische Einblicke für Finanzführungskräfte',
+        category: 'Business',
+      },
+      'en': {
+        title: 'CFO Memo',
+        description: 'Strategic insights for finance leaders',
+        category: 'Business',
+      },
     },
   };
-  return seriesMap[series] || seriesMap['finance_transformers'];
+  
+  return seriesMap[series]?.[language] || seriesMap['finance_transformers']?.[language] || seriesMap['finance_transformers']['de'];
 };
 
-const generateRssFeed = (episodes: Episode[], series?: string, baseUrl: string = 'https://financetransformers.com') => {
-  const seriesInfo = series ? getSeriesInfo(series) : {
-    title: 'Finance Transformers Podcast Network',
-    description: 'All episodes from Finance Transformers podcast network',
+const generateRssFeed = (episodes: Episode[], series?: string, baseUrl: string = 'https://financetransformers.com', language: string = 'de') => {
+  const seriesInfo = series ? getSeriesInfo(series, language) : {
+    title: language === 'en' ? 'Finance Transformers Podcast Network' : 'Finance Transformers Podcast Netzwerk',
+    description: language === 'en' ? 'All episodes from Finance Transformers podcast network' : 'Alle Episoden aus dem Finance Transformers Podcast Netzwerk',
     category: 'Business',
   };
 
@@ -109,10 +131,10 @@ const generateRssFeed = (episodes: Episode[], series?: string, baseUrl: string =
   <channel>
     <title>${escapeXml(seriesInfo.title)}</title>
     <description>${escapeXml(seriesInfo.description)}</description>
-    <link>${baseUrl}</link>
-    <language>de-DE</language>
+    <link>${baseUrl}${language === 'en' ? '/en' : ''}</link>
+    <language>${language === 'en' ? 'en-US' : 'de-DE'}</language>
     <copyright>© ${new Date().getFullYear()} Finance Transformers</copyright>
-    <atom:link href="${baseUrl}/api/rss${series ? `/${series}` : ''}" rel="self" type="application/rss+xml" />
+    <atom:link href="${baseUrl}/api/rss${series ? `/${series}` : ''}${language === 'en' ? '?lang=en' : ''}" rel="self" type="application/rss+xml" />
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <itunes:author>Finance Transformers</itunes:author>
     <itunes:summary>${escapeXml(seriesInfo.description)}</itunes:summary>
@@ -185,7 +207,13 @@ serve(async (req) => {
     }
 
     const baseUrl = url.searchParams.get('baseUrl') || 'https://financetransformers.com';
-    const rssFeed = generateRssFeed(episodes || [], isValidSeries ? series : undefined, baseUrl);
+    const language = url.searchParams.get('lang') || 'de';
+    
+    // Validate language parameter
+    const validLanguages = ['de', 'en'];
+    const validatedLanguage = validLanguages.includes(language) ? language : 'de';
+    
+    const rssFeed = generateRssFeed(episodes || [], isValidSeries ? series : undefined, baseUrl, validatedLanguage);
 
     return new Response(rssFeed, {
       headers: {

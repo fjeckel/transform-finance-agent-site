@@ -103,3 +103,22 @@ export const LoadingSkeleton = () => (
     </div>
   </div>
 );
+
+export const PageLoadingSkeleton = () => (
+  <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="max-w-2xl w-full mx-auto p-8">
+      <div className="text-center space-y-6">
+        <Skeleton className="h-12 w-64 mx-auto" />
+        <div className="space-y-4">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4 mx-auto" />
+          <Skeleton className="h-4 w-5/6 mx-auto" />
+        </div>
+        <div className="flex justify-center space-x-4 mt-8">
+          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-24" />
+        </div>
+      </div>
+    </div>
+  </div>
+);

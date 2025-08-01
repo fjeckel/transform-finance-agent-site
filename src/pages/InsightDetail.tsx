@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Clock, BookOpen, FileText, Users, TrendingUp, Star, Eye, Tag, Share2, Download } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,17 +8,38 @@ import SEOHead from '@/components/SEOHead';
 import { BottomNavigation } from '@/components/ui/bottom-navigation';
 import { MobileSearch } from '@/components/ui/mobile-search';
 import { useInsightBySlug, useInsights, InsightType, DifficultyLevel } from '@/hooks/useInsights';
+import { useInsightAnalytics } from '@/hooks/useInsightAnalytics';
+import { RecommendedContent } from '@/components/RecommendedContent';
 import { Skeleton } from '@/components/ui/skeleton';
 import ReactMarkdown from 'react-markdown';
+import { supabase } from '@/integrations/supabase/client';
 
 const InsightDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
   
   const { data: insight, isLoading, error } = useInsightBySlug(slug || '');
   const { data: relatedInsights = [] } = useInsights({ 
     type: insight?.insight_type, 
     limit: 3 
+  });
+
+  // Get current user for personalized recommendations
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user?.id || null);
+    };
+    getCurrentUser();
+  }, []);
+
+  // Initialize analytics tracking
+  const analyticsActions = useInsightAnalytics({
+    insightId: insight?.id || '',
+    insightTitle: insight?.title || '',
+    insightType: insight?.insight_type || '',
+    readingTime: insight?.reading_time,
   });
 
   const getTypeIcon = (type: InsightType) => {
@@ -222,12 +243,34 @@ const InsightDetail = () => {
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-3 mb-8">
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                analyticsActions.trackShare('generic');
+                // Here you would implement actual sharing functionality
+                navigator.share?.({
+                  title: insight.title,
+                  text: insight.description || insight.summary,
+                  url: window.location.href,
+                }).catch(() => {
+                  // Fallback to clipboard
+                  navigator.clipboard.writeText(window.location.href);
+                });
+              }}
+            >
               <Share2 size={16} className="mr-2" />
               Teilen
             </Button>
             {insight.insight_type === 'book_summary' && (
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  analyticsActions.trackDownload('pdf');
+                  // Here you would implement actual PDF download functionality
+                }}
+              >
                 <Download size={16} className="mr-2" />
                 PDF Download
               </Button>
@@ -313,48 +356,16 @@ const InsightDetail = () => {
           </Card>
         )}
 
-        {/* Related Insights */}
-        {filteredRelated.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-foreground mb-6 font-cooper">
-              Ähnliche Insights
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              {filteredRelated.map((related) => {
-                const RelatedIcon = getTypeIcon(related.insight_type);
-                return (
-                  <Card key={related.id} className="overflow-hidden hover:shadow-lg transition-all duration-300">
-                    <div className="relative">
-                      {related.thumbnail_url || related.image_url ? (
-                        <img 
-                          src={related.thumbnail_url || related.image_url} 
-                          alt={related.title}
-                          className="w-full h-32 object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-32 bg-gradient-to-br from-[#13B87B]/10 to-[#003FA5]/10 flex items-center justify-center">
-                          <RelatedIcon size={32} className="text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <RelatedIcon size={14} className="text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">{getTypeLabel(related.insight_type)}</span>
-                      </div>
-                      <h3 className="font-semibold text-sm line-clamp-2 mb-3">{related.title}</h3>
-                      <Button asChild size="sm" className="w-full">
-                        <Link to={`/insights/${related.slug}`}>
-                          Lesen
-                        </Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {/* Recommended Content */}
+        <div className="mb-8">
+          <RecommendedContent
+            currentContentId={insight?.id}
+            userId={currentUser || undefined}
+            maxItems={6}
+            showTabs={true}
+            variant="detailed"
+          />
+        </div>
 
         {/* Call to Action */}
         <div className="text-center bg-gradient-to-r from-[#13B87B]/10 to-[#003FA5]/10 rounded-2xl p-8">
