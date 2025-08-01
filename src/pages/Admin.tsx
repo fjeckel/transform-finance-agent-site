@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Edit, Trash2, Eye, Calendar, Users } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Calendar, Users, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -584,7 +584,13 @@ const Admin = () => {
           </TabsContent>
           
           <TabsContent value="main-page" className="space-y-6">
-            <HeroVideoManager onUpdate={() => {}} />
+            {/* Temporarily disable HeroVideoManager to test if it's causing the crash */}
+            {/* <HeroVideoManager onUpdate={() => {}} /> */}
+            <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200 mb-6">
+              <p className="text-sm text-yellow-800">
+                📹 <strong>Hero Video Manager:</strong> Temporarily disabled for troubleshooting. Will be re-enabled once stable.
+              </p>
+            </div>
             <MainPageSectionsManager />
           </TabsContent>
         </Tabs>

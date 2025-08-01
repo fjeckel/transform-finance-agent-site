@@ -65,9 +65,9 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
     pdfs: true
   });
   const navigate = useNavigate();
-  const { episodes, loading: episodesLoading } = useEpisodes();
-  const { pdfs, loading: pdfsLoading } = usePdfs();
-  const { insights, loading: insightsLoading } = useInsights();
+  const { episodes = [], loading: episodesLoading, error: episodesError } = useEpisodes();
+  const { pdfs = [], loading: pdfsLoading, error: pdfsError } = usePdfs();
+  const { data: insights = [], isLoading: insightsLoading, error: insightsError } = useInsights();
   const { addToHistory, getRecentSearches, removeFromHistory, clearHistory } = useSearchHistory();
   
   // Use controlled or internal state
@@ -79,6 +79,9 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
   
   // Loading state
   const isLoading = episodesLoading || pdfsLoading || insightsLoading || isSearching;
+  
+  // Check for data loading errors
+  const hasDataErrors = episodesError || pdfsError || insightsError;
   
   // Get recent searches
   const recentSearches = getRecentSearches(mobile ? 8 : 5);
@@ -135,12 +138,12 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
     const maxResults = mobile ? 6 : 4;
     
     // Score and filter episodes
-    const episodeResults = filters.episodes ? episodes
+    const episodeResults = filters.episodes && episodes ? episodes
       .map(episode => {
-        const titleScore = searchWithScore(episode.title, searchTerm, 3);
-        const summaryScore = searchWithScore(episode.summary, searchTerm, 2);
-        const descriptionScore = searchWithScore(episode.description, searchTerm, 1.5);
-        const contentScore = searchWithScore(episode.content, searchTerm, 1);
+        const titleScore = searchWithScore(episode?.title || '', searchTerm, 3);
+        const summaryScore = searchWithScore(episode?.summary || '', searchTerm, 2);
+        const descriptionScore = searchWithScore(episode?.description || '', searchTerm, 1.5);
+        const contentScore = searchWithScore(episode?.content || '', searchTerm, 1);
         const totalScore = titleScore + summaryScore + descriptionScore + contentScore;
         
         return { ...episode, score: totalScore };
@@ -150,10 +153,10 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
       .slice(0, maxResults) : [];
 
     // Score and filter PDFs
-    const pdfResults = filters.pdfs ? pdfs
+    const pdfResults = filters.pdfs && pdfs ? pdfs
       .map(pdf => {
-        const titleScore = searchWithScore(pdf.title, searchTerm, 3);
-        const descriptionScore = searchWithScore(pdf.description, searchTerm, 2);
+        const titleScore = searchWithScore(pdf?.title || '', searchTerm, 3);
+        const descriptionScore = searchWithScore(pdf?.description || '', searchTerm, 2);
         const totalScore = titleScore + descriptionScore;
         
         return { ...pdf, score: totalScore };
@@ -163,14 +166,14 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
       .slice(0, maxResults) : [];
 
     // Score and filter insights
-    const insightResults = filters.insights ? insights
+    const insightResults = filters.insights && insights ? insights
       .map(insight => {
-        const titleScore = searchWithScore(insight.title, searchTerm, 3);
-        const descriptionScore = searchWithScore(insight.description, searchTerm, 2);
-        const contentScore = searchWithScore(insight.content, searchTerm, 1);
-        const categoryScore = searchWithScore(insight.category, searchTerm, 1.5);
-        const bookTitleScore = searchWithScore(insight.book_title, searchTerm, 2);
-        const bookAuthorScore = searchWithScore(insight.book_author, searchTerm, 1.5);
+        const titleScore = searchWithScore(insight?.title || '', searchTerm, 3);
+        const descriptionScore = searchWithScore(insight?.description || '', searchTerm, 2);
+        const contentScore = searchWithScore(insight?.content || '', searchTerm, 1);
+        const categoryScore = searchWithScore(insight?.category || '', searchTerm, 1.5);
+        const bookTitleScore = searchWithScore(insight?.book_title || '', searchTerm, 2);
+        const bookAuthorScore = searchWithScore(insight?.book_author || '', searchTerm, 1.5);
         const totalScore = titleScore + descriptionScore + contentScore + categoryScore + bookTitleScore + bookAuthorScore;
         
         return { ...insight, score: totalScore };
@@ -329,6 +332,13 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
           </div>
         )}
         <CommandList className={mobile ? "max-h-[60vh]" : "max-h-[300px]"}>
+          {hasDataErrors && (
+            <div className="py-4 px-3 border-b">
+              <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-md p-3">
+                ⚠️ Einige Inhalte können nicht geladen werden. Bitte versuchen Sie es später erneut.
+              </div>
+            </div>
+          )}
           <CommandEmpty>
             <div className="py-6 text-center text-sm">
               <Search className="mx-auto h-6 w-6 text-muted-foreground mb-2" />
@@ -419,10 +429,10 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
                       {highlightSearchTerms(episode.title || '', debouncedQuery)}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      S{episode.season}E{episode.episode_number}
-                      {episode.duration && ` • ${episode.duration}`}
+                      S{episode?.season || 0}E{episode?.episode_number || 0}
+                      {episode?.duration && ` • ${episode.duration}`}
                     </span>
-                    {episode.description && mobile && (
+                    {episode?.description && mobile && (
                       <span className="text-xs text-muted-foreground mt-1 line-clamp-1">
                         {highlightSearchTerms(episode.description, debouncedQuery)}
                       </span>
@@ -450,17 +460,17 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
                       {highlightSearchTerms(insight.title || '', debouncedQuery)}
                     </span>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="capitalize">{insight.type?.replace('_', ' ')}</span>
-                      {insight.reading_time && <span>• {insight.reading_time} Min</span>}
-                      {insight.difficulty && <span>• {insight.difficulty}</span>}
+                      <span className="capitalize">{insight?.insight_type?.replace('_', ' ') || 'Insight'}</span>
+                      {insight?.reading_time_minutes && <span>• {insight.reading_time_minutes} Min</span>}
+                      {insight?.difficulty_level && <span>• {insight.difficulty_level}</span>}
                     </div>
-                    {insight.book_title && (
+                    {insight?.book_title && (
                       <span className="text-xs text-muted-foreground mt-1">
                         📚 {highlightSearchTerms(insight.book_title, debouncedQuery)}
-                        {insight.book_author && ` von ${highlightSearchTerms(insight.book_author, debouncedQuery)}`}
+                        {insight?.book_author && ` von ${highlightSearchTerms(insight.book_author, debouncedQuery)}`}
                       </span>
                     )}
-                    {insight.description && mobile && (
+                    {insight?.description && mobile && (
                       <span className="text-xs text-muted-foreground mt-1 line-clamp-1">
                         {highlightSearchTerms(insight.description, debouncedQuery)}
                       </span>
@@ -488,10 +498,10 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
                       {highlightSearchTerms(pdf.title || '', debouncedQuery)}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {pdf.is_premium ? 'Premium' : 'Kostenlos'}
-                      {pdf.price && ` • €${pdf.price}`}
+                      {pdf?.is_premium ? 'Premium' : 'Kostenlos'}
+                      {pdf?.price && ` • €${pdf.price}`}
                     </span>
-                    {pdf.description && mobile && (
+                    {pdf?.description && mobile && (
                       <span className="text-xs text-muted-foreground mt-1 line-clamp-1">
                         {highlightSearchTerms(pdf.description, debouncedQuery)}
                       </span>

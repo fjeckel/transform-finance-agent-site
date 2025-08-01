@@ -4,7 +4,7 @@ import { Button } from './button';
 import { RadioGroup, RadioGroupItem } from './radio-group';
 import { Label } from './label';
 import { VideoUpload } from './video-upload';
-import { useToast } from './use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Youtube, Upload, Eye, Trash2 } from 'lucide-react';
 
@@ -31,23 +31,36 @@ export const HeroVideoManager: React.FC<HeroVideoManagerProps> = ({ onUpdate }) 
         .select('setting_name, setting_value')
         .in('setting_name', ['hero_video_type', 'hero_video_url', 'hero_youtube_url']);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading settings:', error);
+        // Don't throw error, just set defaults
+        setVideoType('youtube');
+        setVideoUrl('');
+        setYoutubeUrl('');
+        return;
+      }
 
-      const settings = data.reduce((acc, setting) => {
-        acc[setting.setting_name] = setting.setting_value;
-        return acc;
-      }, {} as Record<string, string>);
+      if (data && Array.isArray(data)) {
+        const settings = data.reduce((acc, setting) => {
+          acc[setting.setting_name] = setting.setting_value;
+          return acc;
+        }, {} as Record<string, string>);
 
-      setVideoType(settings.hero_video_type as 'youtube' | 'uploaded' || 'youtube');
-      setVideoUrl(settings.hero_video_url || '');
-      setYoutubeUrl(settings.hero_youtube_url || '');
+        setVideoType(settings.hero_video_type as 'youtube' | 'uploaded' || 'youtube');
+        setVideoUrl(settings.hero_video_url || '');
+        setYoutubeUrl(settings.hero_youtube_url || '');
+      } else {
+        // Set defaults if no data
+        setVideoType('youtube');
+        setVideoUrl('');
+        setYoutubeUrl('');
+      }
     } catch (error) {
       console.error('Error loading settings:', error);
-      toast({
-        title: "Error loading settings",
-        description: "Could not load video settings",
-        variant: "destructive",
-      });
+      // Set defaults instead of showing error
+      setVideoType('youtube');
+      setVideoUrl('');
+      setYoutubeUrl('');
     } finally {
       setLoading(false);
     }
