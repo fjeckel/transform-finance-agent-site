@@ -213,6 +213,7 @@ export type Database = {
           series: Database["public"]["Enums"]["podcast_series"] | null
           slug: string
           status: Database["public"]["Enums"]["episode_status"] | null
+          summary: string | null
           title: string
           transcript: string | null
           updated_at: string | null
@@ -232,6 +233,7 @@ export type Database = {
           series?: Database["public"]["Enums"]["podcast_series"] | null
           slug: string
           status?: Database["public"]["Enums"]["episode_status"] | null
+          summary?: string | null
           title: string
           transcript?: string | null
           updated_at?: string | null
@@ -251,6 +253,7 @@ export type Database = {
           series?: Database["public"]["Enums"]["podcast_series"] | null
           slug?: string
           status?: Database["public"]["Enums"]["episode_status"] | null
+          summary?: string | null
           title?: string
           transcript?: string | null
           updated_at?: string | null
@@ -292,6 +295,144 @@ export type Database = {
           name?: string
           social_links?: Json | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      insights: {
+        Row: {
+          book_author: string | null
+          book_isbn: string | null
+          book_publication_year: number | null
+          book_title: string | null
+          category: string | null
+          category_id: string | null
+          content: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          difficulty_level: string | null
+          featured: boolean | null
+          id: string
+          image_url: string | null
+          insight_type: Database["public"]["Enums"]["insight_type"]
+          keywords: string[] | null
+          published_at: string | null
+          reading_time_minutes: number | null
+          slug: string
+          status: Database["public"]["Enums"]["insight_status"]
+          subtitle: string | null
+          summary: string | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+          view_count: number | null
+        }
+        Insert: {
+          book_author?: string | null
+          book_isbn?: string | null
+          book_publication_year?: number | null
+          book_title?: string | null
+          category?: string | null
+          category_id?: string | null
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          insight_type?: Database["public"]["Enums"]["insight_type"]
+          keywords?: string[] | null
+          published_at?: string | null
+          reading_time_minutes?: number | null
+          slug: string
+          status?: Database["public"]["Enums"]["insight_status"]
+          subtitle?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          book_author?: string | null
+          book_isbn?: string | null
+          book_publication_year?: number | null
+          book_title?: string | null
+          category?: string | null
+          category_id?: string | null
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          insight_type?: Database["public"]["Enums"]["insight_type"]
+          keywords?: string[] | null
+          published_at?: string | null
+          reading_time_minutes?: number | null
+          slug?: string
+          status?: Database["public"]["Enums"]["insight_status"]
+          subtitle?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insights_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "insights_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insights_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      insights_categories: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+          sort_order: number | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number | null
         }
         Relationships: []
       }
@@ -369,6 +510,54 @@ export type Database = {
           },
         ]
       }
+      payment_analytics: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          currency: string | null
+          error_message: string | null
+          event_data: Json
+          event_type: string
+          id: string
+          processing_time_ms: number | null
+          purchase_id: string | null
+          session_id: string | null
+          success: boolean | null
+          timestamp: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string | null
+          currency?: string | null
+          error_message?: string | null
+          event_data: Json
+          event_type: string
+          id?: string
+          processing_time_ms?: number | null
+          purchase_id?: string | null
+          session_id?: string | null
+          success?: boolean | null
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string | null
+          currency?: string | null
+          error_message?: string | null
+          event_data?: Json
+          event_type?: string
+          id?: string
+          processing_time_ms?: number | null
+          purchase_id?: string | null
+          session_id?: string | null
+          success?: boolean | null
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -402,13 +591,19 @@ export type Database = {
       purchases: {
         Row: {
           amount_paid: number
+          conversion_source: string | null
           created_at: string | null
           currency: string | null
+          customer_country: string | null
+          failed_attempts: number | null
           id: string
+          payment_method_types: string[] | null
           pdf_id: string | null
+          processing_time_ms: number | null
           purchased_at: string | null
           refunded_at: string | null
           status: string | null
+          stripe_checkout_session_id: string | null
           stripe_customer_id: string | null
           stripe_payment_intent_id: string
           updated_at: string | null
@@ -416,13 +611,19 @@ export type Database = {
         }
         Insert: {
           amount_paid: number
+          conversion_source?: string | null
           created_at?: string | null
           currency?: string | null
+          customer_country?: string | null
+          failed_attempts?: number | null
           id?: string
+          payment_method_types?: string[] | null
           pdf_id?: string | null
+          processing_time_ms?: number | null
           purchased_at?: string | null
           refunded_at?: string | null
           status?: string | null
+          stripe_checkout_session_id?: string | null
           stripe_customer_id?: string | null
           stripe_payment_intent_id: string
           updated_at?: string | null
@@ -430,13 +631,19 @@ export type Database = {
         }
         Update: {
           amount_paid?: number
+          conversion_source?: string | null
           created_at?: string | null
           currency?: string | null
+          customer_country?: string | null
+          failed_attempts?: number | null
           id?: string
+          payment_method_types?: string[] | null
           pdf_id?: string | null
+          processing_time_ms?: number | null
           purchased_at?: string | null
           refunded_at?: string | null
           status?: string | null
+          stripe_checkout_session_id?: string | null
           stripe_customer_id?: string | null
           stripe_payment_intent_id?: string
           updated_at?: string | null
@@ -696,6 +903,36 @@ export type Database = {
           },
         ]
       }
+      webhook_events: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          retry_count: number | null
+          status: string
+          stripe_event_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          retry_count?: number | null
+          status?: string
+          stripe_event_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          retry_count?: number | null
+          status?: string
+          stripe_event_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -720,6 +957,8 @@ export type Database = {
     Enums: {
       app_role: "admin" | "member" | "guest"
       episode_status: "draft" | "published" | "archived" | "scheduled"
+      insight_status: "draft" | "published" | "archived" | "scheduled"
+      insight_type: "book_summary" | "blog_article" | "guide" | "case_study"
       podcast_series: "wtf" | "finance_transformers" | "cfo_memo"
     }
     CompositeTypes: {
@@ -850,6 +1089,8 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "member", "guest"],
       episode_status: ["draft", "published", "archived", "scheduled"],
+      insight_status: ["draft", "published", "archived", "scheduled"],
+      insight_type: ["book_summary", "blog_article", "guide", "case_study"],
       podcast_series: ["wtf", "finance_transformers", "cfo_memo"],
     },
   },
