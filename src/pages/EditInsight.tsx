@@ -44,8 +44,8 @@ const EditInsight = () => {
   const [content, setContent] = useState('');
   const [insightType, setInsightType] = useState<InsightType>('blog_article');
   const [status, setStatus] = useState<InsightStatus>('draft');
-  const [difficultyLevel, setDifficultyLevel] = useState<DifficultyLevel | ''>('');
-  const [categoryId, setCategoryId] = useState('');
+  const [difficultyLevel, setDifficultyLevel] = useState<DifficultyLevel | 'none'>('none');
+  const [categoryId, setCategoryId] = useState('none');
   const [featured, setFeatured] = useState(false);
   const [readingTimeMinutes, setReadingTimeMinutes] = useState<number | ''>('');
   const [publishDate, setPublishDate] = useState('');
@@ -125,8 +125,8 @@ const EditInsight = () => {
         setContent(data.content || '');
         setInsightType(data.insight_type);
         setStatus(data.status);
-        setDifficultyLevel(data.difficulty_level || '');
-        setCategoryId(data.category_id || '');
+        setDifficultyLevel(data.difficulty_level || 'none');
+        setCategoryId(data.category_id || 'none');
         setFeatured(data.featured || false);
         setReadingTimeMinutes(data.reading_time_minutes || '');
         setPublishDate(data.published_at ? new Date(data.published_at).toISOString().split('T')[0] : '');
@@ -191,8 +191,8 @@ const EditInsight = () => {
           content,
           insight_type: insightType,
           status,
-          difficulty_level: difficultyLevel || null,
-          category_id: categoryId || null,
+          difficulty_level: difficultyLevel === 'none' ? null : difficultyLevel || null,
+          category_id: categoryId === 'none' ? null : categoryId || null,
           featured: featured,
           reading_time_minutes: readingTimeMinutes || null,
           published_at: publishedAt,
@@ -333,12 +333,12 @@ const EditInsight = () => {
                       <label htmlFor="difficultyLevel" className="block text-sm font-medium mb-1">
                         Difficulty Level
                       </label>
-                      <Select value={difficultyLevel} onValueChange={(v) => setDifficultyLevel(v as DifficultyLevel | '')}>
+                      <Select value={difficultyLevel} onValueChange={(v) => setDifficultyLevel(v as DifficultyLevel | 'none')}>
                         <SelectTrigger id="difficultyLevel">
                           <SelectValue placeholder="Select difficulty" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
                           <SelectItem value="beginner">Beginner</SelectItem>
                           <SelectItem value="intermediate">Intermediate</SelectItem>
                           <SelectItem value="advanced">Advanced</SelectItem>
@@ -355,7 +355,7 @@ const EditInsight = () => {
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No Category</SelectItem>
+                          <SelectItem value="none">No Category</SelectItem>
                           {categories.map((category) => (
                             <SelectItem key={category.id} value={category.id}>
                               {category.name}
