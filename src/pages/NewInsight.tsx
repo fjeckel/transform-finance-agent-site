@@ -14,7 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ImageUpload } from '@/components/ui/image-upload';
-import { PreviewModal } from '@/components/ui/preview-modal';
+// Note: PreviewModal removed - was designed for episodes, not insights
 import { FormFieldError, AutoSaveIndicator } from '@/components/ui/form-field-error';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/useAutoSave';
@@ -34,6 +34,9 @@ const NewInsight = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Add error boundary for component initialization
+  const [componentError, setComponentError] = useState<string | null>(null);
 
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -60,7 +63,6 @@ const NewInsight = () => {
   const [bookPublicationYear, setBookPublicationYear] = useState<number | ''>('');
   
   const [loading, setLoading] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [categories, setCategories] = useState<any[]>([]);
 
@@ -82,19 +84,25 @@ const NewInsight = () => {
   }, [title]);
 
   useEffect(() => {
-    fetchCategories();
+    try {
+      fetchCategories();
+    } catch (error: any) {
+      console.error('Error in useEffect:', error);
+      setComponentError(`Component initialization failed: ${error.message}`);
+    }
   }, []);
 
   // Load autosaved data on component mount
   useEffect(() => {
-    const savedData = localStorage.getItem('autosave_new-insight');
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        const data = parsed.data;
-        
-        // Show confirmation dialog
-        if (window.confirm('Found autosaved data. Would you like to restore it?')) {
+    try {
+      const savedData = localStorage.getItem('autosave_new-insight');
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          const data = parsed.data;
+          
+          // Show confirmation dialog
+          if (window.confirm('Found autosaved data. Would you like to restore it?')) {
           setTitle(data.title || '');
           setSlug(data.slug || '');
           setSubtitle(data.subtitle || '');
@@ -121,10 +129,15 @@ const NewInsight = () => {
             title: 'Draft Restored',
             description: 'Your previous work has been restored.',
           });
+          }
+        } catch (parseError) {
+          console.error('Failed to parse autosaved data:', parseError);
+          localStorage.removeItem('autosave_new-insight'); // Remove corrupted data
         }
-      } catch (error) {
-        console.error('Failed to restore autosaved data:', error);
       }
+    } catch (error: any) {
+      console.error('Error loading autosaved data:', error);
+      setComponentError(`Failed to load autosaved data: ${error.message}`);
     }
   }, []);
 
@@ -135,10 +148,23 @@ const NewInsight = () => {
         .select('*')
         .order('sort_order', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching categories:', error);
+        toast({
+          title: 'Warning',
+          description: 'Could not load categories. You can still create insights.',
+          variant: 'destructive',
+        });
+        return;
+      }
       setCategories(data || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      toast({
+        title: 'Warning', 
+        description: 'Could not load categories. You can still create insights.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -204,11 +230,12 @@ const NewInsight = () => {
       
       localStorage.removeItem('autosave_new-insight');
       navigate('/admin/insights');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving draft:', err);
+      const errorMessage = err?.message || 'Unknown error occurred';
       toast({ 
-        title: 'Error', 
-        description: 'Failed to save draft', 
+        title: 'Error Saving Draft', 
+        description: `Failed to save draft: ${errorMessage}`, 
         variant: 'destructive' 
       });
     } finally {
@@ -266,13 +293,65 @@ const NewInsight = () => {
       localStorage.removeItem('autosave_new-insight');
       
       navigate('/admin/insights');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error creating insight:', err);
-      toast({ title: 'Error', description: 'Failed to create insight', variant: 'destructive' });
+      const errorMessage = err?.message || 'Unknown error occurred';
+      toast({ 
+        title: 'Error Creating Insight', 
+        description: `Failed to create insight: ${errorMessage}`, 
+        variant: 'destructive' 
+      });
     } finally {
       setLoading(false);
     }
   };
+
+  // Check authentication
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 px-4">
+        <div className="max-w-3xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle>Authentication Required</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4">You need to be logged in to create new insights.</p>
+              <Button onClick={() => navigate('/auth')}>
+                Go to Login
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if component failed to initialize
+  if (componentError) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-4">
+            <Link to="/admin/insights" className="text-sm text-[#13B87B] hover:underline">
+              &larr; Back to Insights
+            </Link>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-red-600">Error Loading New Insight Form</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-red-600 mb-4">{componentError}</p>
+              <Button onClick={() => window.location.reload()}>
+                Reload Page
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -288,13 +367,14 @@ const NewInsight = () => {
               <CardTitle>Create New Insight</CardTitle>
               <div className="flex items-center gap-4">
                 <AutoSaveIndicator lastSaved={lastSaved} isSaving={isSaving} />
+                {/* Preview functionality temporarily disabled */}
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setShowPreview(true)}
-                  disabled={!title}
+                  disabled={true}
+                  className="opacity-50"
                 >
-                  Preview
+                  Preview (Coming Soon)
                 </Button>
               </div>
             </div>
@@ -628,33 +708,7 @@ const NewInsight = () => {
           </CardContent>
         </Card>
 
-        {/* Preview Modal - simplified for now */}
-        {showPreview && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Preview</h2>
-                <Button variant="outline" onClick={() => setShowPreview(false)}>
-                  Close
-                </Button>
-              </div>
-              <div className="space-y-4">
-                <h1 className="text-2xl font-bold">{title}</h1>
-                {subtitle && <p className="text-lg text-gray-600">{subtitle}</p>}
-                {description && <p className="text-gray-700">{description}</p>}
-                {summary && (
-                  <div className="border-l-4 border-[#13B87B] pl-4">
-                    <h3 className="font-semibold mb-2">Summary</h3>
-                    <p className="text-gray-700">{summary}</p>
-                  </div>
-                )}
-                <div className="prose max-w-none">
-                  <pre className="whitespace-pre-wrap">{content}</pre>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Preview functionality will be added in future update */}
       </div>
     </div>
   );
