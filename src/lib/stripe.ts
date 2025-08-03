@@ -55,8 +55,8 @@ const getStripe = async (): Promise<Stripe | null> => {
         console.log(`Stripe loaded successfully in ${loadTime}ms`);
         
         // Track Stripe initialization
-        if (typeof window !== 'undefined' && window.gtag) {
-          window.gtag('event', 'stripe_initialized', {
+        if (typeof window !== 'undefined' && (window as any).gtag) {
+          (window as any).gtag('event', 'stripe_initialized', {
             load_time_ms: loadTime,
             environment: config.publishableKey.includes('test') ? 'test' : 'live'
           });
@@ -65,8 +65,8 @@ const getStripe = async (): Promise<Stripe | null> => {
         console.error('Failed to initialize Stripe');
         
         // Track initialization failure
-        if (typeof window !== 'undefined' && window.gtag) {
-          window.gtag('event', 'stripe_init_failed', {
+        if (typeof window !== 'undefined' && (window as any).gtag) {
+          (window as any).gtag('event', 'stripe_init_failed', {
             load_time_ms: loadTime
           });
         }

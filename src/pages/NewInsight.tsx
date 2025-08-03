@@ -518,7 +518,7 @@ const NewInsight = () => {
                     <Checkbox 
                       id="featured" 
                       checked={featured} 
-                      onCheckedChange={setFeatured} 
+                      onCheckedChange={(checked) => setFeatured(!!checked)} 
                     />
                     <label htmlFor="featured" className="text-sm font-medium">
                       Featured Insight

@@ -39,7 +39,7 @@ const InsightDetail = () => {
     insightId: insight?.id || '',
     insightTitle: insight?.title || '',
     insightType: insight?.insight_type || '',
-    readingTime: insight?.reading_time,
+    readingTime: insight?.reading_time_minutes,
   });
 
   const getTypeIcon = (type: InsightType) => {

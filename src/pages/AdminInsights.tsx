@@ -19,7 +19,7 @@ interface AdminInsight {
   slug: string;
   insight_type: InsightType;
   status: InsightStatus;
-  difficulty_level?: DifficultyLevel;
+  difficulty_level?: DifficultyLevel | null;
   featured: boolean;
   view_count: number;
   published_at?: string;
@@ -62,7 +62,7 @@ const AdminInsights = () => {
 
       if (error) throw error;
       
-      setInsights(data || []);
+      setInsights((data || []) as AdminInsight[]);
     } catch (error) {
       console.error('Error fetching insights:', error);
       toast({
@@ -409,10 +409,6 @@ const AdminInsights = () => {
               onSelectItem={handleSelectInsight}
               onBulkAction={handleBulkAction}
               disabled={bulkActionLoading}
-              customActions={[
-                { value: 'feature', label: 'Mark as Featured' },
-                { value: 'unfeature', label: 'Remove Featured' }
-              ]}
             />
             
             <div className="space-y-4">
