@@ -98,7 +98,7 @@ const SEOHead = ({
     // Update Open Graph tags
     updateMetaTag('og:title', title, true);
     updateMetaTag('og:description', description, true);
-    updateMetaTag('og:image', image.startsWith('http') ? image : `${window.location.origin}${image}`, true);
+    updateMetaTag('og:image', image && image.startsWith('http') ? image : `${window.location.origin}${image || ''}`, true);
     updateMetaTag('og:url', url, true);
     updateMetaTag('og:type', type, true);
     updateMetaTag('og:site_name', 'Finance Transformers', true);
@@ -107,7 +107,7 @@ const SEOHead = ({
     updateMetaTag('twitter:card', 'summary_large_image');
     updateMetaTag('twitter:title', title);
     updateMetaTag('twitter:description', description);
-    updateMetaTag('twitter:image', image.startsWith('http') ? image : `${window.location.origin}${image}`);
+    updateMetaTag('twitter:image', image && image.startsWith('http') ? image : `${window.location.origin}${image || ''}`);
     
     // Add hreflang tags for multilingual content
     if (alternateLanguages) {
@@ -152,7 +152,7 @@ const SEOHead = ({
         "seasonNumber": episode.season,
         "datePublished": episode.publishDate,
         "duration": episode.duration,
-        "image": image.startsWith('http') ? image : `${window.location.origin}${image}`,
+        "image": image && image.startsWith('http') ? image : `${window.location.origin}${image || ''}`,
         "url": url,
         "author": {
           "@type": "Organization",
@@ -193,7 +193,7 @@ const SEOHead = ({
         "@type": insight.type === 'book_summary' ? 'Review' : 'Article',
         "headline": title,
         "description": description,
-        "image": image.startsWith('http') ? image : `${window.location.origin}${image}`,
+        "image": image && image.startsWith('http') ? image : `${window.location.origin}${image || ''}`,
         "url": url,
         "datePublished": publishedTime,
         "dateModified": modifiedTime || publishedTime,

@@ -129,7 +129,7 @@ const InsightDetail = () => {
       <SEOHead 
         title={`${insight.title} - Finance Transformers Insights`}
         description={insight.description || insight.summary || `${getTypeLabel(insight.insight_type)}: ${insight.title}`}
-        image={insight.image_url}
+        image={insight.image_url || ''}
       />
       
       {/* Header */}
