@@ -199,33 +199,40 @@ const NewInsight = () => {
 
     setLoading(true);
     try {
+      // Prepare insert data
+      const insertData: any = {
+        title: title || 'Untitled Insight',
+        slug: slug || slugify(title || 'untitled-insight'),
+        subtitle: subtitle || null,
+        description: description || null,
+        summary: summary || null,
+        content: content || 'Draft content...',
+        insight_type: insightType,
+        status: 'draft',
+        difficulty_level: difficultyLevel === 'none' ? null : difficultyLevel || null,
+        category_id: categoryId === 'none' ? null : categoryId || null,
+        featured: featured,
+        reading_time_minutes: readingTimeMinutes || null,
+        published_at: null,
+        image_url: imageUrl || null,
+        thumbnail_url: thumbnailUrl || null,
+        tags: tags ? tags.split(',').map(t => t.trim()) : null,
+        keywords: keywords ? keywords.split(',').map(k => k.trim()) : null,
+        book_title: insightType === 'book_summary' ? bookTitle || null : null,
+        book_author: insightType === 'book_summary' ? bookAuthor || null : null,
+        book_isbn: insightType === 'book_summary' ? bookIsbn || null : null,
+        book_publication_year: insightType === 'book_summary' ? bookPublicationYear || null : null,
+        created_by: user?.id || null,
+      };
+
+      // Only add content_format if using rich text editor (for backward compatibility)
+      if (useRichEditor) {
+        insertData.content_format = 'html';
+      }
+
       const { data: insight, error } = await supabase
         .from('insights')
-        .insert({
-          title: title || 'Untitled Insight',
-          slug: slug || slugify(title || 'untitled-insight'),
-          subtitle: subtitle || null,
-          description: description || null,
-          summary: summary || null,
-          content: content || 'Draft content...',
-          insight_type: insightType,
-          status: 'draft',
-          difficulty_level: difficultyLevel === 'none' ? null : difficultyLevel || null,
-          category_id: categoryId === 'none' ? null : categoryId || null,
-          featured: featured,
-          reading_time_minutes: readingTimeMinutes || null,
-          published_at: null,
-          image_url: imageUrl || null,
-          thumbnail_url: thumbnailUrl || null,
-          tags: tags ? tags.split(',').map(t => t.trim()) : null,
-          keywords: keywords ? keywords.split(',').map(k => k.trim()) : null,
-          book_title: insightType === 'book_summary' ? bookTitle || null : null,
-          book_author: insightType === 'book_summary' ? bookAuthor || null : null,
-          book_isbn: insightType === 'book_summary' ? bookIsbn || null : null,
-          book_publication_year: insightType === 'book_summary' ? bookPublicationYear || null : null,
-          created_by: user?.id || null,
-          content_format: useRichEditor ? 'html' : 'markdown',
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -264,33 +271,40 @@ const NewInsight = () => {
       const publishedAt = status === 'published' ? new Date().toISOString() : 
                           publishDate ? new Date(publishDate).toISOString() : null;
 
+      // Prepare insert data
+      const insertData: any = {
+        title,
+        slug,
+        subtitle: subtitle || null,
+        description: description || null,
+        summary: summary || null,
+        content,
+        insight_type: insightType,
+        status,
+        difficulty_level: difficultyLevel === 'none' ? null : difficultyLevel || null,
+        category_id: categoryId === 'none' ? null : categoryId || null,
+        featured: featured,
+        reading_time_minutes: readingTimeMinutes || null,
+        published_at: publishedAt,
+        image_url: imageUrl || null,
+        thumbnail_url: thumbnailUrl || null,
+        tags: tags ? tags.split(',').map(t => t.trim()) : null,
+        keywords: keywords ? keywords.split(',').map(k => k.trim()) : null,
+        book_title: insightType === 'book_summary' ? bookTitle || null : null,
+        book_author: insightType === 'book_summary' ? bookAuthor || null : null,
+        book_isbn: insightType === 'book_summary' ? bookIsbn || null : null,
+        book_publication_year: insightType === 'book_summary' ? bookPublicationYear || null : null,
+        created_by: user?.id || null,
+      };
+
+      // Only add content_format if using rich text editor (for backward compatibility)
+      if (useRichEditor) {
+        insertData.content_format = 'html';
+      }
+
       const { data: insight, error: insightError } = await supabase
         .from('insights')
-        .insert({
-          title,
-          slug,
-          subtitle: subtitle || null,
-          description: description || null,
-          summary: summary || null,
-          content,
-          insight_type: insightType,
-          status,
-          difficulty_level: difficultyLevel === 'none' ? null : difficultyLevel || null,
-          category_id: categoryId === 'none' ? null : categoryId || null,
-          featured: featured,
-          reading_time_minutes: readingTimeMinutes || null,
-          published_at: publishedAt,
-          image_url: imageUrl || null,
-          thumbnail_url: thumbnailUrl || null,
-          tags: tags ? tags.split(',').map(t => t.trim()) : null,
-          keywords: keywords ? keywords.split(',').map(k => k.trim()) : null,
-          book_title: insightType === 'book_summary' ? bookTitle || null : null,
-          book_author: insightType === 'book_summary' ? bookAuthor || null : null,
-          book_isbn: insightType === 'book_summary' ? bookIsbn || null : null,
-          book_publication_year: insightType === 'book_summary' ? bookPublicationYear || null : null,
-          created_by: user?.id || null,
-          content_format: useRichEditor ? 'html' : 'markdown',
-        })
+        .insert(insertData)
         .select()
         .single();
 
