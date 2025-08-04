@@ -23,6 +23,7 @@ export interface Insight {
   subtitle?: string;
   description?: string;
   content: string;
+  content_format?: 'html' | 'markdown' | 'plain';
   summary?: string;
   insight_type: InsightType;
   status: InsightStatus;

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { ArrowLeft, Clock, BookOpen, FileText, Users, Wrench, TrendingUp, Star, Search, X, Filter } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ import { useInsights, useInsightCategories, useFeaturedInsights, InsightType, Di
 import { Skeleton } from '@/components/ui/skeleton';
 
 const Insights = () => {
+  const navigate = useNavigate();
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<InsightType | 'all'>('all');
@@ -173,7 +174,8 @@ const Insights = () => {
                         <img 
                           src={insight.image_url} 
                           alt={insight.title}
-                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                          onDoubleClick={() => navigate(`/insights/${insight.slug}`)}
                         />
                       )}
                       <div className="absolute top-4 left-4">
@@ -313,10 +315,14 @@ const Insights = () => {
                     <img 
                       src={insight.thumbnail_url || insight.image_url} 
                       alt={insight.title}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                      onDoubleClick={() => navigate(`/insights/${insight.slug}`)}
                     />
                   ) : (
-                    <div className="w-full h-48 bg-gradient-to-br from-[#13B87B]/10 to-[#003FA5]/10 flex items-center justify-center">
+                    <div 
+                      className="w-full h-48 bg-gradient-to-br from-[#13B87B]/10 to-[#003FA5]/10 flex items-center justify-center cursor-pointer"
+                      onDoubleClick={() => navigate(`/insights/${insight.slug}`)}
+                    >
                       <TypeIcon size={48} className="text-muted-foreground" />
                     </div>
                   )}

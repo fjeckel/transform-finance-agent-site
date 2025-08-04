@@ -309,29 +309,54 @@ const InsightDetail = () => {
         <Card className="mb-8">
           <CardContent className="p-8">
             <div className="prose prose-gray max-w-none">
-              <ReactMarkdown
-                components={{
-                  h1: ({ children }) => <h1 className="text-2xl font-bold text-foreground mb-4 font-cooper">{children}</h1>,
-                  h2: ({ children }) => <h2 className="text-xl font-bold text-foreground mb-3 mt-6 font-cooper">{children}</h2>,
-                  h3: ({ children }) => <h3 className="text-lg font-semibold text-foreground mb-2 mt-4">{children}</h3>,
-                  p: ({ children }) => <p className="text-muted-foreground leading-relaxed mb-4">{children}</p>,
-                  ul: ({ children }) => <ul className="text-muted-foreground space-y-2 mb-4 ml-6">{children}</ul>,
-                  ol: ({ children }) => <ol className="text-muted-foreground space-y-2 mb-4 ml-6">{children}</ol>,
-                  li: ({ children }) => <li className="list-disc">{children}</li>,
-                  blockquote: ({ children }) => (
-                    <blockquote className="border-l-4 border-[#13B87B] pl-4 italic text-muted-foreground my-4">
-                      {children}
-                    </blockquote>
-                  ),
-                  code: ({ children }) => (
-                    <code className="bg-accent px-2 py-1 rounded text-sm text-foreground">
-                      {children}
-                    </code>
-                  ),
-                }}
-              >
-                {insight.content}
-              </ReactMarkdown>
+              {insight.content_format === 'html' ? (
+                <div 
+                  className="html-content prose prose-gray max-w-none"
+                  dangerouslySetInnerHTML={{ __html: insight.content }}
+                  style={{
+                    '--tw-prose-body': 'hsl(var(--muted-foreground))',
+                    '--tw-prose-headings': 'hsl(var(--foreground))',
+                    '--tw-prose-lead': 'hsl(var(--muted-foreground))',
+                    '--tw-prose-links': 'hsl(var(--primary))',
+                    '--tw-prose-bold': 'hsl(var(--foreground))',
+                    '--tw-prose-counters': 'hsl(var(--muted-foreground))',
+                    '--tw-prose-bullets': 'hsl(var(--muted-foreground))',
+                    '--tw-prose-hr': 'hsl(var(--border))',
+                    '--tw-prose-quotes': 'hsl(var(--foreground))',
+                    '--tw-prose-quote-borders': 'hsl(var(--border))',
+                    '--tw-prose-captions': 'hsl(var(--muted-foreground))',
+                    '--tw-prose-code': 'hsl(var(--foreground))',
+                    '--tw-prose-pre-code': 'hsl(var(--muted-foreground))',
+                    '--tw-prose-pre-bg': 'hsl(var(--muted))',
+                    '--tw-prose-th-borders': 'hsl(var(--border))',
+                    '--tw-prose-td-borders': 'hsl(var(--border))'
+                  } as React.CSSProperties}
+                />
+              ) : (
+                <ReactMarkdown
+                  components={{
+                    h1: ({ children }) => <h1 className="text-2xl font-bold text-foreground mb-4 font-cooper">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-xl font-bold text-foreground mb-3 mt-6 font-cooper">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-lg font-semibold text-foreground mb-2 mt-4">{children}</h3>,
+                    p: ({ children }) => <p className="text-muted-foreground leading-relaxed mb-4">{children}</p>,
+                    ul: ({ children }) => <ul className="text-muted-foreground space-y-2 mb-4 ml-6">{children}</ul>,
+                    ol: ({ children }) => <ol className="text-muted-foreground space-y-2 mb-4 ml-6">{children}</ol>,
+                    li: ({ children }) => <li className="list-disc">{children}</li>,
+                    blockquote: ({ children }) => (
+                      <blockquote className="border-l-4 border-[#13B87B] pl-4 italic text-muted-foreground my-4">
+                        {children}
+                      </blockquote>
+                    ),
+                    code: ({ children }) => (
+                      <code className="bg-accent px-2 py-1 rounded text-sm text-foreground">
+                        {children}
+                      </code>
+                    ),
+                  }}
+                >
+                  {insight.content}
+                </ReactMarkdown>
+              )}
             </div>
           </CardContent>
         </Card>
