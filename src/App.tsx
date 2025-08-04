@@ -13,6 +13,7 @@ import ErrorBoundary from "./components/ui/error-boundary";
 import { useServiceWorker } from "./hooks/useServiceWorker";
 import { usePerformanceMonitoring } from "./hooks/usePerformanceMonitoring";
 import { NetworkIndicator } from "./components/ui/network-indicator";
+import { AppLayout } from "./components/layouts/AppLayout";
 import "./i18n";
 import { PageLoadingSkeleton } from "./components/ui/loading-skeleton";
 
@@ -103,30 +104,36 @@ const App = () => {
               <BrowserRouter>
               <Suspense fallback={<PageLoadingSkeleton />}>
                 <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/overview" element={<Overview />} />
-                  <Route path="/episode/:slug" element={<DynamicEpisode />} />
-                  <Route path="/episodes" element={<Episodes />} />
-                  <Route path="/insights" element={<Insights />} />
-                  <Route path="/insights/:slug" element={<InsightDetail />} />
+                  {/* Routes with sidebar layout */}
+                  <Route path="/" element={<AppLayout><Index /></AppLayout>} />
+                  <Route path="/overview" element={<AppLayout><Overview /></AppLayout>} />
+                  <Route path="/episode/:slug" element={<AppLayout><DynamicEpisode /></AppLayout>} />
+                  <Route path="/episodes" element={<AppLayout><Episodes /></AppLayout>} />
+                  <Route path="/insights" element={<AppLayout><Insights /></AppLayout>} />
+                  <Route path="/insights/:slug" element={<AppLayout><InsightDetail /></AppLayout>} />
+                  <Route path="/report/:id" element={<AppLayout><PremiumReport /></AppLayout>} />
+                  <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
+                  <Route path="/test-checkout" element={<AppLayout><TestCheckout /></AppLayout>} />
+                  <Route path="/thank-you" element={<AppLayout><ThankYou /></AppLayout>} />
+                  
+                  {/* Admin routes with sidebar */}
+                  <Route path="/admin" element={<AppLayout><AdminRoute><Admin /></AdminRoute></AppLayout>} />
+                  <Route path="/admin/analytics" element={<AppLayout><AdminRoute><AdminAnalytics /></AdminRoute></AppLayout>} />
+                  <Route path="/admin/pdfs" element={<AppLayout><AdminRoute><AdminPdfs /></AdminRoute></AppLayout>} />
+                  <Route path="/admin/rss-feeds" element={<AppLayout><AdminRoute><AdminRssFeeds /></AdminRoute></AppLayout>} />
+                  <Route path="/admin/episodes/new" element={<AppLayout><AdminRoute><NewEpisode /></AdminRoute></AppLayout>} />
+                  <Route path="/admin/episodes/upload" element={<AppLayout><AdminRoute><BulkUploadEpisodes /></AdminRoute></AppLayout>} />
+                  <Route path="/admin/episodes/:id/edit" element={<AppLayout><AdminRoute><EditEpisode /></AdminRoute></AppLayout>} />
+                  <Route path="/admin/insights" element={<AppLayout><AdminRoute><AdminInsights /></AdminRoute></AppLayout>} />
+                  <Route path="/admin/insights/new" element={<AppLayout><AdminRoute><NewInsight /></AdminRoute></AppLayout>} />
+                  <Route path="/admin/insights/:id/edit" element={<AppLayout><AdminRoute><EditInsight /></AdminRoute></AppLayout>} />
+                  
+                  {/* Routes without sidebar (standalone pages) */}
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/legal" element={<Legal />} />
-                  <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
-                  <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
-                  <Route path="/admin/pdfs" element={<AdminRoute><AdminPdfs /></AdminRoute>} />
-                  <Route path="/admin/rss-feeds" element={<AdminRoute><AdminRssFeeds /></AdminRoute>} />
-                  <Route path="/admin/episodes/new" element={<AdminRoute><NewEpisode /></AdminRoute>} />
-                  <Route path="/admin/episodes/upload" element={<AdminRoute><BulkUploadEpisodes /></AdminRoute>} />
-                  <Route path="/admin/episodes/:id/edit" element={<AdminRoute><EditEpisode /></AdminRoute>} />
-                  <Route path="/admin/insights" element={<AdminRoute><AdminInsights /></AdminRoute>} />
-                  <Route path="/admin/insights/new" element={<AdminRoute><NewInsight /></AdminRoute>} />
-                  <Route path="/admin/insights/:id/edit" element={<AdminRoute><EditInsight /></AdminRoute>} />
-                  <Route path="/report/:id" element={<PremiumReport />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/test-checkout" element={<TestCheckout />} />
-                  <Route path="/thank-you" element={<ThankYou />} />
+                  
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
+                  <Route path="*" element={<AppLayout showSidebar={false}><NotFound /></AppLayout>} />
                 </Routes>
               </Suspense>
               </BrowserRouter>

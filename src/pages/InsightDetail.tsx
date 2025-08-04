@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import SEOHead from '@/components/SEOHead';
-import { BottomNavigation } from '@/components/ui/bottom-navigation';
 import { MobileSearch } from '@/components/ui/mobile-search';
 import { useInsightBySlug, useInsights, InsightType, DifficultyLevel } from '@/hooks/useInsights';
 import { useInsightAnalytics } from '@/hooks/useInsightAnalytics';
@@ -387,7 +386,6 @@ const InsightDetail = () => {
       <MobileSearch open={mobileSearchOpen} onOpenChange={setMobileSearchOpen} />
       
       {/* Bottom Navigation - Mobile Only */}
-      <BottomNavigation onSearchOpen={() => setMobileSearchOpen(true)} />
     </div>
   );
 };

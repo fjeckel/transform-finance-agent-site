@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import SEOHead from '@/components/SEOHead';
-import { BottomNavigation } from '@/components/ui/bottom-navigation';
 import { MobileSearch } from '@/components/ui/mobile-search';
 import { useInsights, useInsightCategories, useFeaturedInsights, InsightType, DifficultyLevel } from '@/hooks/useInsights';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -421,7 +420,6 @@ const Insights = () => {
       <MobileSearch open={mobileSearchOpen} onOpenChange={setMobileSearchOpen} />
       
       {/* Bottom Navigation - Mobile Only */}
-      <BottomNavigation onSearchOpen={() => setMobileSearchOpen(true)} />
     </div>
   );
 };

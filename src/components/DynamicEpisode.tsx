@@ -9,7 +9,6 @@ import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { toast } from '@/hooks/use-toast';
 import SEOHead from '@/components/SEOHead';
 import ImageWithFallback from '@/components/ui/image-with-fallback';
-import { BottomNavigation } from '@/components/ui/bottom-navigation';
 import { MobileSearch } from '@/components/ui/mobile-search';
 import { SafeHtmlRenderer } from '@/lib/content-security';
 
@@ -382,7 +381,6 @@ const DynamicEpisode = () => {
       <MobileSearch open={mobileSearchOpen} onOpenChange={setMobileSearchOpen} />
       
       {/* Bottom Navigation - Mobile Only */}
-      <BottomNavigation onSearchOpen={() => setMobileSearchOpen(true)} />
     </div>
   );
 };

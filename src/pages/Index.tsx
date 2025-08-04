@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import Navigation from '@/components/Navigation';
 import Hero from '@/components/Hero';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
@@ -9,7 +8,6 @@ import { useMainPageSections } from '@/hooks/useMainPageSections';
 import { Skeleton } from '@/components/ui/skeleton';
 import TimTeuscherSection from '@/components/TimTeuscherSection';
 import FabianJeckelSection from '@/components/FabianJeckelSection';
-import { BottomNavigation } from '@/components/ui/bottom-navigation';
 import { MobileSearch } from '@/components/ui/mobile-search';
 
 const Index = () => {
@@ -31,11 +29,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead />
-      {/* Navigation */}
-      <Navigation />
 
-      {/* Add top padding to account for fixed navigation */}
-      <div className="pt-20 lg:pt-24">
+      <div>
         {/* Hero Section */}
         <Hero />
 
@@ -70,9 +65,6 @@ const Index = () => {
       
       {/* Mobile Search */}
       <MobileSearch open={searchOpen} onOpenChange={setSearchOpen} />
-      
-      {/* Bottom Navigation - Mobile Only */}
-      <BottomNavigation onSearchOpen={() => setSearchOpen(true)} />
     </div>
   );
 };

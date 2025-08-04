@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Mail, Download, ArrowLeft, RefreshCw } from 'lucide-react';
-import { BottomNavigation } from '@/components/ui/bottom-navigation';
 import { MobileSearch } from '@/components/ui/mobile-search';
 
 const ThankYou: React.FC = () => {
@@ -46,8 +45,7 @@ const ThankYou: React.FC = () => {
         <MobileSearch open={mobileSearchOpen} onOpenChange={setMobileSearchOpen} />
         
         {/* Bottom Navigation - Mobile Only */}
-        <BottomNavigation onSearchOpen={() => setMobileSearchOpen(true)} />
-      </div>
+        </div>
     );
   }
 
@@ -143,7 +141,6 @@ const ThankYou: React.FC = () => {
       <MobileSearch open={mobileSearchOpen} onOpenChange={setMobileSearchOpen} />
       
       {/* Bottom Navigation - Mobile Only */}
-      <BottomNavigation onSearchOpen={() => setMobileSearchOpen(true)} />
     </div>
   );
 };

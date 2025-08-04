@@ -18,7 +18,6 @@ import { usePdfs } from '@/hooks/usePdfs';
 import { SimplePDFCard } from '@/components/purchase/SimplePurchaseButton';
 import { Input } from '@/components/ui/input';
 import RssSubscribeButton from '@/components/RssSubscribeButton';
-import { BottomNavigation } from '@/components/ui/bottom-navigation';
 import { MobileSearch } from '@/components/ui/mobile-search';
 import { SafeHtmlRenderer } from '@/lib/content-security';
 
@@ -577,9 +576,6 @@ const Episodes = () => {
       
       {/* Mobile Search */}
       <MobileSearch open={mobileSearchOpen} onOpenChange={setMobileSearchOpen} />
-      
-      {/* Bottom Navigation - Mobile Only */}
-      <BottomNavigation onSearchOpen={() => setMobileSearchOpen(true)} />
     </div>
   );
 };
