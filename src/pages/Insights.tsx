@@ -175,7 +175,7 @@ const Insights = () => {
                           src={insight.image_url} 
                           alt={insight.title}
                           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
-                          onDoubleClick={() => navigate(`/insights/${insight.slug}`)}
+                          onClick={() => navigate(`/insights/${insight.slug}`)}
                         />
                       )}
                       <div className="absolute top-4 left-4">
