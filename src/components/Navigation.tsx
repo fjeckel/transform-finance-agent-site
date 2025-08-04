@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { SearchBox } from '@/components/ui/search-box';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { useGlobalSearch } from '@/hooks/useGlobalSearch';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,6 +17,7 @@ const Navigation = () => {
   const location = useLocation();
   const { user, isAdmin, signOut } = useAuth();
   const { t } = useTranslation('common');
+  const { performSearch } = useGlobalSearch();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -87,7 +89,7 @@ const Navigation = () => {
               <div className="flex items-center space-x-8">
                 {/* Search */}
                 <div className="hidden md:block">
-                  <SearchBox />
+                  <SearchBox onSearch={performSearch} />
                 </div>
                 
                 <ul className="flex items-center space-x-6" role="menubar">

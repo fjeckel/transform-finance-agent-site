@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ArrowLeft, Clock, BookOpen, FileText, Users, Wrench, TrendingUp, Star, Search, X, Filter } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,9 +11,13 @@ import SEOHead from '@/components/SEOHead';
 import { MobileSearch } from '@/components/ui/mobile-search';
 import { useInsights, useInsightCategories, useFeaturedInsights, InsightType, DifficultyLevel } from '@/hooks/useInsights';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useGlobalSearch } from '@/hooks/useGlobalSearch';
+import { highlightSearchTerms } from '@/utils/searchHighlight';
 
 const Insights = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { searchQuery: globalSearchQuery } = useGlobalSearch();
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<InsightType | 'all'>('all');
@@ -24,6 +28,17 @@ const Insights = () => {
   const { data: insights = [], isLoading: insightsLoading } = useInsights();
   const { data: categories = [] } = useInsightCategories();
   const { data: featuredInsights = [] } = useFeaturedInsights(3);
+
+  // Initialize search from URL parameters or global search
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const searchParam = params.get('search');
+    if (searchParam) {
+      setSearchQuery(searchParam);
+    } else if (globalSearchQuery) {
+      setSearchQuery(globalSearchQuery);
+    }
+  }, [location.search, globalSearchQuery]);
 
   // Filter insights based on search and filters
   const filteredInsights = useMemo(() => {
@@ -197,10 +212,12 @@ const Insights = () => {
                           </>
                         )}
                       </div>
-                      <h3 className="font-bold text-lg mb-2 line-clamp-2">{insight.title}</h3>
+                      <h3 className="font-bold text-lg mb-2 line-clamp-2">
+                        {highlightSearchTerms(insight.title, searchQuery)}
+                      </h3>
                       {insight.description && (
                         <p className="text-muted-foreground text-sm line-clamp-3 mb-4">
-                          {insight.description}
+                          {highlightSearchTerms(insight.description, searchQuery)}
                         </p>
                       )}
                       <Button asChild className="w-full">
@@ -348,7 +365,9 @@ const Insights = () => {
                     )}
                   </div>
 
-                  <h3 className="font-bold text-lg mb-2 line-clamp-2">{insight.title}</h3>
+                  <h3 className="font-bold text-lg mb-2 line-clamp-2">
+                    {highlightSearchTerms(insight.title, searchQuery)}
+                  </h3>
                   
                   {insight.book_author && (
                     <p className="text-sm text-muted-foreground mb-2">
@@ -358,7 +377,7 @@ const Insights = () => {
 
                   {insight.description && (
                     <p className="text-muted-foreground text-sm line-clamp-3 mb-4">
-                      {insight.description}
+                      {highlightSearchTerms(insight.description, searchQuery)}
                     </p>
                   )}
 
