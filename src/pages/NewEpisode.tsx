@@ -219,26 +219,33 @@ const NewEpisode = () => {
     setGeneralError('');
     
     try {
+      // Prepare insert data
+      const insertData: any = {
+        title: title || 'Untitled Episode',
+        slug: slug || slugify(title || 'untitled-episode'),
+        description,
+        content,
+        summary: summary || null,
+        transcript: transcript || null,
+        season,
+        episode_number: episodeNumber,
+        series,
+        publish_date: publishDate ? new Date(publishDate).toISOString() : null,
+        status: 'draft',
+        image_url: imageUrl || null,
+        audio_url: audioUrl || null,
+        duration: duration || null,
+        created_by: user?.id || null,
+      };
+
+      // Only add content_format if using rich text editor (for backward compatibility)
+      if (isUsingRichTextEditor) {
+        insertData.content_format = 'html';
+      }
+
       const { data: episode, error } = await supabase
         .from('episodes')
-        .insert({
-          title: title || 'Untitled Episode',
-          slug: slug || slugify(title || 'untitled-episode'),
-          description,
-          content,
-          summary: summary || null,
-          transcript: transcript || null,
-          season,
-          episode_number: episodeNumber,
-          series,
-          publish_date: publishDate ? new Date(publishDate).toISOString() : null,
-          status: 'draft',
-          image_url: imageUrl || null,
-          audio_url: audioUrl || null,
-          duration: duration || null,
-          content_format: isUsingRichTextEditor ? 'html' : 'plain',
-          created_by: user?.id || null,
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -338,27 +345,34 @@ const NewEpisode = () => {
     
     setLoading(true);
     try {
+      // Prepare insert data
+      const insertData: any = {
+        title,
+        slug,
+        description,
+        content,
+        summary: summary || null,
+        transcript: transcript || null,
+        season,
+        episode_number: episodeNumber,
+        series,
+        publish_date: publishDate ? new Date(publishDate).toISOString() : null,
+        status,
+        image_url: imageUrl || null,
+        audio_url: audioUrl || null,
+        duration: duration || null,
+        created_by: user?.id || null,
+      };
+
+      // Only add content_format if using rich text editor (for backward compatibility)
+      if (isUsingRichTextEditor) {
+        insertData.content_format = 'html';
+      }
+
       // Create episode first
       const { data: episode, error: episodeError } = await supabase
         .from('episodes')
-        .insert({
-          title,
-          slug,
-          description,
-          content,
-          summary: summary || null,
-          transcript: transcript || null,
-          season,
-          episode_number: episodeNumber,
-          series,
-          publish_date: publishDate ? new Date(publishDate).toISOString() : null,
-          status,
-          image_url: imageUrl || null,
-          audio_url: audioUrl || null,
-          duration: duration || null,
-          content_format: isUsingRichTextEditor ? 'html' : 'plain',
-          created_by: user?.id || null,
-        })
+        .insert(insertData)
         .select()
         .single();
 

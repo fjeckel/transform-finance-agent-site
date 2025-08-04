@@ -171,27 +171,34 @@ const EditEpisode = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      // Prepare update data
+      const updateData: any = {
+        title,
+        slug,
+        description,
+        content,
+        summary: summary || null,
+        transcript: transcript || null,
+        season,
+        episode_number: episodeNumber,
+        series,
+        publish_date: publishDate ? new Date(publishDate).toISOString() : null,
+        status,
+        audio_url: audioUrl || null,
+        image_url: imageUrl || null,
+        duration: duration || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Only add content_format if using rich text editor (for backward compatibility)
+      if (isUsingRichTextEditor) {
+        updateData.content_format = 'html';
+      }
+
       // Update episode
       const { error: episodeError } = await supabase
         .from('episodes')
-        .update({
-          title,
-          slug,
-          description,
-          content,
-          summary: summary || null,
-          transcript: transcript || null,
-          season,
-          episode_number: episodeNumber,
-          series,
-          publish_date: publishDate ? new Date(publishDate).toISOString() : null,
-          status,
-          audio_url: audioUrl || null,
-          image_url: imageUrl || null,
-          duration: duration || null,
-          content_format: isUsingRichTextEditor ? 'html' : 'plain',
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', id);
 
       if (episodeError) throw episodeError;
