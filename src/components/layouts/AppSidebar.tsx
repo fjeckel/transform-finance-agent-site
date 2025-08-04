@@ -116,13 +116,7 @@ export function AppSidebar() {
     <Sidebar variant="inset" className="hidden md:flex">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-4 py-2">
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <span className="font-bold">FT</span>
-          </div>
-          <div className="flex flex-col gap-0.5 leading-none">
-            <span className="font-semibold">Finance Transformers</span>
-            <span className="text-xs text-muted-foreground">Financial Insights</span>
-          </div>
+          <span className="font-semibold text-lg">Finance Transformers</span>
         </div>
       </SidebarHeader>
 

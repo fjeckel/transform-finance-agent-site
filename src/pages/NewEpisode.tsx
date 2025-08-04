@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Save, Send, FileText, AlertCircle } from 'lucide-react';
@@ -108,8 +108,15 @@ const NewEpisode = () => {
     enabled: true,
   });
 
+  // Debounce slug generation to prevent excessive re-renders
   useEffect(() => {
-    setSlug(slugify(title));
+    const timeoutId = setTimeout(() => {
+      if (title.trim()) {
+        setSlug(slugify(title));
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
   }, [title]);
 
   // Check if user is admin
