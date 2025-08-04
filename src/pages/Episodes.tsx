@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import RssSubscribeButton from '@/components/RssSubscribeButton';
 import { BottomNavigation } from '@/components/ui/bottom-navigation';
 import { MobileSearch } from '@/components/ui/mobile-search';
+import { SafeHtmlRenderer } from '@/lib/content-security';
 
 const Episodes = () => {
   const { episodes, loading: episodesLoading, error: episodesError } = useEpisodes();
@@ -383,9 +384,12 @@ const Episodes = () => {
                         </CardHeader>
                         
                         <CardContent className="pt-0">
-                          <p className="text-gray-700 text-sm mb-4 line-clamp-3">
-                            {episode.description}
-                          </p>
+                          <div className="text-gray-700 text-sm mb-4 line-clamp-3">
+                            <SafeHtmlRenderer 
+                              content={episode.description || ''}
+                              className="text-gray-700 text-sm"
+                            />
+                          </div>
                           
                           <div className="flex flex-col space-y-2">
                             {/* Primary CTA button - varies based on audio availability */}
