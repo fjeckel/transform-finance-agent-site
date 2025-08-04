@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { ArrowLeft, Play, Clock, Calendar, User, Search, X, ExternalLink } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,10 +20,13 @@ import { Input } from '@/components/ui/input';
 import RssSubscribeButton from '@/components/RssSubscribeButton';
 import { MobileSearch } from '@/components/ui/mobile-search';
 import { SafeHtmlRenderer } from '@/lib/content-security';
+import { useGlobalSearch } from '@/hooks/useGlobalSearch';
 
 const Episodes = () => {
   const { episodes, loading: episodesLoading, error: episodesError } = useEpisodes();
   const { pdfs, loading: pdfsLoading, error: pdfsError, incrementDownloadCount } = usePdfs();
+  const location = useLocation();
+  const { searchQuery: globalSearchQuery } = useGlobalSearch();
   const [selectedTab, setSelectedTab] = useState<string>('episodes');
   const [selectedSeries, setSelectedSeries] = useState<string>('all');
   const [sortOption, setSortOption] = useState<'episode_desc' | 'episode_asc' | 'date_desc' | 'date_asc' | 'title_asc' | 'title_desc'>('episode_desc');
@@ -31,6 +34,17 @@ const Episodes = () => {
   const [displayCount, setDisplayCount] = useState<number>(9); // Show 9 episodes initially
   const [pdfsDisplayCount, setPdfsDisplayCount] = useState<number>(9); // Show 9 PDFs initially
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+
+  // Initialize search from URL parameters or global search
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const searchParam = params.get('search');
+    if (searchParam) {
+      setSearchQuery(searchParam);
+    } else if (globalSearchQuery) {
+      setSearchQuery(globalSearchQuery);
+    }
+  }, [location.search, globalSearchQuery]);
 
   // Reset display count when search query or series filter changes
   useEffect(() => {
