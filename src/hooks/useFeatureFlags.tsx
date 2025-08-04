@@ -42,13 +42,13 @@ export const useFeatureFlags = () => {
       }
 
       // Admin users get all features enabled by default
-      // TEMPORARILY DISABLED FOR DEBUGGING
-      if (false && user?.email && ADMIN_EMAILS.includes(user.email)) {
+      // Rich text editor disabled by default until loading issues are resolved
+      if (user?.email && ADMIN_EMAILS.includes(user.email)) {
         setFlags(prev => ({
           ...prev,
-          richTextEditor: true,
-          richTextEditorInsights: true,
-          richTextEditorEpisodes: true,
+          // richTextEditor: true,  // Disabled until loading issues fixed
+          // richTextEditorInsights: true,
+          // richTextEditorEpisodes: true,
           simplifiedForms: true,
           contentMigration: true
         }))
@@ -163,9 +163,15 @@ export const FeatureFlagDebugPanel: React.FC = () => {
               onChange={(e) => updateFlag(key as keyof FeatureFlags, e.target.checked)}
               className="w-3 h-3"
             />
-            <span className="flex-1">{key}</span>
+            <span className="flex-1 truncate">{key}</span>
+            {key.includes('richText') && (
+              <span className="text-red-500 text-xs">⚠️</span>
+            )}
           </label>
         ))}
+      </div>
+      <div className="text-xs text-muted-foreground mt-2">
+        ⚠️ Rich text editor may cause loading issues. Test carefully.
       </div>
     </div>
   )
