@@ -115,9 +115,12 @@ const DynamicEpisode = () => {
               </h1>
               
               {episode.description && (
-                <p className="text-lg text-muted-foreground mb-6">
-                  {episode.description}
-                </p>
+                <div className="text-lg text-muted-foreground mb-6">
+                  <SafeHtmlRenderer 
+                    content={episode.description}
+                    className="text-lg text-muted-foreground"
+                  />
+                </div>
               )}
               
               <div className="flex items-center space-x-6 mb-6 text-muted-foreground">
@@ -217,9 +220,10 @@ const DynamicEpisode = () => {
             </CardHeader>
             <CardContent>
               <div className="prose prose-gray max-w-none">
-                <p className="text-muted-foreground leading-relaxed text-base">
-                  {episode.summary}
-                </p>
+                <SafeHtmlRenderer 
+                  content={episode.summary}
+                  className="text-muted-foreground leading-relaxed text-base"
+                />
               </div>
             </CardContent>
           </Card>
@@ -351,9 +355,10 @@ const DynamicEpisode = () => {
                   <CollapsibleContent>
                     <CardContent className="pt-4">
                       <div className="bg-gray-50 rounded-lg p-6">
-                        <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-sans">
-                          {episode.transcript}
-                        </pre>
+                        <SafeHtmlRenderer 
+                          content={episode.transcript}
+                          className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-sans"
+                        />
                       </div>
                     </CardContent>
                   </CollapsibleContent>

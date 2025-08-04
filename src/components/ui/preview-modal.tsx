@@ -2,6 +2,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, User } from 'lucide-react';
+import { SafeHtmlRenderer } from '@/lib/content-security';
 
 interface PreviewModalProps {
   open: boolean;
@@ -96,7 +97,12 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
               </div>
               
               {episode.description && (
-                <p className="text-muted-foreground mb-4">{episode.description}</p>
+                <div className="text-muted-foreground mb-4">
+                  <SafeHtmlRenderer 
+                    content={episode.description}
+                    className="text-muted-foreground"
+                  />
+                </div>
               )}
             </div>
           </div>
@@ -117,9 +123,10 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
             <div className="space-y-2">
               <h3 className="font-semibold">Episode Content</h3>
               <div className="prose prose-sm max-w-none">
-                {episode.content.split('\n').map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
-                ))}
+                <SafeHtmlRenderer 
+                  content={episode.content}
+                  className="prose prose-sm max-w-none"
+                />
               </div>
             </div>
           )}
