@@ -11,6 +11,7 @@ import SEOHead from '@/components/SEOHead';
 import ImageWithFallback from '@/components/ui/image-with-fallback';
 import { BottomNavigation } from '@/components/ui/bottom-navigation';
 import { MobileSearch } from '@/components/ui/mobile-search';
+import { SafeHtmlRenderer } from '@/lib/content-security';
 
 const DynamicEpisode = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -325,9 +326,10 @@ const DynamicEpisode = () => {
               <CardTitle>Episode Inhalt</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="prose max-w-none">
-                <div dangerouslySetInnerHTML={{ __html: episode.content.replace(/\n/g, '<br>') }} />
-              </div>
+              <SafeHtmlRenderer 
+                content={episode.content.replace(/\n/g, '<br>')}
+                className="prose max-w-none"
+              />
             </CardContent>
           </Card>
         )}

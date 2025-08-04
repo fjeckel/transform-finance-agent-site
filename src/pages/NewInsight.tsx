@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Save, Send, FileText, BookOpen } from 'lucide-react';
+import { Save, Send, FileText, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -14,14 +14,16 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ImageUpload } from '@/components/ui/image-upload';
-// Note: PreviewModal removed - was designed for episodes, not insights
 import { FormFieldError, AutoSaveIndicator } from '@/components/ui/form-field-error';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { InsightType, InsightStatus, DifficultyLevel } from '@/hooks/useInsights';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useRichTextEditor, useSimplifiedForms, FeatureFlagDebugPanel } from '@/hooks/useFeatureFlags';
+import AdaptiveRichTextEditor from '@/components/ui/adaptive-rich-text-editor';
 
 const slugify = (text: string) =>
   text
@@ -65,6 +67,11 @@ const NewInsight = () => {
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [categories, setCategories] = useState<any[]>([]);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // Feature flags
+  const useRichEditor = useRichTextEditor('insights');
+  const useSimplified = useSimplifiedForms();
 
   // Auto-save functionality
   const formData = {
@@ -217,6 +224,7 @@ const NewInsight = () => {
           book_isbn: insightType === 'book_summary' ? bookIsbn || null : null,
           book_publication_year: insightType === 'book_summary' ? bookPublicationYear || null : null,
           created_by: user?.id || null,
+          content_format: useRichEditor ? 'html' : 'markdown',
         })
         .select()
         .single();
@@ -281,6 +289,7 @@ const NewInsight = () => {
           book_isbn: insightType === 'book_summary' ? bookIsbn || null : null,
           book_publication_year: insightType === 'book_summary' ? bookPublicationYear || null : null,
           created_by: user?.id || null,
+          content_format: useRichEditor ? 'html' : 'markdown',
         })
         .select()
         .single();
@@ -381,7 +390,286 @@ const NewInsight = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <Tabs defaultValue="basic" className="w-full">
+              {/* Simplified Form (when feature flags are enabled) */}
+              {useSimplified ? (
+                <div className="space-y-6">
+                  {/* Essential Fields */}
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="title" className="block text-sm font-medium mb-1">
+                        Title <span className="text-red-500">*</span>
+                      </label>
+                      <Input 
+                        id="title" 
+                        value={title} 
+                        onChange={(e) => setTitle(e.target.value)} 
+                        required 
+                        placeholder="Enter a compelling title..."
+                      />
+                      <FormFieldError error={validationErrors.title} />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="insightType" className="block text-sm font-medium mb-1">
+                          Type <span className="text-red-500">*</span>
+                        </label>
+                        <Select value={insightType} onValueChange={(v) => setInsightType(v as InsightType)}>
+                          <SelectTrigger id="insightType">
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="book_summary">Book Summary</SelectItem>
+                            <SelectItem value="blog_article">Article</SelectItem>
+                            <SelectItem value="guide">Guide</SelectItem>
+                            <SelectItem value="case_study">Case Study</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="status" className="block text-sm font-medium mb-1">
+                          Status <span className="text-red-500">*</span>
+                        </label>
+                        <Select value={status} onValueChange={(v) => setStatus(v as InsightStatus)}>
+                          <SelectTrigger id="status">
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="draft">Draft</SelectItem>
+                            <SelectItem value="published">Published</SelectItem>
+                            <SelectItem value="scheduled">Scheduled</SelectItem>
+                            <SelectItem value="archived">Archived</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Rich Text Editor or Textarea based on feature flag */}
+                    <div>
+                      <label htmlFor="content" className="block text-sm font-medium mb-1">
+                        Content <span className="text-red-500">*</span>
+                      </label>
+                      <div className="text-xs text-muted-foreground mb-2">
+                        Start with a brief description, then add your main content. Use headings to structure your content.
+                      </div>
+                      {useRichEditor ? (
+                        <AdaptiveRichTextEditor
+                          content={content}
+                          onChange={setContent}
+                          placeholder="Start with a brief description, then add your main content..."
+                          minHeight="300px"
+                          maxLength={50000}
+                        />
+                      ) : (
+                        <Textarea
+                          id="content"
+                          value={content}
+                          onChange={(e) => setContent(e.target.value)}
+                          className="min-h-[300px]"
+                          placeholder="Write your insight content here. Markdown is supported..."
+                          required
+                        />
+                      )}
+                      <FormFieldError error={validationErrors.content} />
+                    </div>
+                  </div>
+
+                  {/* Progressive Disclosure for Advanced Options */}
+                  <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 text-sm font-medium bg-muted/50 rounded-lg hover:bg-muted">
+                      <span>Advanced Options</span>
+                      {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-4 mt-4">
+                      <div>
+                        <label htmlFor="subtitle" className="block text-sm font-medium mb-1">
+                          Subtitle
+                        </label>
+                        <Input 
+                          id="subtitle" 
+                          value={subtitle} 
+                          onChange={(e) => setSubtitle(e.target.value)}
+                          placeholder="Optional subtitle"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="difficultyLevel" className="block text-sm font-medium mb-1">
+                            Difficulty Level
+                          </label>
+                          <Select value={difficultyLevel} onValueChange={(v) => setDifficultyLevel(v as DifficultyLevel | 'none')}>
+                            <SelectTrigger id="difficultyLevel">
+                              <SelectValue placeholder="Select difficulty" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">None</SelectItem>
+                              <SelectItem value="beginner">Beginner</SelectItem>
+                              <SelectItem value="intermediate">Intermediate</SelectItem>
+                              <SelectItem value="advanced">Advanced</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div>
+                          <label htmlFor="categoryId" className="block text-sm font-medium mb-1">
+                            Category
+                          </label>
+                          <Select value={categoryId} onValueChange={setCategoryId}>
+                            <SelectTrigger id="categoryId">
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">No Category</SelectItem>
+                              {categories.map((category) => (
+                                <SelectItem key={category.id} value={category.id}>
+                                  {category.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="readingTime" className="block text-sm font-medium mb-1">
+                            Reading Time (minutes)
+                          </label>
+                          <Input
+                            id="readingTime"
+                            type="number"
+                            value={readingTimeMinutes}
+                            onChange={(e) => setReadingTimeMinutes(e.target.value ? parseInt(e.target.value) : '')}
+                            placeholder="5"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label htmlFor="publishDate" className="block text-sm font-medium mb-1">
+                            Publish Date
+                          </label>
+                          <Input
+                            id="publishDate"
+                            type="date"
+                            value={publishDate}
+                            onChange={(e) => setPublishDate(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="tags" className="block text-sm font-medium mb-1">
+                          Tags (comma-separated)
+                        </label>
+                        <Input
+                          id="tags"
+                          value={tags}
+                          onChange={(e) => setTags(e.target.value)}
+                          placeholder="finance, transformation, leadership"
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="keywords" className="block text-sm font-medium mb-1">
+                          SEO Keywords (comma-separated)
+                        </label>
+                        <Input
+                          id="keywords"
+                          value={keywords}
+                          onChange={(e) => setKeywords(e.target.value)}
+                          placeholder="finance transformation, digital finance, CFO"
+                        />
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="featured"
+                          checked={featured}
+                          onCheckedChange={(checked) => setFeatured(!!checked)}
+                        />
+                        <label htmlFor="featured" className="text-sm font-medium">
+                          Mark as featured content
+                        </label>
+                      </div>
+
+                      {/* Book-specific fields for book summaries */}
+                      {insightType === 'book_summary' && (
+                        <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
+                          <h3 className="text-sm font-medium">Book Information</h3>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label htmlFor="bookTitle" className="block text-sm font-medium mb-1">
+                                Book Title <span className="text-red-500">*</span>
+                              </label>
+                              <Input
+                                id="bookTitle"
+                                value={bookTitle}
+                                onChange={(e) => setBookTitle(e.target.value)}
+                                placeholder="The Finance Book"
+                                required={insightType === 'book_summary'}
+                              />
+                              <FormFieldError error={validationErrors.bookTitle} />
+                            </div>
+                            <div>
+                              <label htmlFor="bookAuthor" className="block text-sm font-medium mb-1">
+                                Book Author <span className="text-red-500">*</span>
+                              </label>
+                              <Input
+                                id="bookAuthor"
+                                value={bookAuthor}
+                                onChange={(e) => setBookAuthor(e.target.value)}
+                                placeholder="Author Name"
+                                required={insightType === 'book_summary'}
+                              />
+                              <FormFieldError error={validationErrors.bookAuthor} />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label htmlFor="bookIsbn" className="block text-sm font-medium mb-1">
+                                ISBN (Optional)
+                              </label>
+                              <Input
+                                id="bookIsbn"
+                                value={bookIsbn}
+                                onChange={(e) => setBookIsbn(e.target.value)}
+                                placeholder="978-0123456789"
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="bookPublicationYear" className="block text-sm font-medium mb-1">
+                                Publication Year
+                              </label>
+                              <Input
+                                id="bookPublicationYear"
+                                type="number"
+                                value={bookPublicationYear}
+                                onChange={(e) => setBookPublicationYear(e.target.value ? parseInt(e.target.value) : '')}
+                                placeholder="2023"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Image Upload */}
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Cover Image
+                        </label>
+                        <ImageUpload
+                          onUpload={setImageUrl}
+                          currentImageUrl={imageUrl}
+                        />
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+              ) : (
+                // Original Tab-based Form
+                <Tabs defaultValue="basic" className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="basic">Basic Info</TabsTrigger>
                   <TabsTrigger value="content">Content</TabsTrigger>
@@ -684,7 +972,9 @@ const NewInsight = () => {
                   )}
                 </TabsContent>
               </Tabs>
+              )}
 
+              {/* Form Action Buttons */}
               <div className="pt-4 border-t flex gap-3">
                 <Button 
                   type="button" 
@@ -709,6 +999,9 @@ const NewInsight = () => {
         </Card>
 
         {/* Preview functionality will be added in future update */}
+        
+        {/* Feature Flag Debug Panel (development only) */}
+        <FeatureFlagDebugPanel />
       </div>
     </div>
   );
