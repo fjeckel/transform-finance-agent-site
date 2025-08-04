@@ -42,13 +42,12 @@ export const useFeatureFlags = () => {
       }
 
       // Admin users get all features enabled by default
-      // Rich text editor disabled by default until loading issues are resolved
       if (user?.email && ADMIN_EMAILS.includes(user.email)) {
         setFlags(prev => ({
           ...prev,
-          // richTextEditor: true,  // Disabled until loading issues fixed
-          // richTextEditorInsights: true,
-          // richTextEditorEpisodes: true,
+          richTextEditor: true,
+          richTextEditorInsights: true,
+          richTextEditorEpisodes: true,
           simplifiedForms: true,
           contentMigration: true
         }))
