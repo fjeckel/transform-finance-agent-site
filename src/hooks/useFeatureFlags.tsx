@@ -42,7 +42,8 @@ export const useFeatureFlags = () => {
       }
 
       // Admin users get all features enabled by default
-      if (user?.email && ADMIN_EMAILS.includes(user.email)) {
+      // TEMPORARILY DISABLED FOR DEBUGGING
+      if (false && user?.email && ADMIN_EMAILS.includes(user.email)) {
         setFlags(prev => ({
           ...prev,
           richTextEditor: true,
