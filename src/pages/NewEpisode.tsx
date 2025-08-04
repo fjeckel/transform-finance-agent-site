@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Save, Send, FileText, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { AdaptiveRichTextEditor } from '@/components/ui/adaptive-rich-text-editor';
+import { useRichTextEditor } from '@/hooks/useFeatureFlags';
 import {
   Select,
   SelectTrigger,
@@ -69,6 +71,7 @@ const NewEpisode = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const isUsingRichTextEditor = useRichTextEditor('episodes');
 
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -216,25 +219,33 @@ const NewEpisode = () => {
     setGeneralError('');
     
     try {
+      // Prepare insert data
+      const insertData: any = {
+        title: title || 'Untitled Episode',
+        slug: slug || slugify(title || 'untitled-episode'),
+        description,
+        content,
+        summary: summary || null,
+        transcript: transcript || null,
+        season,
+        episode_number: episodeNumber,
+        series,
+        publish_date: publishDate ? new Date(publishDate).toISOString() : null,
+        status: 'draft',
+        image_url: imageUrl || null,
+        audio_url: audioUrl || null,
+        duration: duration || null,
+        created_by: user?.id || null,
+      };
+
+      // Only add content_format if using rich text editor (for backward compatibility)
+      if (isUsingRichTextEditor) {
+        insertData.content_format = 'html';
+      }
+
       const { data: episode, error } = await supabase
         .from('episodes')
-        .insert({
-          title: title || 'Untitled Episode',
-          slug: slug || slugify(title || 'untitled-episode'),
-          description,
-          content,
-          summary: summary || null,
-          transcript: transcript || null,
-          season,
-          episode_number: episodeNumber,
-          series,
-          publish_date: publishDate ? new Date(publishDate).toISOString() : null,
-          status: 'draft',
-          image_url: imageUrl || null,
-          audio_url: audioUrl || null,
-          duration: duration || null,
-          created_by: user?.id || null,
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -334,26 +345,34 @@ const NewEpisode = () => {
     
     setLoading(true);
     try {
+      // Prepare insert data
+      const insertData: any = {
+        title,
+        slug,
+        description,
+        content,
+        summary: summary || null,
+        transcript: transcript || null,
+        season,
+        episode_number: episodeNumber,
+        series,
+        publish_date: publishDate ? new Date(publishDate).toISOString() : null,
+        status,
+        image_url: imageUrl || null,
+        audio_url: audioUrl || null,
+        duration: duration || null,
+        created_by: user?.id || null,
+      };
+
+      // Only add content_format if using rich text editor (for backward compatibility)
+      if (isUsingRichTextEditor) {
+        insertData.content_format = 'html';
+      }
+
       // Create episode first
       const { data: episode, error: episodeError } = await supabase
         .from('episodes')
-        .insert({
-          title,
-          slug,
-          description,
-          content,
-          summary: summary || null,
-          transcript: transcript || null,
-          season,
-          episode_number: episodeNumber,
-          series,
-          publish_date: publishDate ? new Date(publishDate).toISOString() : null,
-          status,
-          image_url: imageUrl || null,
-          audio_url: audioUrl || null,
-          duration: duration || null,
-          created_by: user?.id || null,
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -565,16 +584,27 @@ const NewEpisode = () => {
                 <label htmlFor="description" className="block text-sm font-medium mb-1">
                   Description
                 </label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="min-h-[80px]"
-                  placeholder="Short episode preview for listings (max 1000 characters)..."
-                  maxLength={1000}
-                  aria-invalid={!!validationErrors.description}
-                  aria-describedby={validationErrors.description ? "description-error" : undefined}
-                />
+                {isUsingRichTextEditor ? (
+                  <AdaptiveRichTextEditor
+                    content={description}
+                    onChange={setDescription}
+                    placeholder="Short episode preview for listings (max 1000 characters)..."
+                    className="min-h-[80px]"
+                    maxLength={1000}
+                    disabled={loading}
+                  />
+                ) : (
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="min-h-[80px]"
+                    placeholder="Short episode preview for listings (max 1000 characters)..."
+                    maxLength={1000}
+                    aria-invalid={!!validationErrors.description}
+                    aria-describedby={validationErrors.description ? "description-error" : undefined}
+                  />
+                )}
                 <div className="flex justify-between mt-1">
                   <FormFieldError id="description-error" error={validationErrors.description} />
                   <span className="text-xs text-muted-foreground">{description.length}/1000</span>
@@ -584,14 +614,25 @@ const NewEpisode = () => {
                 <label htmlFor="summary" className="block text-sm font-medium mb-1">
                   Episode Summary
                 </label>
-                <Textarea
-                  id="summary"
-                  value={summary}
-                  onChange={(e) => setSummary(e.target.value)}
-                  className="min-h-[100px]"
-                  placeholder="Concise episode summary (500-2000 characters) highlighting key takeaways..."
-                  maxLength={2000}
-                />
+                {isUsingRichTextEditor ? (
+                  <AdaptiveRichTextEditor
+                    content={summary}
+                    onChange={setSummary}
+                    placeholder="Concise episode summary (500-2000 characters) highlighting key takeaways..."
+                    className="min-h-[100px]"
+                    maxLength={2000}
+                    disabled={loading}
+                  />
+                ) : (
+                  <Textarea
+                    id="summary"
+                    value={summary}
+                    onChange={(e) => setSummary(e.target.value)}
+                    className="min-h-[100px]"
+                    placeholder="Concise episode summary (500-2000 characters) highlighting key takeaways..."
+                    maxLength={2000}
+                  />
+                )}
                 <div className="flex justify-between mt-1">
                   <p className="text-xs text-muted-foreground">
                     This summary will be displayed on the episode page to give listeners an overview of key points.
@@ -634,16 +675,27 @@ const NewEpisode = () => {
                     <label htmlFor="content" className="block text-sm font-medium mb-1">
                       Episode Content
                     </label>
-                    <Textarea
-                      id="content"
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      className="min-h-[120px]"
-                      placeholder="Episode content, summary, and notes (max 10000 characters)..."
-                      maxLength={10000}
-                      aria-invalid={!!validationErrors.content}
-                      aria-describedby={validationErrors.content ? "content-error" : undefined}
-                    />
+                    {isUsingRichTextEditor ? (
+                      <AdaptiveRichTextEditor
+                        content={content}
+                        onChange={setContent}
+                        placeholder="Episode content, summary, and notes (max 10000 characters)..."
+                        className="min-h-[120px]"
+                        maxLength={10000}
+                        disabled={loading}
+                      />
+                    ) : (
+                      <Textarea
+                        id="content"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        className="min-h-[120px]"
+                        placeholder="Episode content, summary, and notes (max 10000 characters)..."
+                        maxLength={10000}
+                        aria-invalid={!!validationErrors.content}
+                        aria-describedby={validationErrors.content ? "content-error" : undefined}
+                      />
+                    )}
                     <div className="flex justify-between mt-1">
                       <FormFieldError id="content-error" error={validationErrors.content} />
                       <span className="text-xs text-muted-foreground">{content.length}/10000</span>
@@ -653,13 +705,23 @@ const NewEpisode = () => {
                     <label htmlFor="transcript" className="block text-sm font-medium mb-1">
                       Episode Transcript
                     </label>
-                    <Textarea
-                      id="transcript"
-                      value={transcript}
-                      onChange={(e) => setTranscript(e.target.value)}
-                      className="min-h-[200px]"
-                      placeholder="Full episode transcript..."
-                    />
+                    {isUsingRichTextEditor ? (
+                      <AdaptiveRichTextEditor
+                        content={transcript}
+                        onChange={setTranscript}
+                        placeholder="Full episode transcript..."
+                        className="min-h-[200px]"
+                        disabled={loading}
+                      />
+                    ) : (
+                      <Textarea
+                        id="transcript"
+                        value={transcript}
+                        onChange={(e) => setTranscript(e.target.value)}
+                        className="min-h-[200px]"
+                        placeholder="Full episode transcript..."
+                      />
+                    )}
                   </div>
                   <ShowNotesManager
                     value={showNotes}

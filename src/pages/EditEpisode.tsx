@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { AdaptiveRichTextEditor } from '@/components/ui/adaptive-rich-text-editor';
+import { useRichTextEditor } from '@/hooks/useFeatureFlags';
 import {
   Select,
   SelectTrigger,
@@ -39,6 +41,7 @@ const EditEpisode = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const isUsingRichTextEditor = useRichTextEditor('episodes');
 
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -168,26 +171,34 @@ const EditEpisode = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      // Prepare update data
+      const updateData: any = {
+        title,
+        slug,
+        description,
+        content,
+        summary: summary || null,
+        transcript: transcript || null,
+        season,
+        episode_number: episodeNumber,
+        series,
+        publish_date: publishDate ? new Date(publishDate).toISOString() : null,
+        status,
+        audio_url: audioUrl || null,
+        image_url: imageUrl || null,
+        duration: duration || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Only add content_format if using rich text editor (for backward compatibility)
+      if (isUsingRichTextEditor) {
+        updateData.content_format = 'html';
+      }
+
       // Update episode
       const { error: episodeError } = await supabase
         .from('episodes')
-        .update({
-          title,
-          slug,
-          description,
-          content,
-          summary: summary || null,
-          transcript: transcript || null,
-          season,
-          episode_number: episodeNumber,
-          series,
-          publish_date: publishDate ? new Date(publishDate).toISOString() : null,
-          status,
-          audio_url: audioUrl || null,
-          image_url: imageUrl || null,
-          duration: duration || null,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', id);
 
       if (episodeError) throw episodeError;
@@ -374,25 +385,45 @@ const EditEpisode = () => {
                 <label htmlFor="description" className="block text-sm font-medium mb-1">
                   Description
                 </label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="min-h-[80px]"
-                  placeholder="Short episode preview for listings..."
-                />
+                {isUsingRichTextEditor ? (
+                  <AdaptiveRichTextEditor
+                    content={description}
+                    onChange={setDescription}
+                    placeholder="Short episode preview for listings..."
+                    className="min-h-[80px]"
+                    disabled={loading}
+                  />
+                ) : (
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="min-h-[80px]"
+                    placeholder="Short episode preview for listings..."
+                  />
+                )}
               </div>
               <div>
                 <label htmlFor="summary" className="block text-sm font-medium mb-1">
                   Episode Summary
                 </label>
-                <Textarea
-                  id="summary"
-                  value={summary}
-                  onChange={(e) => setSummary(e.target.value)}
-                  className="min-h-[100px]"
-                  placeholder="Concise episode summary (500-2000 characters) highlighting key takeaways..."
-                />
+                {isUsingRichTextEditor ? (
+                  <AdaptiveRichTextEditor
+                    content={summary}
+                    onChange={setSummary}
+                    placeholder="Concise episode summary (500-2000 characters) highlighting key takeaways..."
+                    className="min-h-[100px]"
+                    disabled={loading}
+                  />
+                ) : (
+                  <Textarea
+                    id="summary"
+                    value={summary}
+                    onChange={(e) => setSummary(e.target.value)}
+                    className="min-h-[100px]"
+                    placeholder="Concise episode summary (500-2000 characters) highlighting key takeaways..."
+                  />
+                )}
                 <p className="text-xs text-muted-foreground mt-1">
                   This summary will be displayed on the episode page to give listeners an overview of key points.
                 </p>
@@ -454,25 +485,45 @@ const EditEpisode = () => {
                     <label htmlFor="content" className="block text-sm font-medium mb-1">
                       Episode Content
                     </label>
-                    <Textarea
-                      id="content"
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      className="min-h-[120px]"
-                      placeholder="Episode content, summary, and notes..."
-                    />
+                    {isUsingRichTextEditor ? (
+                      <AdaptiveRichTextEditor
+                        content={content}
+                        onChange={setContent}
+                        placeholder="Episode content, summary, and notes..."
+                        className="min-h-[120px]"
+                        disabled={loading}
+                      />
+                    ) : (
+                      <Textarea
+                        id="content"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        className="min-h-[120px]"
+                        placeholder="Episode content, summary, and notes..."
+                      />
+                    )}
                   </div>
                   <div>
                     <label htmlFor="transcript" className="block text-sm font-medium mb-1">
                       Episode Transcript
                     </label>
-                    <Textarea
-                      id="transcript"
-                      value={transcript}
-                      onChange={(e) => setTranscript(e.target.value)}
-                      className="min-h-[200px]"
-                      placeholder="Full episode transcript..."
-                    />
+                    {isUsingRichTextEditor ? (
+                      <AdaptiveRichTextEditor
+                        content={transcript}
+                        onChange={setTranscript}
+                        placeholder="Full episode transcript..."
+                        className="min-h-[200px]"
+                        disabled={loading}
+                      />
+                    ) : (
+                      <Textarea
+                        id="transcript"
+                        value={transcript}
+                        onChange={(e) => setTranscript(e.target.value)}
+                        className="min-h-[200px]"
+                        placeholder="Full episode transcript..."
+                      />
+                    )}
                   </div>
                   <ShowNotesManager
                     value={showNotes}
