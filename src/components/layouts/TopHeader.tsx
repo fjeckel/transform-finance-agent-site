@@ -14,10 +14,12 @@ import {
 } from '@/components/ui/breadcrumb';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useGlobalSearch } from '@/hooks/useGlobalSearch';
 
 export function TopHeader() {
   const location = useLocation();
   const { t } = useTranslation('common');
+  const { performSearch } = useGlobalSearch();
 
   // Generate breadcrumb based on current path
   const generateBreadcrumb = () => {
@@ -65,7 +67,7 @@ export function TopHeader() {
       {/* Right side controls */}
       <div className="ml-auto flex items-center gap-2 px-4">
         <div className="hidden md:block">
-          <SearchBox />
+          <SearchBox onSearch={performSearch} />
         </div>
         <LanguageSwitcher />
         <ThemeToggle />

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { useNavigate } from 'react-router-dom';
 
 interface SearchBoxProps {
   mobile?: boolean;
@@ -9,18 +10,60 @@ interface SearchBoxProps {
   className?: string;
   onSearch?: (query: string) => void;
   placeholder?: string;
+  debounceMs?: number;
 }
 
 export const SearchBox: React.FC<SearchBoxProps> = ({ 
   onSearch, 
-  placeholder = "Search...",
-  className = ""
+  placeholder = "Search episodes, insights...",
+  className = "",
+  debounceMs = 300
 }) => {
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const navigate = useNavigate();
 
-  const handleSearch = (value: string) => {
+  // Debounce the search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, debounceMs);
+
+    return () => clearTimeout(timer);
+  }, [query, debounceMs]);
+
+  // Call onSearch when debounced query changes
+  useEffect(() => {
+    if (onSearch && debouncedQuery !== query) {
+      onSearch(debouncedQuery);
+    }
+  }, [debouncedQuery, onSearch]);
+
+  const handleInputChange = (value: string) => {
     setQuery(value);
-    onSearch?.(value);
+  };
+
+  const handleClearSearch = () => {
+    setQuery('');
+    setDebouncedQuery('');
+    onSearch?.('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && query.trim()) {
+      // Navigate to search results - check current page and navigate accordingly
+      const currentPath = window.location.pathname;
+      if (currentPath.startsWith('/insights')) {
+        // Already on insights page, just trigger search
+        onSearch?.(query);
+      } else if (currentPath.startsWith('/episodes')) {
+        // Already on episodes page, just trigger search
+        onSearch?.(query);
+      } else {
+        // Navigate to episodes page with search
+        navigate(`/episodes?search=${encodeURIComponent(query)}`);
+      }
+    }
   };
 
   return (
@@ -30,9 +73,19 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
         type="text"
         placeholder={placeholder}
         value={query}
-        onChange={(e) => handleSearch(e.target.value)}
-        className="pl-10"
+        onChange={(e) => handleInputChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+        className="pl-10 pr-10"
       />
+      {query && (
+        <button
+          onClick={handleClearSearch}
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="Clear search"
+        >
+          <X size={18} />
+        </button>
+      )}
     </div>
   );
 };
