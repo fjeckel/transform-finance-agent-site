@@ -175,7 +175,7 @@ const Insights = () => {
                           src={insight.image_url} 
                           alt={insight.title}
                           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
-                          onDoubleClick={() => navigate(`/insights/${insight.slug}`)}
+                          onClick={() => navigate(`/insights/${insight.slug}`)}
                         />
                       )}
                       <div className="absolute top-4 left-4">
@@ -316,12 +316,12 @@ const Insights = () => {
                       src={insight.thumbnail_url || insight.image_url} 
                       alt={insight.title}
                       className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
-                      onDoubleClick={() => navigate(`/insights/${insight.slug}`)}
+                      onClick={() => navigate(`/insights/${insight.slug}`)}
                     />
                   ) : (
                     <div 
                       className="w-full h-48 bg-gradient-to-br from-[#13B87B]/10 to-[#003FA5]/10 flex items-center justify-center cursor-pointer"
-                      onDoubleClick={() => navigate(`/insights/${insight.slug}`)}
+                      onClick={() => navigate(`/insights/${insight.slug}`)}
                     >
                       <TypeIcon size={48} className="text-muted-foreground" />
                     </div>
