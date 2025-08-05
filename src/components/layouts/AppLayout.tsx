@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { TopHeader } from './TopHeader';
 import { BottomNavigation } from '@/components/ui/bottom-navigation';
+import { MobileSearch } from '@/components/ui/mobile-search';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -10,6 +11,8 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children, showSidebar = true }: AppLayoutProps) {
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full">
@@ -21,8 +24,10 @@ export function AppLayout({ children, showSidebar = true }: AppLayoutProps) {
           </main>
         </SidebarInset>
       </div>
-      {/* Keep the existing mobile bottom navigation */}
-      <BottomNavigation />
+      {/* Mobile bottom navigation with search trigger */}
+      <BottomNavigation onSearchOpen={() => setMobileSearchOpen(true)} />
+      {/* Global mobile search modal */}
+      <MobileSearch open={mobileSearchOpen} onOpenChange={setMobileSearchOpen} />
     </SidebarProvider>
   );
 }

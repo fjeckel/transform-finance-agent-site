@@ -8,11 +8,9 @@ import { useMainPageSections } from '@/hooks/useMainPageSections';
 import { Skeleton } from '@/components/ui/skeleton';
 import TimTeuscherSection from '@/components/TimTeuscherSection';
 import FabianJeckelSection from '@/components/FabianJeckelSection';
-import { MobileSearch } from '@/components/ui/mobile-search';
 
 const Index = () => {
   const { data: sections, isLoading } = useMainPageSections();
-  const [searchOpen, setSearchOpen] = useState(false);
   
   // Debug: Log sections to console
   React.useEffect(() => {
@@ -62,9 +60,6 @@ const Index = () => {
         {/* Footer */}
         <Footer />
       </div>
-      
-      {/* Mobile Search */}
-      <MobileSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </div>
   );
 };

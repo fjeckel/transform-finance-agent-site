@@ -1,7 +1,7 @@
 import React from 'react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
-import { SearchBox } from '@/components/ui/search-box';
+import { EnhancedSearch } from '@/components/ui/enhanced-search';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import {
@@ -14,12 +14,10 @@ import {
 } from '@/components/ui/breadcrumb';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useGlobalSearch } from '@/hooks/useGlobalSearch';
 
 export function TopHeader() {
   const location = useLocation();
   const { t } = useTranslation('common');
-  const { performSearch } = useGlobalSearch();
 
   // Generate breadcrumb based on current path
   const generateBreadcrumb = () => {
@@ -66,8 +64,8 @@ export function TopHeader() {
       
       {/* Right side controls */}
       <div className="ml-auto flex items-center gap-2 px-4">
-        <div className="hidden md:block">
-          <SearchBox onSearch={performSearch} />
+        <div className="hidden md:block min-w-[300px]">
+          <EnhancedSearch placeholder="Episoden, Insights durchsuchen..." />
         </div>
         <LanguageSwitcher />
         <ThemeToggle />

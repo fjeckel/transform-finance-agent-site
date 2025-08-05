@@ -18,7 +18,6 @@ import { usePdfs } from '@/hooks/usePdfs';
 import { SimplePDFCard } from '@/components/purchase/SimplePurchaseButton';
 import { Input } from '@/components/ui/input';
 import RssSubscribeButton from '@/components/RssSubscribeButton';
-import { MobileSearch } from '@/components/ui/mobile-search';
 import { SafeHtmlRenderer } from '@/lib/content-security';
 import { useGlobalSearch } from '@/hooks/useGlobalSearch';
 
@@ -33,7 +32,6 @@ const Episodes = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [displayCount, setDisplayCount] = useState<number>(9); // Show 9 episodes initially
   const [pdfsDisplayCount, setPdfsDisplayCount] = useState<number>(9); // Show 9 PDFs initially
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   // Initialize search from URL parameters or global search
   useEffect(() => {
@@ -587,9 +585,6 @@ const Episodes = () => {
           </Tabs>
         </div>
       </div>
-      
-      {/* Mobile Search */}
-      <MobileSearch open={mobileSearchOpen} onOpenChange={setMobileSearchOpen} />
     </div>
   );
 };
