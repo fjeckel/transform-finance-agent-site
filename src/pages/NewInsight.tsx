@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { FormFieldError, AutoSaveIndicator } from '@/components/ui/form-field-error';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { TranslationPanel } from '@/components/ui/translation-panel';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { supabase } from '@/integrations/supabase/client';
@@ -68,6 +69,7 @@ const NewInsight = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [categories, setCategories] = useState<any[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [insightId, setInsightId] = useState<string | null>(null);
 
   // Feature flags
   const useRichEditor = useRichTextEditor('insights');
@@ -238,9 +240,12 @@ const NewInsight = () => {
 
       if (error) throw error;
 
+      // Set insight ID for translations
+      setInsightId(insight.id);
+
       toast({ 
         title: 'Draft Saved', 
-        description: 'Your insight has been saved as a draft.'
+        description: 'Your insight has been saved as a draft. You can now add translations.'
       });
       
       localStorage.removeItem('autosave_new-insight');
@@ -309,6 +314,9 @@ const NewInsight = () => {
         .single();
 
       if (insightError) throw insightError;
+
+      // Set insight ID for translations
+      setInsightId(insight.id);
 
       toast({ title: 'Insight Created', description: 'New insight has been created successfully.' });
       
@@ -684,11 +692,12 @@ const NewInsight = () => {
               ) : (
                 // Original Tab-based Form
                 <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="basic">Basic Info</TabsTrigger>
                   <TabsTrigger value="content">Content</TabsTrigger>
                   <TabsTrigger value="media">Media</TabsTrigger>
                   <TabsTrigger value="book">Book Details</TabsTrigger>
+                  <TabsTrigger value="translations">Translations</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="basic" className="space-y-4 mt-6">
@@ -982,6 +991,46 @@ const NewInsight = () => {
                       <BookOpen size={48} className="mx-auto mb-4 text-gray-300" />
                       <p>Book details are only available for Book Summary insights.</p>
                       <p>Change the insight type to "Book Summary" to add book information.</p>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="translations" className="space-y-4 mt-6">
+                  {insightId ? (
+                    <TranslationPanel
+                      contentId={insightId}
+                      contentType="insight"
+                      currentLanguage="de"
+                      fields={['title', 'subtitle', 'description', 'content', 'summary', 'book_title']}
+                      originalContent={{
+                        title,
+                        subtitle,
+                        description,
+                        content,
+                        summary,
+                        book_title: bookTitle
+                      }}
+                      onTranslationUpdate={(language, translations) => {
+                        toast({
+                          title: "Translation Updated",
+                          description: `Translation to ${language} has been updated successfully.`,
+                        });
+                      }}
+                    />
+                  ) : (
+                    <div className="text-center py-12">
+                      <p className="text-muted-foreground mb-4">
+                        Save the insight as a draft first to enable translations
+                      </p>
+                      <Button 
+                        type="button" 
+                        variant="outline"
+                        onClick={handleSaveAsDraft}
+                        disabled={loading || !title}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Save as Draft
+                      </Button>
                     </div>
                   )}
                 </TabsContent>

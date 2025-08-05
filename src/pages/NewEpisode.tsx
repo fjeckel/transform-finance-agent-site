@@ -23,6 +23,7 @@ import { GuestManager } from '@/components/ui/guest-manager';
 import { PlatformLinksManager } from '@/components/ui/platform-links-manager';
 import { PreviewModal } from '@/components/ui/preview-modal';
 import { FormFieldError, AutoSaveIndicator } from '@/components/ui/form-field-error';
+import { TranslationPanel } from '@/components/ui/translation-panel';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { supabase } from '@/integrations/supabase/client';
@@ -95,6 +96,7 @@ const NewEpisode = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string>('');
   const [isAdminUser, setIsAdminUser] = useState<boolean | null>(null);
+  const [episodeId, setEpisodeId] = useState<string | null>(null);
 
   // Auto-save functionality
   const formData = {
@@ -264,9 +266,12 @@ const NewEpisode = () => {
       // Save related data...
       await saveRelatedData(episode.id);
 
+      // Set episode ID for translations
+      setEpisodeId(episode.id);
+
       toast({ 
         title: 'Draft Saved', 
-        description: 'Your episode has been saved as a draft.'
+        description: 'Your episode has been saved as a draft. You can now add translations.'
       });
       
       localStorage.removeItem('autosave_new-episode');
@@ -390,6 +395,9 @@ const NewEpisode = () => {
 
       await saveRelatedData(episode.id);
 
+      // Set episode ID for translations
+      setEpisodeId(episode.id);
+
       toast({ title: 'Episode Created', description: 'New episode has been created successfully.' });
       
       // Clear auto-save data
@@ -466,11 +474,12 @@ const NewEpisode = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="basic">Basic Info</TabsTrigger>
                   <TabsTrigger value="media">Media</TabsTrigger>
                   <TabsTrigger value="content">Content</TabsTrigger>
                   <TabsTrigger value="advanced">Advanced</TabsTrigger>
+                  <TabsTrigger value="translations">Translations</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="basic" className="space-y-4 mt-6">
@@ -748,6 +757,44 @@ const NewEpisode = () => {
                     onChange={setPlatformLinks}
                     disabled={loading}
                   />
+                </TabsContent>
+
+                <TabsContent value="translations" className="space-y-4 mt-6">
+                  {episodeId ? (
+                    <TranslationPanel
+                      contentId={episodeId}
+                      contentType="episode"
+                      currentLanguage="de"
+                      fields={['title', 'description', 'content', 'summary']}
+                      originalContent={{
+                        title,
+                        description,
+                        content,
+                        summary
+                      }}
+                      onTranslationUpdate={(language, translations) => {
+                        toast({
+                          title: "Translation Updated",
+                          description: `Translation to ${language} has been updated successfully.`,
+                        });
+                      }}
+                    />
+                  ) : (
+                    <div className="text-center py-12">
+                      <p className="text-muted-foreground mb-4">
+                        Save the episode as a draft first to enable translations
+                      </p>
+                      <Button 
+                        type="button" 
+                        variant="outline"
+                        onClick={handleSaveAsDraft}
+                        disabled={loading || !title}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Save as Draft
+                      </Button>
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
 

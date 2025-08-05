@@ -1,0 +1,17 @@
+{
+  "name": "episode-content-uploader",
+  "version": "1.0.0",
+  "description": "Bulk upload tool for episode content with AI translation",
+  "type": "module",
+  "main": "bulk-episode-upload.js",
+  "scripts": {
+    "upload": "node bulk-episode-upload.js",
+    "test-upload": "node bulk-episode-upload.js --test"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

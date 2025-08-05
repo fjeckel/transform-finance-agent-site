@@ -37,6 +37,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface TranslationConfig {
   openai_api_key?: string;
+  claude_api_key?: string;
+  default_provider: 'openai' | 'claude';
   default_model: string;
   auto_translate_enabled: boolean;
   auto_translate_fields: string[];
@@ -46,10 +48,27 @@ interface TranslationConfig {
   supported_languages: string[];
 }
 
-const AVAILABLE_MODELS = [
-  { value: 'gpt-4o-mini', label: 'GPT-4o Mini', cost: 'Low cost', description: 'Best for most translations' },
-  { value: 'gpt-4o', label: 'GPT-4o', cost: 'Higher cost', description: 'Premium quality translations' },
-  { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', cost: 'Lowest cost', description: 'Basic translations' },
+const AVAILABLE_PROVIDERS = [
+  { 
+    value: 'openai', 
+    label: 'OpenAI', 
+    description: 'Reliable and consistent translations',
+    models: [
+      { value: 'gpt-4o-mini', label: 'GPT-4o Mini', cost: 'Low cost', description: 'Best for most translations' },
+      { value: 'gpt-4o', label: 'GPT-4o', cost: 'Higher cost', description: 'Premium quality translations' },
+      { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', cost: 'Lowest cost', description: 'Basic translations' },
+    ]
+  },
+  { 
+    value: 'claude', 
+    label: 'Anthropic Claude', 
+    description: 'Excellent for creative and nuanced content',
+    models: [
+      { value: 'claude-3-5-haiku-20241022', label: 'Claude 3.5 Haiku', cost: 'Very low cost', description: 'Fast and cost-effective' },
+      { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet', cost: 'Medium cost', description: 'Best quality-to-cost ratio' },
+      { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus', cost: 'Higher cost', description: 'Highest quality translations' },
+    ]
+  }
 ];
 
 const LANGUAGES = [
@@ -70,6 +89,7 @@ const TRANSLATION_FIELDS = [
 
 export const TranslationSettings: React.FC = () => {
   const [config, setConfig] = useState<TranslationConfig>({
+    default_provider: 'openai',
     default_model: 'gpt-4o-mini',
     auto_translate_enabled: false,
     auto_translate_fields: ['title', 'description'],
@@ -79,8 +99,10 @@ export const TranslationSettings: React.FC = () => {
     supported_languages: ['en', 'fr', 'es'],
   });
 
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [apiKeyStatus, setApiKeyStatus] = useState<'unknown' | 'valid' | 'invalid'>('unknown');
+  const [showOpenAiKey, setShowOpenAiKey] = useState(false);
+  const [showClaudeKey, setShowClaudeKey] = useState(false);
+  const [openAiKeyStatus, setOpenAiKeyStatus] = useState<'unknown' | 'valid' | 'invalid'>('unknown');
+  const [claudeKeyStatus, setClaudeKeyStatus] = useState<'unknown' | 'valid' | 'invalid'>('unknown');
 
   // Test API key mutation
   const testApiKeyMutation = useMutation({

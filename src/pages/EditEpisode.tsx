@@ -21,6 +21,7 @@ import { GuestManager } from '@/components/ui/guest-manager';
 import { PlatformLinksManager } from '@/components/ui/platform-links-manager';
 import { PreviewModal } from '@/components/ui/preview-modal';
 import { FormFieldError, AutoSaveIndicator } from '@/components/ui/form-field-error';
+import { TranslationPanel } from '@/components/ui/translation-panel';
 import { FormSkeleton } from '@/components/ui/loading-skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/useAutoSave';
@@ -283,11 +284,12 @@ const EditEpisode = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="basic">Basic Info</TabsTrigger>
                   <TabsTrigger value="media">Media</TabsTrigger>
                   <TabsTrigger value="content">Content</TabsTrigger>
                   <TabsTrigger value="advanced">Advanced</TabsTrigger>
+                  <TabsTrigger value="translations">Translations</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="basic" className="space-y-4 mt-6">
@@ -542,6 +544,27 @@ const EditEpisode = () => {
                     value={platformLinks}
                     onChange={setPlatformLinks}
                     disabled={loading}
+                  />
+                </TabsContent>
+
+                <TabsContent value="translations" className="space-y-4 mt-6">
+                  <TranslationPanel
+                    contentId={id!}
+                    contentType="episode"
+                    currentLanguage="de"
+                    fields={['title', 'description', 'content', 'summary']}
+                    originalContent={{
+                      title,
+                      description,
+                      content,
+                      summary
+                    }}
+                    onTranslationUpdate={(language, translations) => {
+                      toast({
+                        title: "Translation Updated",
+                        description: `Translation to ${language} has been updated successfully.`,
+                      });
+                    }}
                   />
                 </TabsContent>
               </Tabs>

@@ -45,6 +45,8 @@ const BulkUploadEpisodes = lazy(() => import("./pages/BulkUploadEpisodes"));
 const AdminInsights = lazy(() => import("./pages/AdminInsights"));
 const NewInsight = lazy(() => import("./pages/NewInsight"));
 const EditInsight = lazy(() => import("./pages/EditInsight"));
+const AdminOverview = lazy(() => import("./pages/AdminOverview"));
+const AdminTranslations = lazy(() => import("./pages/AdminTranslations"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -127,6 +129,8 @@ const App = () => {
                   <Route path="/admin/insights" element={<AppLayout><AdminRoute><AdminInsights /></AdminRoute></AppLayout>} />
                   <Route path="/admin/insights/new" element={<AppLayout><AdminRoute><NewInsight /></AdminRoute></AppLayout>} />
                   <Route path="/admin/insights/:id/edit" element={<AppLayout><AdminRoute><EditInsight /></AdminRoute></AppLayout>} />
+                  <Route path="/admin/overview" element={<AppLayout><AdminRoute><AdminOverview /></AdminRoute></AppLayout>} />
+                  <Route path="/admin/translations" element={<AppLayout><AdminRoute><AdminTranslations /></AdminRoute></AppLayout>} />
                   
                   {/* Routes without sidebar (standalone pages) */}
                   <Route path="/auth" element={<Auth />} />

@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { FormFieldError, AutoSaveIndicator } from '@/components/ui/form-field-error';
 import { FormSkeleton } from '@/components/ui/loading-skeleton';
+import { TranslationPanel } from '@/components/ui/translation-panel';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { supabase } from '@/integrations/supabase/client';
@@ -261,11 +262,12 @@ const EditInsight = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="basic">Basic Info</TabsTrigger>
                   <TabsTrigger value="content">Content</TabsTrigger>
                   <TabsTrigger value="media">Media</TabsTrigger>
                   <TabsTrigger value="book">Book Details</TabsTrigger>
+                  <TabsTrigger value="translations">Translations</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="basic" className="space-y-4 mt-6">
@@ -561,6 +563,29 @@ const EditInsight = () => {
                       <p>Change the insight type to "Book Summary" to add book information.</p>
                     </div>
                   )}
+                </TabsContent>
+
+                <TabsContent value="translations" className="space-y-4 mt-6">
+                  <TranslationPanel
+                    contentId={id!}
+                    contentType="insight"
+                    currentLanguage="de"
+                    fields={['title', 'subtitle', 'description', 'content', 'summary', 'book_title']}
+                    originalContent={{
+                      title,
+                      subtitle,
+                      description,
+                      content,
+                      summary,
+                      book_title: bookTitle
+                    }}
+                    onTranslationUpdate={(language, translations) => {
+                      toast({
+                        title: "Translation Updated",
+                        description: `Translation to ${language} has been updated successfully.`,
+                      });
+                    }}
+                  />
                 </TabsContent>
               </Tabs>
 

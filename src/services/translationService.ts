@@ -6,6 +6,7 @@ export interface TranslationRequest {
   targetLanguage: string;
   fields: string[];
   priority?: 'high' | 'medium' | 'low';
+  aiProvider?: 'openai' | 'claude';
 }
 
 export interface BatchTranslationRequest {
@@ -15,6 +16,7 @@ export interface BatchTranslationRequest {
   fields: string[];
   priority?: 'high' | 'medium' | 'low';
   maxItems?: number;
+  aiProvider?: 'openai' | 'claude';
 }
 
 export interface TranslationResult {
@@ -75,7 +77,8 @@ class TranslationService {
    */
   async translateContent(request: TranslationRequest): Promise<TranslationResult> {
     try {
-      const result = await this.callEdgeFunction('translate-content', request);
+      const functionName = request.aiProvider === 'claude' ? 'translate-content-claude' : 'translate-content';
+      const result = await this.callEdgeFunction(functionName, request);
       return result;
     } catch (error) {
       return {
