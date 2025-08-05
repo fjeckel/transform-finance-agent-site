@@ -91,9 +91,23 @@ export const FieldTranslationSelector: React.FC<FieldTranslationSelectorProps> =
         .eq('language_code', selectedLanguage)
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-        console.error('Error loading translations:', error);
-        return;
+      if (error) {
+        // Handle different error cases gracefully
+        if (error.code === 'PGRST116') {
+          // No translations found - this is fine
+          return;
+        } else if (error.code === '42P01') {
+          // Table doesn't exist - translation system not set up yet
+          console.log('Translation tables not available yet');
+          return;
+        } else if (error.message.includes('406') || error.message.includes('schema')) {
+          // Schema mismatch - gracefully handle
+          console.log('Translation schema not ready yet');
+          return;
+        } else {
+          console.error('Error loading translations:', error);
+          return;
+        }
       }
 
       if (data) {
@@ -155,13 +169,23 @@ export const FieldTranslationSelector: React.FC<FieldTranslationSelectorProps> =
       const idField = `${contentType}_id`;
       const value = translations[fieldName]?.[selectedLanguage] || '';
 
-      // Check if translation record exists
-      const { data: existing } = await supabase
+      // Check if translation record exists (with error handling)
+      const { data: existing, error: existingError } = await supabase
         .from(tableName)
         .select('id')
         .eq(idField, contentId)
         .eq('language_code', selectedLanguage)
         .single();
+
+      // If table doesn't exist, show a user-friendly message and return
+      if (existingError && (existingError.code === '42P01' || existingError.message.includes('406'))) {
+        toast({
+          title: "Translation System Unavailable",
+          description: "Translation tables are not set up yet. Please contact an administrator.",
+          variant: "destructive"
+        });
+        return;
+      }
 
       const updateData = {
         [fieldName]: value,

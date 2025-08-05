@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,12 +9,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FileText, Upload, Wand2, Eye, Globe } from 'lucide-react';
+import { FileText, Upload, Wand2, Eye, Globe, Search, RefreshCw, GitMerge, CheckSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import * as XLSX from 'xlsx';
 
 interface UploadRow {
+  id?: string; // Episode ID for updates
+  mode?: 'create' | 'update' | 'upsert'; // Operation mode
   title: string;
   description: string;
   content?: string;
@@ -31,6 +33,26 @@ interface UploadRow {
   apple?: string;
   google?: string;
   youtube?: string;
+  // Existing episode data for comparison
+  existing?: UploadRow;
+  fieldsToUpdate?: string[]; // Which fields to update
+}
+
+interface ExistingEpisode {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  content: string;
+  summary?: string;
+  series: string;
+  season: number;
+  episode_number: number;
+  status: string;
+  publish_date?: string;
+  duration?: string;
+  image_url?: string;
+  audio_url?: string;
 }
 
 interface ValidationError {
@@ -137,6 +159,7 @@ const parseUnstructuredContent = (rawContent: string): UploadRow => {
   }
 
   return {
+    mode: 'create',
     title,
     description,
     content,
@@ -144,7 +167,8 @@ const parseUnstructuredContent = (rawContent: string): UploadRow => {
     season: 1,
     episode_number: 1,
     status: 'draft',
-    summary
+    summary,
+    fieldsToUpdate: ['title', 'description', 'content', 'summary']
   };
 };
 
@@ -155,11 +179,102 @@ const BulkUploadEpisodes = () => {
   const [fileType, setFileType] = useState<'csv' | 'excel'>('excel');
   const [rawTextContent, setRawTextContent] = useState('');
   const [parsedContent, setParsedContent] = useState<UploadRow | null>(null);
+  // New state for episode enrichment
+  const [operationMode, setOperationMode] = useState<'create' | 'update' | 'upsert'>('create');
+  const [existingEpisodes, setExistingEpisodes] = useState<ExistingEpisode[]>([]);
+  const [searchingEpisodes, setSearchingEpisodes] = useState(false);
+  const [matchingStrategy, setMatchingStrategy] = useState<'slug' | 'title' | 'season_episode'>('slug');
   const [processingText, setProcessingText] = useState(false);
   const [autoTranslate, setAutoTranslate] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Load existing episodes for matching
+  const loadExistingEpisodes = async () => {
+    setSearchingEpisodes(true);
+    try {
+      const { data: episodes, error } = await supabase
+        .from('episodes')
+        .select('id, title, slug, description, content, summary, series, season, episode_number, status, publish_date, duration, image_url, audio_url')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setExistingEpisodes(episodes || []);
+    } catch (error) {
+      console.error('Failed to load existing episodes:', error);
+      toast({ title: 'Error', description: 'Failed to load existing episodes', variant: 'destructive' });
+    } finally {
+      setSearchingEpisodes(false);
+    }
+  };
+
+  // Find matching episode based on strategy
+  const findMatchingEpisode = (row: UploadRow): ExistingEpisode | null => {
+    if (!existingEpisodes.length) return null;
+
+    switch (matchingStrategy) {
+      case 'slug':
+        const slug = slugify(row.title);
+        return existingEpisodes.find(ep => ep.slug === slug) || null;
+      case 'title':
+        return existingEpisodes.find(ep => 
+          ep.title.toLowerCase().trim() === row.title.toLowerCase().trim()
+        ) || null;
+      case 'season_episode':
+        return existingEpisodes.find(ep => 
+          ep.series === row.series && 
+          ep.season === row.season && 
+          ep.episode_number === row.episode_number
+        ) || null;
+      default:
+        return null;
+    }
+  };
+
+  // Auto-detect matches and set mode
+  const detectAndSetMatches = () => {
+    const updatedRows = rows.map(row => {
+      const existing = findMatchingEpisode(row);
+      if (existing && operationMode !== 'create') {
+        return {
+          ...row,
+          id: existing.id,
+          mode: operationMode,
+          existing: {
+            title: existing.title,
+            description: existing.description || '',
+            content: existing.content || '',
+            summary: existing.summary || '',
+            series: existing.series as any,
+            season: existing.season,
+            episode_number: existing.episode_number,
+            status: existing.status as any,
+            publish_date: existing.publish_date,
+            duration: existing.duration,
+            image_url: existing.image_url,
+            audio_url: existing.audio_url
+          }
+        };
+      }
+      return { ...row, mode: operationMode };
+    });
+    setRows(updatedRows);
+  };
+
+  // Load existing episodes when component mounts or mode changes
+  React.useEffect(() => {
+    if (operationMode !== 'create') {
+      loadExistingEpisodes();
+    }
+  }, [operationMode]);
+
+  // Auto-detect matches when episodes or strategy changes
+  React.useEffect(() => {
+    if (existingEpisodes.length > 0 && rows.length > 0) {
+      detectAndSetMatches();
+    }
+  }, [existingEpisodes, matchingStrategy, operationMode]);
 
   // Handle text content processing
   const handleTextProcessing = () => {
@@ -248,6 +363,15 @@ const BulkUploadEpisodes = () => {
       errors.push({ row: index + 1, field: 'episode_number', message: 'Valid episode number is required' });
     }
     
+    // Additional validation for update mode
+    if (row.mode === 'update' && !row.id) {
+      errors.push({ row: index + 1, field: 'id', message: 'Episode ID is required for updates' });
+    }
+    
+    if (row.mode === 'update' && (!row.fieldsToUpdate || row.fieldsToUpdate.length === 0)) {
+      errors.push({ row: index + 1, field: 'fieldsToUpdate', message: 'At least one field must be selected for update' });
+    }
+    
     return errors;
   };
 
@@ -310,12 +434,14 @@ const BulkUploadEpisodes = () => {
           const [title = '', description = '', series = 'wtf', season = '1', episode_number = '1', status = 'draft'] = lines[i].split(',');
           if (title.trim()) {
             data.push({
+              mode: operationMode,
               title: title.trim(),
               description: description.replace(/^"|"$/g, '').trim(),
               series: (series.replace(/^"|"$/g, '').trim() as any) || 'wtf',
               season: parseInt(season.replace(/^"|"$/g, '').trim()) || 1,
               episode_number: parseInt(episode_number.replace(/^"|"$/g, '').trim()) || 1,
-              status: (status.replace(/^"|"$/g, '').trim() as any) || 'draft'
+              status: (status.replace(/^"|"$/g, '').trim() as any) || 'draft',
+              fieldsToUpdate: ['title', 'description', 'content', 'summary']
             });
           }
         }
@@ -339,31 +465,93 @@ const BulkUploadEpisodes = () => {
     try {
       let successCount = 0;
       let errorCount = 0;
+      let updateCount = 0;
 
       for (let i = 0; i < rows.length; i++) {
         try {
           const row = rows[i];
           const slug = slugify(row.title);
-          
-          const { data: episode, error: epError } = await supabase
-            .from('episodes')
-            .insert({
-              title: row.title,
-              slug,
-              description: row.description,
-              content: row.content,
-              summary: row.summary || null,
-              series: row.series,
-              season: row.season,
-              episode_number: row.episode_number,
-              status: row.status,
-              publish_date: row.publish_date ? new Date(row.publish_date).toISOString() : null,
-              duration: row.duration,
-              image_url: row.image_url,
-              audio_url: row.audio_url
-            })
-            .select()
-            .single();
+          let episode;
+          let epError;
+
+          if (row.mode === 'create' || !row.id) {
+            // Create new episode
+            const { data, error } = await supabase
+              .from('episodes')
+              .insert({
+                title: row.title,
+                slug,
+                description: row.description,
+                content: row.content,
+                summary: row.summary || null,
+                series: row.series,
+                season: row.season,
+                episode_number: row.episode_number,
+                status: row.status,
+                publish_date: row.publish_date ? new Date(row.publish_date).toISOString() : null,
+                duration: row.duration,
+                image_url: row.image_url,
+                audio_url: row.audio_url
+              })
+              .select()
+              .single();
+            episode = data;
+            epError = error;
+          } else if (row.mode === 'update' && row.id) {
+            // Update existing episode
+            const updateData: any = {};
+            if (row.fieldsToUpdate?.includes('title')) updateData.title = row.title;
+            if (row.fieldsToUpdate?.includes('description')) updateData.description = row.description;
+            if (row.fieldsToUpdate?.includes('content')) updateData.content = row.content;
+            if (row.fieldsToUpdate?.includes('summary')) updateData.summary = row.summary || null;
+            if (row.fieldsToUpdate?.includes('series')) updateData.series = row.series;
+            if (row.fieldsToUpdate?.includes('season')) updateData.season = row.season;
+            if (row.fieldsToUpdate?.includes('episode_number')) updateData.episode_number = row.episode_number;
+            if (row.fieldsToUpdate?.includes('status')) updateData.status = row.status;
+            if (row.fieldsToUpdate?.includes('publish_date')) updateData.publish_date = row.publish_date ? new Date(row.publish_date).toISOString() : null;
+            if (row.fieldsToUpdate?.includes('duration')) updateData.duration = row.duration;
+            if (row.fieldsToUpdate?.includes('image_url')) updateData.image_url = row.image_url;
+            if (row.fieldsToUpdate?.includes('audio_url')) updateData.audio_url = row.audio_url;
+            
+            updateData.updated_at = new Date().toISOString();
+
+            const { data, error } = await supabase
+              .from('episodes')
+              .update(updateData)
+              .eq('id', row.id)
+              .select()
+              .single();
+            episode = data;
+            epError = error;
+            updateCount++;
+          } else if (row.mode === 'upsert') {
+            // Upsert episode
+            const { data, error } = await supabase
+              .from('episodes')
+              .upsert({
+                id: row.id,
+                title: row.title,
+                slug,
+                description: row.description,
+                content: row.content,
+                summary: row.summary || null,
+                series: row.series,
+                season: row.season,
+                episode_number: row.episode_number,
+                status: row.status,
+                publish_date: row.publish_date ? new Date(row.publish_date).toISOString() : null,
+                duration: row.duration,
+                image_url: row.image_url,
+                audio_url: row.audio_url,
+                updated_at: new Date().toISOString()
+              }, {
+                onConflict: 'id'
+              })
+              .select()
+              .single();
+            episode = data;
+            epError = error;
+          }
             
           if (epError) throw epError;
 
@@ -398,10 +586,14 @@ const BulkUploadEpisodes = () => {
         }
       }
 
-      if (successCount > 0) {
+      if (successCount > 0 || updateCount > 0) {
+        const createMsg = successCount > 0 ? `${successCount} episodes created` : '';
+        const updateMsg = updateCount > 0 ? `${updateCount} episodes updated` : '';
+        const messages = [createMsg, updateMsg].filter(Boolean).join(', ');
+        
         toast({ 
-          title: 'Upload Complete', 
-          description: `${successCount} episodes created successfully${errorCount > 0 ? `, ${errorCount} failed` : ''}.` 
+          title: 'Operation Complete', 
+          description: `${messages}${errorCount > 0 ? `, ${errorCount} failed` : ''}.` 
         });
       }
       
@@ -506,6 +698,93 @@ const BulkUploadEpisodes = () => {
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Operation Mode Selection */}
+            <Card className="border-2 border-blue-200 bg-blue-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <GitMerge className="w-5 h-5 text-blue-600" />
+                  Operation Mode
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="create"
+                      name="operationMode"
+                      value="create"
+                      checked={operationMode === 'create'}
+                      onChange={(e) => setOperationMode(e.target.value as any)}
+                      className="text-blue-600"
+                    />
+                    <label htmlFor="create" className="text-sm font-medium">
+                      Create New Episodes
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="update"
+                      name="operationMode"
+                      value="update"
+                      checked={operationMode === 'update'}
+                      onChange={(e) => setOperationMode(e.target.value as any)}
+                      className="text-blue-600"
+                    />
+                    <label htmlFor="update" className="text-sm font-medium">
+                      Update Existing Episodes
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="upsert"
+                      name="operationMode"
+                      value="upsert"
+                      checked={operationMode === 'upsert'}
+                      onChange={(e) => setOperationMode(e.target.value as any)}
+                      className="text-blue-600"
+                    />
+                    <label htmlFor="upsert" className="text-sm font-medium">
+                      Create or Update (Upsert)
+                    </label>
+                  </div>
+                </div>
+                
+                {operationMode !== 'create' && (
+                  <div className="flex items-center gap-4 p-3 bg-white rounded border">
+                    <div className="flex items-center gap-2">
+                      <Search className="w-4 h-4 text-gray-500" />
+                      <label className="text-sm font-medium">Matching Strategy:</label>
+                    </div>
+                    <Select value={matchingStrategy} onValueChange={(v) => setMatchingStrategy(v as any)}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="slug">By Slug (URL)</SelectItem>
+                        <SelectItem value="title">By Title</SelectItem>
+                        <SelectItem value="season_episode">By Series/Season/Episode</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      onClick={loadExistingEpisodes}
+                      disabled={searchingEpisodes}
+                      size="sm"
+                      variant="outline"
+                    >
+                      <RefreshCw className={`w-4 h-4 mr-2 ${searchingEpisodes ? 'animate-spin' : ''}`} />
+                      {searchingEpisodes ? 'Loading...' : 'Refresh Episodes'}
+                    </Button>
+                    <Badge variant="outline">
+                      {existingEpisodes.length} episodes loaded
+                    </Badge>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             <Tabs defaultValue="text" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="text" className="flex items-center gap-2">
@@ -711,6 +990,123 @@ The system will automatically extract:
                     </TableBody>
                   </Table>
                 </TabsContent>
+                
+                {operationMode !== 'create' && (
+                  <TabsContent value="diff" className="space-y-4">
+                    {rows.map((row, idx) => {
+                      const hasExisting = row.existing && row.id;
+                      if (!hasExisting && operationMode === 'update') return null;
+                      
+                      return (
+                        <Card key={idx} className="border-2 border-orange-200">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-lg flex items-center justify-between">
+                              <span>{row.title}</span>
+                              <Badge variant={row.mode === 'update' ? 'secondary' : 'outline'}>
+                                {row.mode?.toUpperCase()}
+                              </Badge>
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            {hasExisting ? (
+                              <div className="space-y-4">
+                                <div className="flex items-center gap-2 mb-4">
+                                  <CheckSquare className="w-4 h-4" />
+                                  <span className="font-medium">Select fields to update:</span>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                  {['title', 'description', 'content', 'summary', 'series', 'season', 'episode_number', 'status'].map(field => {
+                                    const isSelected = row.fieldsToUpdate?.includes(field) || false;
+                                    const hasChanged = row[field as keyof UploadRow] !== row.existing?.[field as keyof UploadRow];
+                                    
+                                    return (
+                                      <div key={field} className={`p-3 rounded border ${
+                                        hasChanged ? 'border-orange-300 bg-orange-50' : 'border-gray-200'
+                                      }`}>
+                                        <div className="flex items-center space-x-2 mb-2">
+                                          <input
+                                            type="checkbox"
+                                            id={`${idx}-${field}`}
+                                            checked={isSelected}
+                                            onChange={(e) => {
+                                              const updatedRows = [...rows];
+                                              if (!updatedRows[idx].fieldsToUpdate) {
+                                                updatedRows[idx].fieldsToUpdate = [];
+                                              }
+                                              if (e.target.checked) {
+                                                updatedRows[idx].fieldsToUpdate!.push(field);
+                                              } else {
+                                                updatedRows[idx].fieldsToUpdate = updatedRows[idx].fieldsToUpdate!.filter(f => f !== field);
+                                              }
+                                              setRows(updatedRows);
+                                            }}
+                                          />
+                                          <label htmlFor={`${idx}-${field}`} className="font-medium capitalize">
+                                            {field.replace('_', ' ')}
+                                          </label>
+                                          {hasChanged && <Badge variant="outline" className="text-orange-600">Changed</Badge>}
+                                        </div>
+                                        
+                                        {hasChanged && (
+                                          <div className="space-y-2">
+                                            <div className="text-xs">
+                                              <span className="font-medium text-red-600">Current:</span>
+                                              <p className="text-red-600 bg-red-50 p-1 rounded mt-1 max-h-20 overflow-y-auto">
+                                                {String(row.existing?.[field as keyof UploadRow] || '').substring(0, 200)}
+                                                {String(row.existing?.[field as keyof UploadRow] || '').length > 200 && '...'}
+                                              </p>
+                                            </div>
+                                            <div className="text-xs">
+                                              <span className="font-medium text-green-600">New:</span>
+                                              <p className="text-green-600 bg-green-50 p-1 rounded mt-1 max-h-20 overflow-y-auto">
+                                                {String(row[field as keyof UploadRow] || '').substring(0, 200)}
+                                                {String(row[field as keyof UploadRow] || '').length > 200 && '...'}
+                                              </p>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                
+                                <div className="flex justify-between items-center pt-4 border-t">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      const updatedRows = [...rows];
+                                      updatedRows[idx].fieldsToUpdate = ['title', 'description', 'content', 'summary'];
+                                      setRows(updatedRows);
+                                    }}
+                                  >
+                                    Select Common Fields
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      const updatedRows = [...rows];
+                                      updatedRows[idx].fieldsToUpdate = [];
+                                      setRows(updatedRows);
+                                    }}
+                                  >
+                                    Clear All
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-center py-8 text-gray-500">
+                                <p>No existing episode found. This will be created as new.</p>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </TabsContent>
+                )}
                 
                 <TabsContent value="details" className="overflow-auto">
                   <div className="space-y-4">
