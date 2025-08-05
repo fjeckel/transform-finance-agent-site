@@ -9,7 +9,6 @@ import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { toast } from '@/hooks/use-toast';
 import SEOHead from '@/components/SEOHead';
 import ImageWithFallback from '@/components/ui/image-with-fallback';
-import { MobileSearch } from '@/components/ui/mobile-search';
 import { SafeHtmlRenderer } from '@/lib/content-security';
 
 const DynamicEpisode = () => {
@@ -18,7 +17,6 @@ const DynamicEpisode = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
   const [showNotesSection, setShowNotesSection] = useState(true);
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const handleCopyTranscript = async () => {
     if (!episode?.transcript) return;
@@ -376,10 +374,7 @@ const DynamicEpisode = () => {
           </Card>
         )}
       </div>
-      
-      {/* Mobile Search */}
-      <MobileSearch open={mobileSearchOpen} onOpenChange={setMobileSearchOpen} />
-      
+
       {/* Bottom Navigation - Mobile Only */}
     </div>
   );

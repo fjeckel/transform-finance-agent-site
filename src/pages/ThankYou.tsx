@@ -4,12 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Mail, Download, ArrowLeft, RefreshCw } from 'lucide-react';
-import { MobileSearch } from '@/components/ui/mobile-search';
 
 const ThankYou: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [checkingEmail, setCheckingEmail] = useState(false);
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   
   const sessionId = searchParams.get('session_id');
   const pdfId = searchParams.get('pdf_id');
@@ -40,9 +38,6 @@ const ThankYou: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-        
-        {/* Mobile Search */}
-        <MobileSearch open={mobileSearchOpen} onOpenChange={setMobileSearchOpen} />
         
         {/* Bottom Navigation - Mobile Only */}
         </div>
@@ -136,10 +131,7 @@ const ThankYou: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-      
-      {/* Mobile Search */}
-      <MobileSearch open={mobileSearchOpen} onOpenChange={setMobileSearchOpen} />
-      
+
       {/* Bottom Navigation - Mobile Only */}
     </div>
   );

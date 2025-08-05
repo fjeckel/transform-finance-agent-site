@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import SEOHead from '@/components/SEOHead';
-import { MobileSearch } from '@/components/ui/mobile-search';
 import { useInsightBySlug, useInsights, InsightType, DifficultyLevel } from '@/hooks/useInsights';
 import { useInsightAnalytics } from '@/hooks/useInsightAnalytics';
 import { RecommendedContent } from '@/components/RecommendedContent';
@@ -15,7 +14,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 const InsightDetail = () => {
   const { slug } = useParams<{ slug: string }>();
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   
   const { data: insight, isLoading, error } = useInsightBySlug(slug || '');
@@ -407,9 +405,6 @@ const InsightDetail = () => {
         </div>
       </div>
 
-      {/* Mobile Search */}
-      <MobileSearch open={mobileSearchOpen} onOpenChange={setMobileSearchOpen} />
-      
       {/* Bottom Navigation - Mobile Only */}
     </div>
   );
