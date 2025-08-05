@@ -3,10 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { FileText, Upload, Wand2, Eye, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import * as XLSX from 'xlsx';
@@ -15,6 +18,7 @@ interface UploadRow {
   title: string;
   description: string;
   content?: string;
+  summary?: string;
   series: 'wtf' | 'finance_transformers' | 'cfo_memo';
   season: number;
   episode_number: number;
@@ -42,14 +46,191 @@ const slugify = (text: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
+// Content parsing patterns
+const CONTENT_PATTERNS = {
+  title: [
+    /^#\s+(.+)$/m,                    // Markdown header
+    /^Title:\s*(.+)$/mi,              // "Title: ..."
+    /^Episode\s*\d*:?\s*(.+)$/mi,     // "Episode 1: ..."
+    /^(.+)\s*-\s*Episode/mi,          // "Title - Episode"
+    /^(.{10,80}?)(?:\n|\.|$)/m,       // First substantial line (10-80 chars)
+  ],
+  
+  summary: [
+    /Summary:\s*(.+?)(?=\n\n|\n[A-Z]|$)/mis,
+    /Overview:\s*(.+?)(?=\n\n|\n[A-Z]|$)/mis,
+    /Key Points:\s*(.+?)(?=\n\n|\n[A-Z]|$)/mis,
+    /^(.{100,500}?)\.\s*(?:\n\n|\n[A-Z])/mis,  // First substantial paragraph
+  ],
+  
+  description: [
+    /Description:\s*(.+?)(?=\n\n|\n[A-Z]|$)/mis,
+    /About this episode:\s*(.+?)(?=\n\n|\n[A-Z]|$)/mis,
+    /In this episode:\s*(.+?)(?=\n\n|\n[A-Z]|$)/mis,
+  ],
+  
+  content: [
+    /Content:\s*(.+)$/mis,
+    /Transcript:\s*(.+)$/mis,
+    /Full Text:\s*(.+)$/mis,
+    /^(.{500,})$/mis,  // Everything if substantial
+  ]
+};
+
+// Parse unstructured content into episode fields
+const parseUnstructuredContent = (rawContent: string): UploadRow => {
+  const cleaned = rawContent
+    .replace(/\r\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  let title = '';
+  let description = '';
+  let summary = '';
+  let content = cleaned;
+
+  // Extract title
+  for (const pattern of CONTENT_PATTERNS.title) {
+    const match = cleaned.match(pattern);
+    if (match && match[1] && !title) {
+      title = match[1].trim();
+      break;
+    }
+  }
+
+  // Extract description
+  for (const pattern of CONTENT_PATTERNS.description) {
+    const match = cleaned.match(pattern);
+    if (match && match[1] && !description) {
+      description = match[1].trim().substring(0, 1000);
+      break;
+    }
+  }
+
+  // Extract summary
+  for (const pattern of CONTENT_PATTERNS.summary) {
+    const match = cleaned.match(pattern);
+    if (match && match[1] && !summary) {
+      summary = match[1].trim();
+      break;
+    }
+  }
+
+  // Fallbacks
+  if (!title) {
+    const firstLine = cleaned.split('\n')[0].trim();
+    title = firstLine.length > 5 && firstLine.length < 100 
+      ? firstLine 
+      : 'Untitled Episode';
+  }
+
+  if (!description && content) {
+    const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 20);
+    description = sentences.slice(0, 2).join('. ').trim().substring(0, 500) + '.';
+  }
+
+  if (!summary && content) {
+    const words = content.split(' ');
+    summary = words.length > 50 
+      ? words.slice(0, 30).join(' ') + '...'
+      : content.substring(0, 300);
+  }
+
+  return {
+    title,
+    description,
+    content,
+    series: 'finance_transformers',
+    season: 1,
+    episode_number: 1,
+    status: 'draft',
+    summary
+  };
+};
+
 const BulkUploadEpisodes = () => {
   const [rows, setRows] = useState<UploadRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [fileType, setFileType] = useState<'csv' | 'excel'>('excel');
+  const [rawTextContent, setRawTextContent] = useState('');
+  const [parsedContent, setParsedContent] = useState<UploadRow | null>(null);
+  const [processingText, setProcessingText] = useState(false);
+  const [autoTranslate, setAutoTranslate] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Handle text content processing
+  const handleTextProcessing = () => {
+    if (!rawTextContent.trim()) {
+      toast({ title: 'Error', description: 'Please paste some content first', variant: 'destructive' });
+      return;
+    }
+
+    setProcessingText(true);
+    try {
+      const parsed = parseUnstructuredContent(rawTextContent);
+      setParsedContent(parsed);
+      toast({ title: 'Content Parsed', description: 'Your content has been successfully parsed!' });
+    } catch (error) {
+      console.error('Error parsing content:', error);
+      toast({ title: 'Error', description: 'Failed to parse content', variant: 'destructive' });
+    } finally {
+      setProcessingText(false);
+    }
+  };
+
+  // Add parsed content to upload queue
+  const addParsedToQueue = () => {
+    if (!parsedContent) return;
+    
+    const newRows = [...rows, parsedContent];
+    setRows(newRows);
+    
+    // Validate the new content
+    const allErrors: ValidationError[] = [];
+    newRows.forEach((row, index) => {
+      allErrors.push(...validateRow(row, index));
+    });
+    setValidationErrors(allErrors);
+    
+    // Clear the text area and parsed content
+    setRawTextContent('');
+    setParsedContent(null);
+    
+    toast({ title: 'Added to Queue', description: 'Episode added to upload queue' });
+  };
+
+  // Handle AI translation after upload
+  const handleAutoTranslation = async (episodeId: string) => {
+    if (!autoTranslate) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('translate-content-claude', {
+        body: {
+          contentId: episodeId,
+          contentType: 'episode',
+          targetLanguage: 'en',
+          fields: ['title', 'description', 'content', 'summary'],
+          priority: 'medium'
+        }
+      });
+
+      if (error) {
+        console.warn('Auto-translation failed:', error);
+        toast({ 
+          title: 'Translation Warning', 
+          description: 'Episode uploaded but auto-translation failed', 
+          variant: 'destructive' 
+        });
+      } else {
+        toast({ title: 'Translated', description: 'Episode auto-translated to English' });
+      }
+    } catch (error) {
+      console.warn('Auto-translation error:', error);
+    }
+  };
 
   const validateRow = (row: UploadRow, index: number): ValidationError[] => {
     const errors: ValidationError[] = [];
@@ -171,6 +352,7 @@ const BulkUploadEpisodes = () => {
               slug,
               description: row.description,
               content: row.content,
+              summary: row.summary || null,
               series: row.series,
               season: row.season,
               episode_number: row.episode_number,
@@ -202,6 +384,11 @@ const BulkUploadEpisodes = () => {
                 platform_url: p.url
               })));
             if (linkError) throw linkError;
+          }
+          
+          // Handle auto-translation if enabled
+          if (autoTranslate) {
+            handleAutoTranslation(episode.id);
           }
           
           successCount++;
@@ -314,12 +501,132 @@ const BulkUploadEpisodes = () => {
         <Card>
           <CardHeader>
             <CardTitle>Enhanced Bulk Upload Episodes</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Upload episodes from Excel/CSV files or paste unstructured content (Word docs, transcripts, etc.)
+            </p>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <Select value={fileType} onValueChange={(v) => setFileType(v as any)}>
-                  <SelectTrigger className="w-48">
+            <Tabs defaultValue="text" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="text" className="flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Text Content
+                </TabsTrigger>
+                <TabsTrigger value="file" className="flex items-center gap-2">
+                  <Upload className="w-4 h-4" />
+                  File Upload
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="text" className="space-y-4">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Paste Episode Content
+                    </label>
+                    <Textarea
+                      placeholder="Paste your Word document text, transcript, or any episode content here...
+
+Examples of supported formats:
+- Word document content
+- Episode transcripts  
+- Markdown formatted text
+- Plain text with title and content
+
+The system will automatically extract:
+- Episode title
+- Description
+- Summary
+- Full content"
+                      value={rawTextContent}
+                      onChange={(e) => setRawTextContent(e.target.value)}
+                      className="min-h-[200px] font-mono text-sm"
+                      disabled={processingText || loading}
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-xs text-muted-foreground">
+                        {rawTextContent.length} characters
+                      </span>
+                      <Button
+                        onClick={handleTextProcessing}
+                        disabled={!rawTextContent.trim() || processingText}
+                        size="sm"
+                        variant="outline"
+                      >
+                        <Wand2 className="w-4 h-4 mr-2" />
+                        {processingText ? 'Processing...' : 'Parse Content'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {parsedContent && (
+                    <Card className="border-2 border-green-200 bg-green-50">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Eye className="w-5 h-5 text-green-600" />
+                          Parsed Content Preview
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div>
+                          <label className="text-sm font-medium text-gray-700">Title:</label>
+                          <p className="text-sm bg-white p-2 rounded border">{parsedContent.title}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-700">Description:</label>
+                          <p className="text-sm bg-white p-2 rounded border">{parsedContent.description}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-700">Summary:</label>
+                          <p className="text-sm bg-white p-2 rounded border">{parsedContent.summary}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-700">Content Preview:</label>
+                          <p className="text-sm bg-white p-2 rounded border max-h-24 overflow-y-auto">
+                            {parsedContent.content?.substring(0, 300)}...
+                          </p>
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                          <Button
+                            onClick={addParsedToQueue}
+                            className="bg-green-600 hover:bg-green-700"
+                            size="sm"
+                          >
+                            Add to Upload Queue
+                          </Button>
+                          <Button
+                            onClick={() => setParsedContent(null)}
+                            variant="outline"
+                            size="sm"
+                          >
+                            Clear
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <input
+                      type="checkbox"
+                      id="autoTranslate"
+                      checked={autoTranslate}
+                      onChange={(e) => setAutoTranslate(e.target.checked)}
+                      className="rounded"
+                    />
+                    <label htmlFor="autoTranslate" className="text-sm font-medium flex items-center gap-2">
+                      <Globe className="w-4 h-4" />
+                      Auto-translate to English after upload
+                    </label>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="file" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Select value={fileType} onValueChange={(v) => setFileType(v as any)}>
+                      <SelectTrigger className="w-48">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -353,7 +660,9 @@ const BulkUploadEpisodes = () => {
                   </div>
                 </div>
               )}
-            </div>
+                </div>
+              </TabsContent>
+            </Tabs>
 
             {rows.length > 0 && (
               <Tabs defaultValue="preview" className="w-full">

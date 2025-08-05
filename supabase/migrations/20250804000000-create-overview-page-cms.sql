@@ -191,7 +191,7 @@ INSERT INTO public.overview_page_sections (
 
 -- Insert content for WTF info section
 INSERT INTO public.overview_section_content (section_id, content_type, content_key, content_value, metadata, sort_order)
-SELECT s.id, content_type, content_key, content_value, metadata::jsonb, sort_order 
+SELECT s.id, content.content_type, content.content_key, content.content_value, content.metadata::jsonb, content.sort_order 
 FROM public.overview_page_sections s,
 (VALUES 
   ('text', 'mission_title', 'Mission', NULL, 1),
@@ -206,7 +206,7 @@ WHERE s.section_key = 'wtf_info';
 
 -- Insert content for CFO Memo section
 INSERT INTO public.overview_section_content (section_id, content_type, content_key, content_value, metadata, sort_order)
-SELECT s.id, content_type, content_key, content_value, metadata::jsonb, sort_order 
+SELECT s.id, content.content_type, content.content_key, content.content_value, content.metadata::jsonb, content.sort_order 
 FROM public.overview_page_sections s,
 (VALUES 
   ('text', 'format_title', 'Format', NULL, 1),
@@ -221,7 +221,7 @@ WHERE s.section_key = 'cfo_memo_info';
 
 -- Insert content for Tool Time section
 INSERT INTO public.overview_section_content (section_id, content_type, content_key, content_value, metadata, sort_order)
-SELECT s.id, content_type, content_key, content_value, metadata::jsonb, sort_order 
+SELECT s.id, content.content_type, content.content_key, content.content_value, content.metadata::jsonb, content.sort_order 
 FROM public.overview_page_sections s,
 (VALUES 
   ('text', 'focus_title', 'Fokus', NULL, 1),
@@ -254,7 +254,7 @@ WHERE s.section_key = 'tool_time_info';
 
 -- Insert links for CTA section
 INSERT INTO public.overview_section_links (section_id, link_type, link_text, url, button_variant, button_size, sort_order)
-SELECT s.id, link_type, link_text, url, button_variant, button_size, sort_order
+SELECT s.id, links.link_type, links.link_text, links.url, links.button_variant, links.button_size, links.sort_order
 FROM public.overview_page_sections s,
 (VALUES 
   ('button', 'Alle Inhalte entdecken', '/episodes', 'default', 'lg', 1),
