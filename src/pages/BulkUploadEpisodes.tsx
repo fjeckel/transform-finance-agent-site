@@ -109,7 +109,7 @@ const parseUnstructuredContent = (rawContent: string): UploadRow => {
   let title = '';
   let description = '';
   let summary = '';
-  let content = cleaned;
+  const content = cleaned;
 
   // Extract title
   for (const pattern of CONTENT_PATTERNS.title) {
@@ -471,8 +471,8 @@ const BulkUploadEpisodes = () => {
         try {
           const row = rows[i];
           const slug = slugify(row.title);
-          let episode;
-          let epError;
+          let episode: any;
+          let epError: any;
 
           if (row.mode === 'create' || !row.id) {
             // Create new episode
@@ -499,7 +499,7 @@ const BulkUploadEpisodes = () => {
             epError = error;
           } else if (row.mode === 'update' && row.id) {
             // Update existing episode
-            const updateData: any = {};
+            const updateData: Record<string, any> = {};
             if (row.fieldsToUpdate?.includes('title')) updateData.title = row.title;
             if (row.fieldsToUpdate?.includes('description')) updateData.description = row.description;
             if (row.fieldsToUpdate?.includes('content')) updateData.content = row.content;
