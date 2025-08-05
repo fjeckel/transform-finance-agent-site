@@ -158,14 +158,8 @@ serve(async (req) => {
       )
     }
 
-    // Get Claude API key from Supabase secrets
-    const { data: secretData, error: secretError } = await supabaseAdmin
-      .from('vault')
-      .select('decrypted_secret')
-      .eq('name', 'claude-api-key')
-      .single()
-
-    const claudeApiKey = secretData?.decrypted_secret || Deno.env.get('CLAUDE_API_KEY')
+    // Get Claude API key from environment variables (Supabase secrets are automatically injected)
+    const claudeApiKey = Deno.env.get('CLAUDE_API_KEY')
     if (!claudeApiKey) {
       return new Response(
         JSON.stringify({ error: 'Claude API key not configured' }), 

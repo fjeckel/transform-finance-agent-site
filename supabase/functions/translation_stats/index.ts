@@ -38,56 +38,18 @@ serve(async (req) => {
       }
     )
 
-    // Check if the required tables exist first
-    const { data: tables, error: tablesError } = await supabaseAdmin
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public')
-      .in('table_name', ['languages', 'insights_translations', 'episodes_translations'])
+    // Try to use the database RPC function first
+    const { data: rpcStats, error: rpcError } = await supabaseAdmin
+      .rpc('get_translation_stats')
 
-    if (tablesError) {
-      console.error('Error checking tables:', tablesError)
+    if (!rpcError && rpcStats) {
       return new Response(
-        JSON.stringify({ error: 'Failed to check database schema' }), 
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    const existingTables = tables?.map(t => t.table_name) || []
-    
-    // If translation tables don't exist, return basic stats
-    if (!existingTables.includes('languages') || 
-        !existingTables.includes('insights_translations') || 
-        !existingTables.includes('episodes_translations')) {
-      
-      const stats: TranslationStats[] = [
-        {
-          language_code: 'de',
-          language_name: 'German',
-          insights_total: 0,
-          insights_translated: 0,
-          insights_completion_pct: 0,
-          episodes_total: 0,
-          episodes_translated: 0,
-          episodes_completion_pct: 0
-        },
-        {
-          language_code: 'en',
-          language_name: 'English',
-          insights_total: 0,
-          insights_translated: 0,
-          insights_completion_pct: 0,
-          episodes_total: 0,
-          episodes_translated: 0,
-          episodes_completion_pct: 0
-        }
-      ];
-
-      return new Response(
-        JSON.stringify(stats), 
+        JSON.stringify(rpcStats), 
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    console.warn('RPC function failed, falling back to manual calculation:', rpcError)
 
     // Get active languages
     const { data: languages, error: languagesError } = await supabaseAdmin
