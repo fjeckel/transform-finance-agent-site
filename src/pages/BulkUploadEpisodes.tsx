@@ -207,7 +207,7 @@ const BulkUploadEpisodes = () => {
     if (!autoTranslate) return;
 
     try {
-      const { data, error } = await supabase.functions.invoke('translate-content-claude', {
+      const { data, error } = await supabase.functions.invoke('translate-content', {
         body: {
           contentId: episodeId,
           contentType: 'episode',
@@ -225,7 +225,7 @@ const BulkUploadEpisodes = () => {
           variant: 'destructive' 
         });
       } else {
-        toast({ title: 'Translated', description: 'Episode auto-translated to English' });
+        toast({ title: 'Translated', description: 'Episode auto-translated to English using AI' });
       }
     } catch (error) {
       console.warn('Auto-translation error:', error);

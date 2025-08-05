@@ -20,8 +20,7 @@ export default {
 		},
                extend: {
                         fontFamily: {
-                                cooper: ['"Archivo Black"', '"Fredoka One"', 'Impact', 'Arial Black', 'sans-serif'],
-                                rubik: ['"Rubik"', 'sans-serif'],
+                                cooper: ['"cooper-black-std"', 'sans-serif'],
                         },
                         colors: {
 				border: 'hsl(var(--border))',
