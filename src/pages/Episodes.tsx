@@ -492,9 +492,9 @@ const Episodes = () => {
                     {(() => {
                       const filteredCount = searchQuery.trim() 
                         ? pdfs.filter(pdf => {
-                            const query = searchQuery.toLowerCase();
-                            return pdf.title?.toLowerCase().includes(query) || 
-                                   pdf.description?.toLowerCase().includes(query);
+                            const searchTerm = searchQuery.toLowerCase();
+                            return pdf.title?.toLowerCase().includes(searchTerm) || 
+                                   pdf.description?.toLowerCase().includes(searchTerm);
                           }).length
                         : pdfs.length;
                       return `${Math.min(filteredCount, pdfsDisplayCount)} von ${filteredCount} Memos`;
@@ -516,10 +516,10 @@ const Episodes = () => {
               {(() => {
                 const filteredPdfs = searchQuery.trim() 
                   ? pdfs.filter(pdf => {
-                      const query = searchQuery.toLowerCase();
+                      const searchTerm = searchQuery.toLowerCase();
                       try {
-                        return pdf.title?.toLowerCase().includes(query) ||
-                          (pdf.description && pdf.description.toLowerCase().includes(query));
+                        return pdf.title?.toLowerCase().includes(searchTerm) ||
+                          (pdf.description && pdf.description.toLowerCase().includes(searchTerm));
                       } catch (error) {
                         console.error('PDF search error:', pdf.id, error);
                         return false;

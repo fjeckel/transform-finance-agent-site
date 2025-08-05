@@ -21,7 +21,7 @@ import { GuestManager } from '@/components/ui/guest-manager';
 import { PlatformLinksManager } from '@/components/ui/platform-links-manager';
 import { PreviewModal } from '@/components/ui/preview-modal';
 import { FormFieldError, AutoSaveIndicator } from '@/components/ui/form-field-error';
-import { TranslationPanel } from '@/components/ui/translation-panel';
+import { FieldTranslationSelector } from '@/components/ui/field-translation-selector';
 import { FormSkeleton } from '@/components/ui/loading-skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/useAutoSave';
@@ -548,23 +548,44 @@ const EditEpisode = () => {
                 </TabsContent>
 
                 <TabsContent value="translations" className="space-y-4 mt-6">
-                  <TranslationPanel
+                  <FieldTranslationSelector
                     contentId={id!}
                     contentType="episode"
-                    currentLanguage="de"
-                    fields={['title', 'description', 'content', 'summary']}
-                    originalContent={{
-                      title,
-                      description,
-                      content,
-                      summary
-                    }}
-                    onTranslationUpdate={(language, translations) => {
-                      toast({
-                        title: "Translation Updated",
-                        description: `Translation to ${language} has been updated successfully.`,
-                      });
-                    }}
+                    fields={[
+                      {
+                        name: 'title',
+                        label: 'Title',
+                        type: 'input',
+                        originalValue: title,
+                        currentValue: title,
+                        onChange: setTitle
+                      },
+                      {
+                        name: 'description',
+                        label: 'Description',
+                        type: 'textarea',
+                        originalValue: description,
+                        currentValue: description,
+                        onChange: setDescription
+                      },
+                      {
+                        name: 'summary',
+                        label: 'Episode Summary',
+                        type: 'textarea',
+                        originalValue: summary,
+                        currentValue: summary,
+                        onChange: setSummary
+                      },
+                      {
+                        name: 'content',
+                        label: 'Episode Content',
+                        type: 'textarea',
+                        originalValue: content,
+                        currentValue: content,
+                        onChange: setContent
+                      }
+                    ]}
+                    defaultLanguage="de"
                   />
                 </TabsContent>
               </Tabs>
