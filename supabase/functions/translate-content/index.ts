@@ -1,5 +1,11 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { 
+  getSecretWithRetry, 
+  createSecretMissingResponse, 
+  markSecretsInitialized,
+  ALTERNATIVE_SECRET_NAMES 
+} from '../_shared/secrets.ts'
 
 // CORS headers for cross-origin requests
 const corsHeaders = {
@@ -153,14 +159,24 @@ serve(async (req) => {
     // TODO: Add role-based authorization check here
     // For now, any authenticated user can use translation (will be restricted in production)
 
-    // Get OpenAI API key from environment
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
+    // Get OpenAI API key using shared secret utilities
+    const openaiApiKey = await getSecretWithRetry('OPENAI_API_KEY')
+    
+    // Handle missing API key with standardized error response
     if (!openaiApiKey) {
-      return new Response(
-        JSON.stringify({ error: 'OpenAI API key not configured' }), 
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      return await createSecretMissingResponse(
+        'OPENAI_API_KEY', 
+        'OpenAI', 
+        ALTERNATIVE_SECRET_NAMES.OPENAI,
+        corsHeaders
       )
     }
+    
+    // Log successful key retrieval (truncated for security)
+    console.log('OpenAI API key found:', openaiApiKey.substring(0, 10) + '...')
+    
+    // Mark secrets as successfully initialized
+    markSecretsInitialized()
 
     // Parse request body
     const requestBody: TranslationRequest = await req.json()

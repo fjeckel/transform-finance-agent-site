@@ -1,5 +1,11 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { 
+  getSecretWithRetry, 
+  createSecretMissingResponse, 
+  markSecretsInitialized,
+  ALTERNATIVE_SECRET_NAMES 
+} from '../_shared/secrets.ts'
 
 // CORS headers for cross-origin requests
 const corsHeaders = {
@@ -158,14 +164,24 @@ serve(async (req) => {
       )
     }
 
-    // Get Claude API key from environment variables (Supabase secrets are automatically injected)
-    const claudeApiKey = Deno.env.get('CLAUDE_API_KEY')
+    // Get Claude API key using shared secret utilities
+    const claudeApiKey = await getSecretWithRetry('CLAUDE_API_KEY')
+    
+    // Handle missing API key with standardized error response
     if (!claudeApiKey) {
-      return new Response(
-        JSON.stringify({ error: 'Claude API key not configured' }), 
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      return await createSecretMissingResponse(
+        'CLAUDE_API_KEY', 
+        'Claude', 
+        ALTERNATIVE_SECRET_NAMES.CLAUDE,
+        corsHeaders
       )
     }
+    
+    // Log successful key retrieval (truncated for security)
+    console.log('Claude API key found:', claudeApiKey.substring(0, 10) + '...')
+    
+    // Mark secrets as successfully initialized
+    markSecretsInitialized()
 
     // Parse request body
     const requestBody: TranslationRequest = await req.json()
