@@ -2,17 +2,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
   const [isMuted, setIsMuted] = useState(true);
   const [videoType, setVideoType] = useState<'youtube' | 'uploaded'>('youtube');
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string>('');
   const [youtubeUrl, setYoutubeUrl] = useState<string>('');
+  const [latestEpisodeSlug, setLatestEpisodeSlug] = useState<string>('');
   const playerRef = useRef<any>(null);
   const htmlVideoRef = useRef<HTMLVideoElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadVideoSettings();
+    loadLatestEpisode();
   }, []);
 
   useEffect(() => {
@@ -43,6 +47,26 @@ const Hero = () => {
       // Fallback to YouTube
       setVideoType('youtube');
       setYoutubeUrl('https://www.youtube.com/embed/nBQKMPWrUgc?autoplay=1&mute=1&loop=1&playlist=nBQKMPWrUgc&controls=0&showinfo=0&modestbranding=1&enablejsapi=1');
+    }
+  };
+
+  const loadLatestEpisode = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('episodes')
+        .select('slug')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) throw error;
+      
+      if (data) {
+        setLatestEpisodeSlug(data.slug);
+      }
+    } catch (error) {
+      console.error('Error loading latest episode:', error);
     }
   };
 
@@ -83,6 +107,15 @@ const Hero = () => {
       htmlVideoRef.current.muted = !htmlVideoRef.current.muted;
     }
     setIsMuted((prev) => !prev);
+  };
+
+  const navigateToLatestEpisode = () => {
+    if (latestEpisodeSlug) {
+      navigate(`/episode/${latestEpisodeSlug}`);
+    } else {
+      // Fallback to episodes page if no latest episode found
+      navigate('/episodes');
+    }
   };
 
   return (
@@ -138,14 +171,12 @@ const Hero = () => {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <a
-            href="#wtf"
-            className="bg-[#13B87B] text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-[#0FA66A] transition-colors duration-300 transform hover:scale-105"
+          <button
+            onClick={navigateToLatestEpisode}
+            className="bg-[#13B87B] text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-[#0FA66A] transition-colors duration-300 transform hover:scale-105 font-cooper"
           >
             GEHE ZUR AKTUELLEN FOLGE
-
-
-          </a>
+          </button>
         </div>
 
         <div className="mt-6 flex items-center justify-center space-x-3">

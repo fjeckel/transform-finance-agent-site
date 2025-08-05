@@ -20,7 +20,7 @@ export default {
 		},
                extend: {
                         fontFamily: {
-                                cooper: ['"cooper-black-std"', 'sans-serif'],
+                                cooper: ['"Cooper Black"', 'serif'],
                         },
                         colors: {
 				border: 'hsl(var(--border))',
