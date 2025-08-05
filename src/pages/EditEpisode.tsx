@@ -22,6 +22,7 @@ import { PlatformLinksManager } from '@/components/ui/platform-links-manager';
 import { PreviewModal } from '@/components/ui/preview-modal';
 import { FormFieldError, AutoSaveIndicator } from '@/components/ui/form-field-error';
 import { FieldTranslationSelector } from '@/components/ui/field-translation-selector';
+import { TranslationPanel } from '@/components/ui/translation-panel';
 import { FormSkeleton } from '@/components/ui/loading-skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/useAutoSave';
@@ -547,7 +548,26 @@ const EditEpisode = () => {
                   />
                 </TabsContent>
 
-                <TabsContent value="translations" className="space-y-4 mt-6">
+                <TabsContent value="translations" className="space-y-6 mt-6">
+                  {/* AI-Powered Translation Panel */}
+                  <TranslationPanel
+                    contentId={id!}
+                    contentType="episode"
+                    currentLanguage="de"
+                    fields={['title', 'description', 'summary', 'content']}
+                    originalContent={{
+                      title,
+                      description,
+                      summary,
+                      content
+                    }}
+                    onTranslationUpdate={(language, translations) => {
+                      // Handle translation updates if needed
+                      console.log('Translation updated:', language, translations);
+                    }}
+                  />
+                  
+                  {/* Manual Field Translation Selector */}
                   <FieldTranslationSelector
                     contentId={id!}
                     contentType="episode"

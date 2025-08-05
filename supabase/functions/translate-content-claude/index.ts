@@ -234,11 +234,28 @@ serve(async (req) => {
       )
     }
 
-    // Extract fields to translate
+    // Helper function to strip HTML tags but preserve text
+    const stripHtml = (html: string): string => {
+      return html
+        .replace(/<[^>]*>/g, '') // Remove HTML tags
+        .replace(/&nbsp;/g, ' ') // Replace HTML entities
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .trim()
+    }
+
+    // Extract fields to translate and strip HTML
     const fieldsToTranslate: Record<string, string> = {}
+    const originalHtmlFields: Record<string, string> = {}
+    
     for (const field of fields) {
       if (originalContent[field]) {
-        fieldsToTranslate[field] = originalContent[field]
+        const originalValue = originalContent[field]
+        originalHtmlFields[field] = originalValue
+        // Strip HTML for translation but keep the original for structure reference
+        fieldsToTranslate[field] = stripHtml(originalValue)
       }
     }
 
@@ -317,11 +334,39 @@ serve(async (req) => {
     const completionTokens = claudeData.usage?.output_tokens || 0
     const totalCostUsd = (promptTokens * 0.00008 + completionTokens * 0.00024) / 1000 // Claude 3.5 Haiku pricing
 
+    // Helper function to preserve HTML structure when possible
+    const preserveHtmlStructure = (originalHtml: string, translatedText: string): string => {
+      // If original had HTML, try to preserve basic structure
+      if (originalHtml.includes('<') && originalHtml.includes('>')) {
+        // Simple strategy: if original starts/ends with tags, preserve them
+        const startTagMatch = originalHtml.match(/^<[^>]*>/)
+        const endTagMatch = originalHtml.match(/<\/[^>]*>$/)
+        
+        if (startTagMatch && endTagMatch) {
+          return startTagMatch[0] + translatedText + endTagMatch[0]
+        }
+        
+        // For more complex HTML, return plain text (safer)
+        return translatedText
+      }
+      return translatedText
+    }
+
+    // Preserve HTML structure in translations where possible
+    const finalTranslations: Record<string, string> = {}
+    for (const [field, translatedText] of Object.entries(translations)) {
+      if (originalHtmlFields[field]) {
+        finalTranslations[field] = preserveHtmlStructure(originalHtmlFields[field], translatedText)
+      } else {
+        finalTranslations[field] = translatedText
+      }
+    }
+
     // Prepare translation record
     const translationRecord = {
       [`${contentType === 'category' ? 'category_id' : contentType + '_id'}`]: contentId,
       language_code: targetLanguage,
-      ...translations,
+      ...finalTranslations,
       translation_status: 'completed',
       translation_method: 'ai',
       translation_quality_score: 0.88, // Claude generally produces slightly higher quality
@@ -368,7 +413,7 @@ serve(async (req) => {
     const response: TranslationResponse = {
       success: true,
       translationId: translationResult.data.id,
-      translations,
+      translations: finalTranslations,
       cost: {
         promptTokens,
         completionTokens,
