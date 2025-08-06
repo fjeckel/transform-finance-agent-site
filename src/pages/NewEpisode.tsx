@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Save, Send, FileText, AlertCircle } from 'lucide-react';
@@ -23,7 +23,8 @@ import { GuestManager } from '@/components/ui/guest-manager';
 import { PlatformLinksManager } from '@/components/ui/platform-links-manager';
 import { PreviewModal } from '@/components/ui/preview-modal';
 import { FormFieldError, AutoSaveIndicator } from '@/components/ui/form-field-error';
-import { FieldTranslationSelector } from '@/components/ui/field-translation-selector';
+import { FieldTranslationSelector, FieldTranslationSelectorRef } from '@/components/ui/field-translation-selector';
+import { TranslationPanel } from '@/components/ui/translation-panel';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { supabase } from '@/integrations/supabase/client';
@@ -97,6 +98,9 @@ const NewEpisode = () => {
   const [generalError, setGeneralError] = useState<string>('');
   const [isAdminUser, setIsAdminUser] = useState<boolean | null>(null);
   const [episodeId, setEpisodeId] = useState<string | null>(null);
+  
+  // Ref for FieldTranslationSelector to refresh after AI translations
+  const fieldTranslationRef = useRef<FieldTranslationSelectorRef>(null);
 
   // Auto-save functionality
   const formData = {
@@ -759,9 +763,36 @@ const NewEpisode = () => {
                   />
                 </TabsContent>
 
-                <TabsContent value="translations" className="space-y-4 mt-6">
+                <TabsContent value="translations" className="space-y-6 mt-6">
                   {episodeId ? (
-                    <FieldTranslationSelector
+                    <>
+                      {/* AI-Powered Translation Panel */}
+                      <TranslationPanel
+                        contentId={episodeId}
+                        contentType="episode"
+                        currentLanguage="de"
+                        fields={['title', 'description', 'summary', 'content']}
+                        originalContent={{
+                          title,
+                          description,
+                          summary,
+                          content
+                        }}
+                        onTranslationUpdate={async (language, translations) => {
+                          // Refresh the FieldTranslationSelector to show new AI translations
+                          if (fieldTranslationRef.current) {
+                            await fieldTranslationRef.current.refreshTranslations();
+                          }
+                          
+                          toast({
+                            title: "AI Translation Complete",
+                            description: `Content translated to ${language.toUpperCase()}. You can now edit the translations in the fields below.`,
+                          });
+                        }}
+                      />
+                      
+                      {/* Manual Field Translation Selector */}
+                      <FieldTranslationSelector
                       contentId={episodeId}
                       contentType="episode"
                       fields={[
@@ -799,7 +830,9 @@ const NewEpisode = () => {
                         }
                       ]}
                       defaultLanguage="de"
+                      ref={fieldTranslationRef}
                     />
+                    </>
                   ) : (
                     <div className="text-center py-12">
                       <p className="text-muted-foreground mb-4">

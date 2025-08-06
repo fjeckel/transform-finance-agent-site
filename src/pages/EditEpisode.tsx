@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,7 @@ import { GuestManager } from '@/components/ui/guest-manager';
 import { PlatformLinksManager } from '@/components/ui/platform-links-manager';
 import { PreviewModal } from '@/components/ui/preview-modal';
 import { FormFieldError, AutoSaveIndicator } from '@/components/ui/form-field-error';
-import { FieldTranslationSelector } from '@/components/ui/field-translation-selector';
+import { FieldTranslationSelector, FieldTranslationSelectorRef } from '@/components/ui/field-translation-selector';
 import { TranslationPanel } from '@/components/ui/translation-panel';
 import { FormSkeleton } from '@/components/ui/loading-skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -67,6 +67,9 @@ const EditEpisode = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [applyAllLoading, setApplyAllLoading] = useState(false);
+
+  // Ref for FieldTranslationSelector to trigger refresh
+  const fieldTranslationRef = useRef<FieldTranslationSelectorRef>(null);
 
   // Auto-save functionality
   const formData = {
@@ -561,14 +564,22 @@ const EditEpisode = () => {
                       summary,
                       content
                     }}
-                    onTranslationUpdate={(language, translations) => {
-                      // Handle translation updates if needed
-                      console.log('Translation updated:', language, translations);
+                    onTranslationUpdate={async (language, translations) => {
+                      // Refresh the FieldTranslationSelector to show new AI translations
+                      if (fieldTranslationRef.current) {
+                        await fieldTranslationRef.current.refreshTranslations();
+                      }
+                      
+                      toast({
+                        title: "AI Translation Complete",
+                        description: `Content translated to ${language.toUpperCase()}. You can now edit the translations in the fields below.`,
+                      });
                     }}
                   />
                   
                   {/* Manual Field Translation Selector */}
                   <FieldTranslationSelector
+                    ref={fieldTranslationRef}
                     contentId={id!}
                     contentType="episode"
                     fields={[

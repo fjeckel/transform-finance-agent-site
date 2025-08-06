@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,9 @@ import {
   RotateCcw,
   Loader2,
   Eye,
-  EyeOff
+  EyeOff,
+  Bot,
+  Sparkles
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -50,6 +52,11 @@ interface FieldTranslationSelectorProps {
     onChange: (value: string) => void;
   }>;
   defaultLanguage?: string;
+  onTranslationRefresh?: () => void; // Callback to notify parent when translations are reloaded
+}
+
+export interface FieldTranslationSelectorRef {
+  refreshTranslations: () => Promise<void>;
 }
 
 const languages: Language[] = [
@@ -59,25 +66,37 @@ const languages: Language[] = [
   { code: 'es', name: 'Spanish', nativeName: 'Español', flag: '🇪🇸' },
 ];
 
-export const FieldTranslationSelector: React.FC<FieldTranslationSelectorProps> = ({
+export const FieldTranslationSelector = forwardRef<FieldTranslationSelectorRef, FieldTranslationSelectorProps>(({
   contentId,
   contentType,
   fields,
-  defaultLanguage = 'de'
-}) => {
+  defaultLanguage = 'de',
+  onTranslationRefresh
+}, ref) => {
   const { t } = useTranslation();
   const [selectedLanguage, setSelectedLanguage] = useState<string>(defaultLanguage);
   const [translations, setTranslations] = useState<FieldTranslation>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [showOriginal, setShowOriginal] = useState<Record<string, boolean>>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState<Record<string, boolean>>({});
+  const [hasAiTranslations, setHasAiTranslations] = useState<Record<string, boolean>>({});
 
   // Load existing translations
   useEffect(() => {
     loadTranslations();
   }, [contentId, selectedLanguage]);
 
-  const loadTranslations = async () => {
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    refreshTranslations: async () => {
+      await loadTranslations();
+      if (onTranslationRefresh) {
+        onTranslationRefresh();
+      }
+    }
+  }), [loadTranslations, onTranslationRefresh]);
+
+  const loadTranslations = useCallback(async () => {
     if (!contentId || selectedLanguage === defaultLanguage) return;
 
     try {
@@ -112,21 +131,32 @@ export const FieldTranslationSelector: React.FC<FieldTranslationSelectorProps> =
 
       if (data) {
         const fieldTranslations: FieldTranslation = {};
+        const aiTranslationFlags: Record<string, boolean> = {};
+        
         fields.forEach(field => {
           if (!fieldTranslations[field.name]) {
             fieldTranslations[field.name] = {};
           }
           fieldTranslations[field.name][selectedLanguage] = data[field.name] || '';
+          
+          // Check if this field has AI-generated content
+          aiTranslationFlags[field.name] = !!(data[field.name] && data.translation_method === 'ai');
         });
+        
         setTranslations(prev => ({
           ...prev,
           ...fieldTranslations
+        }));
+        
+        setHasAiTranslations(prev => ({
+          ...prev,
+          ...aiTranslationFlags
         }));
       }
     } catch (error) {
       console.error('Error loading translations:', error);
     }
-  };
+  }, [contentId, selectedLanguage, defaultLanguage, contentType, fields]);
 
   const handleFieldChange = (fieldName: string, value: string) => {
     if (selectedLanguage === defaultLanguage) {
@@ -322,15 +352,22 @@ export const FieldTranslationSelector: React.FC<FieldTranslationSelectorProps> =
           const hasUnsaved = hasUnsavedChanges[field.name];
           const isLoading = loading[field.name];
           const showOriginalForField = showOriginal[field.name];
+          const hasAiContent = hasAiTranslations[field.name] && isTranslationMode;
 
           return (
-            <Card key={field.name}>
+            <Card key={field.name} className={hasAiContent ? "border-blue-200 bg-blue-50/30" : ""}>
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Label className="text-base font-medium">{field.label}</Label>
                     {isTranslationMode && (
                       <div className="flex items-center gap-2">
+                        {hasAiContent && (
+                          <Badge variant="outline" className="text-blue-600 border-blue-600 bg-blue-50">
+                            <Bot className="h-3 w-3 mr-1" />
+                            AI Generated
+                          </Badge>
+                        )}
                         {hasUnsaved && (
                           <Badge variant="outline" className="text-orange-600 border-orange-600">
                             Unsaved
@@ -414,4 +451,4 @@ export const FieldTranslationSelector: React.FC<FieldTranslationSelectorProps> =
       </div>
     </div>
   );
-};
+});

@@ -113,7 +113,7 @@ export const TranslationPanel: React.FC<TranslationPanelProps> = ({
 
         translationMap[trans.language_code] = {
           language: trans.language_code,
-          status: trans.translation_status || 'none',
+          status: trans.translation_status === 'approved' ? 'completed' : trans.translation_status || 'none',
           fields,
           cost: trans.openai_cost_usd || trans.anthropic_cost_usd,
           quality: trans.translation_quality_score
