@@ -256,6 +256,9 @@ const Admin = () => {
               <Link to="/admin/rss-feeds" className="text-sm text-gray-600 hover:text-[#13B87B]">
                 RSS Feeds
               </Link>
+              <Link to="/admin/ai-research" className="text-sm text-gray-600 hover:text-[#13B87B]">
+                AI Research Comparator
+              </Link>
               <span className="text-sm text-gray-600">Welcome, {user?.email}</span>
               <Button variant="outline" onClick={handleLogout}>
                 Logout
