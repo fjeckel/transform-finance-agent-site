@@ -98,21 +98,7 @@ export const FieldTranslationSelector = forwardRef<FieldTranslationSelectorRef, 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState<Record<string, boolean>>({});
   const [hasAiTranslations, setHasAiTranslations] = useState<Record<string, boolean>>({});
 
-  // Load existing translations
-  useEffect(() => {
-    loadTranslations();
-  }, [contentId, selectedLanguage]);
-
-  // Expose methods to parent component
-  useImperativeHandle(ref, () => ({
-    refreshTranslations: async () => {
-      await loadTranslations();
-      if (onTranslationRefresh) {
-        onTranslationRefresh();
-      }
-    }
-  }), [loadTranslations, onTranslationRefresh]);
-
+  // Load existing translations function - defined before useImperativeHandle
   const loadTranslations = useCallback(async () => {
     if (!contentId) return;
     
@@ -181,6 +167,21 @@ export const FieldTranslationSelector = forwardRef<FieldTranslationSelectorRef, 
       console.error('Error loading translations:', error);
     }
   }, [contentId, selectedLanguage, defaultLanguage, contentType, fields]);
+
+  // Load existing translations
+  useEffect(() => {
+    loadTranslations();
+  }, [loadTranslations]);
+
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    refreshTranslations: async () => {
+      await loadTranslations();
+      if (onTranslationRefresh) {
+        onTranslationRefresh();
+      }
+    }
+  }), [loadTranslations, onTranslationRefresh]);
 
   const handleFieldChange = (fieldName: string, value: string) => {
     if (selectedLanguage === defaultLanguage) {
