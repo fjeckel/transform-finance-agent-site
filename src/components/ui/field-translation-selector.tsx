@@ -59,6 +59,23 @@ export interface FieldTranslationSelectorRef {
   refreshTranslations: () => Promise<void>;
 }
 
+// Utility function to strip HTML tags from text for display in forms
+const stripHtml = (html: string): string => {
+  if (!html) return '';
+  // Create a temporary DOM element to parse HTML
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  // Extract text content and clean up extra whitespace
+  const textContent = tmp.textContent || tmp.innerText || '';
+  // Clean up extra whitespace and normalize line breaks
+  return textContent.replace(/\s+/g, ' ').trim();
+};
+
+// Utility to check if content contains HTML
+const containsHtml = (content: string): boolean => {
+  return /<[^>]*>/g.test(content);
+};
+
 const languages: Language[] = [
   { code: 'de', name: 'German', nativeName: 'Deutsch', flag: '🇩🇪' },
   { code: 'en', name: 'English', nativeName: 'English', flag: '🇺🇸' },
@@ -97,7 +114,14 @@ export const FieldTranslationSelector = forwardRef<FieldTranslationSelectorRef, 
   }), [loadTranslations, onTranslationRefresh]);
 
   const loadTranslations = useCallback(async () => {
-    if (!contentId || selectedLanguage === defaultLanguage) return;
+    if (!contentId) return;
+    
+    // Always load translations to show existing translated content, even for default language
+    // This allows viewing saved translations regardless of selected language
+    if (selectedLanguage === defaultLanguage) {
+      // For default language, still show available translations in the UI
+      return;
+    }
 
     try {
       const tableName = `${contentType}s_translations`;
@@ -190,7 +214,15 @@ export const FieldTranslationSelector = forwardRef<FieldTranslationSelectorRef, 
   };
 
   const saveFieldTranslation = async (fieldName: string) => {
-    if (selectedLanguage === defaultLanguage) return;
+    // Allow saving translations even when viewing default language
+    if (selectedLanguage === defaultLanguage) {
+      toast({
+        title: "Cannot save translation",
+        description: "Please select a target language different from the default language to save translations.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(prev => ({ ...prev, [fieldName]: true }));
 
@@ -249,6 +281,12 @@ export const FieldTranslationSelector = forwardRef<FieldTranslationSelectorRef, 
         ...prev,
         [fieldName]: false
       }));
+
+      // Reload translations to ensure persistence and notify parent
+      await loadTranslations();
+      if (onTranslationRefresh) {
+        onTranslationRefresh();
+      }
 
       toast({
         title: "Translation Saved",

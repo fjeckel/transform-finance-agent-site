@@ -50,7 +50,7 @@ export const useLocalizedEpisodes = (language: string = 'de') => {
         .select('*')
         .in('episode_id', baseEpisodes.map(e => e.id))
         .eq('language_code', language)
-        .eq('translation_status', 'approved');
+        .in('translation_status', ['completed', 'approved', 'draft', 'pending']);
 
       // Create a map of translations by episode_id
       const translationMap = new Map(
@@ -121,7 +121,7 @@ export const useLocalizedEpisodeBySlug = (slug: string, language: string = 'de')
         .select('*')
         .eq('episode_id', episode.id)
         .eq('language_code', language)
-        .eq('translation_status', 'approved')
+        .in('translation_status', ['completed', 'approved', 'draft', 'pending'])
         .maybeSingle();
 
       // Return localized episode
@@ -172,7 +172,7 @@ export const useEpisodeTranslationStatus = (episodeId: string) => {
       
       // Add languages with approved translations
       translations
-        .filter(t => t.translation_status === 'approved')
+        .filter(t => ['completed', 'approved', 'draft', 'pending'].includes(t.translation_status))
         .forEach(t => {
           if (!availableLanguages.includes(t.language_code)) {
             availableLanguages.push(t.language_code);
