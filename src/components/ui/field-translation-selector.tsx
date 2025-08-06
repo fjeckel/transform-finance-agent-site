@@ -97,7 +97,10 @@ export const FieldTranslationSelector = forwardRef<FieldTranslationSelectorRef, 
   }), [loadTranslations, onTranslationRefresh]);
 
   const loadTranslations = useCallback(async () => {
-    if (!contentId || selectedLanguage === defaultLanguage) return;
+    if (!contentId) return;
+    
+    // For default language, still load translations to show existing translated content
+    // This allows viewing saved translations even when default language is selected
 
     try {
       const tableName = `${contentType}s_translations`;
@@ -186,11 +189,20 @@ export const FieldTranslationSelector = forwardRef<FieldTranslationSelectorRef, 
       const field = fields.find(f => f.name === fieldName);
       return field?.currentValue || field?.originalValue || '';
     }
+    // For non-default languages, show translated content or empty string for manual entry
     return translations[fieldName]?.[selectedLanguage] || '';
   };
 
   const saveFieldTranslation = async (fieldName: string) => {
-    if (selectedLanguage === defaultLanguage) return;
+    // Allow saving translations even when viewing default language
+    if (selectedLanguage === defaultLanguage) {
+      toast({
+        title: "Cannot save translation",
+        description: "Please select a target language different from the default language to save translations.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(prev => ({ ...prev, [fieldName]: true }));
 
@@ -245,10 +257,17 @@ export const FieldTranslationSelector = forwardRef<FieldTranslationSelectorRef, 
         if (error) throw error;
       }
 
+      // Clear unsaved changes and reload translations
       setHasUnsavedChanges(prev => ({
         ...prev,
         [fieldName]: false
       }));
+
+      // Reload translations to ensure persistence and notify parent
+      await loadTranslations();
+      if (onTranslationRefresh) {
+        onTranslationRefresh();
+      }
 
       toast({
         title: "Translation Saved",
@@ -298,6 +317,11 @@ export const FieldTranslationSelector = forwardRef<FieldTranslationSelectorRef, 
   };
 
   const isTranslationMode = selectedLanguage !== defaultLanguage;
+  const hasExistingTranslations = Object.keys(translations).some(fieldName => 
+    translations[fieldName] && Object.keys(translations[fieldName]).some(lang => 
+      lang !== defaultLanguage && translations[fieldName][lang]?.trim()
+    )
+  );
 
   return (
     <div className="space-y-6">

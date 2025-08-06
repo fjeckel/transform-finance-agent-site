@@ -44,13 +44,13 @@ export const useLocalizedEpisodes = (language: string = 'de') => {
         return [];
       }
 
-      // Get translations for the specified language
+      // Get translations for the specified language (include all saved translations)
       const { data: translations } = await supabase
         .from('episodes_translations')
         .select('*')
         .in('episode_id', baseEpisodes.map(e => e.id))
         .eq('language_code', language)
-        .eq('translation_status', 'approved');
+        .in('translation_status', ['completed', 'approved', 'draft', 'pending']);
 
       // Create a map of translations by episode_id
       const translationMap = new Map(
@@ -115,13 +115,13 @@ export const useLocalizedEpisodeBySlug = (slug: string, language: string = 'de')
       if (error) throw error;
       if (!episode) return null;
 
-      // Get translation if available
+      // Get translation if available (include all saved translations)
       const { data: translation } = await supabase
         .from('episodes_translations')
         .select('*')
         .eq('episode_id', episode.id)
         .eq('language_code', language)
-        .eq('translation_status', 'approved')
+        .in('translation_status', ['completed', 'approved', 'draft', 'pending'])
         .maybeSingle();
 
       // Return localized episode
@@ -170,9 +170,9 @@ export const useEpisodeTranslationStatus = (episodeId: string) => {
       const translations = data || [];
       const availableLanguages = ['de']; // German is always available (original)
       
-      // Add languages with approved translations
+      // Add languages with any saved translations
       translations
-        .filter(t => t.translation_status === 'approved')
+        .filter(t => ['completed', 'approved', 'draft', 'pending'].includes(t.translation_status))
         .forEach(t => {
           if (!availableLanguages.includes(t.language_code)) {
             availableLanguages.push(t.language_code);

@@ -256,6 +256,9 @@ const Admin = () => {
               <Link to="/admin/rss-feeds" className="text-sm text-gray-600 hover:text-[#13B87B]">
                 RSS Feeds
               </Link>
+              <Link to="/admin/prompt-comparator" className="text-sm text-gray-600 hover:text-[#13B87B]">
+                Prompt Research
+              </Link>
               <span className="text-sm text-gray-600">Welcome, {user?.email}</span>
               <Button variant="outline" onClick={handleLogout}>
                 Logout

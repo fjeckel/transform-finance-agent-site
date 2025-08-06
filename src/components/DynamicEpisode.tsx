@@ -1,22 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ExternalLink, Play, Pause, Clock, Calendar, Download, Share2, Heart, Copy } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useEpisodeBySlug } from '@/hooks/useEpisodeBySlug';
+import { useLocalizedEpisodeBySlug } from '@/hooks/useMultilingualEpisodes';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { toast } from '@/hooks/use-toast';
 import SEOHead from '@/components/SEOHead';
 import ImageWithFallback from '@/components/ui/image-with-fallback';
 import { SafeHtmlRenderer } from '@/lib/content-security';
+import { useTranslation } from 'react-i18next';
 
 const DynamicEpisode = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { data: episode, isLoading, error } = useEpisodeBySlug(slug || '');
+  const { i18n } = useTranslation();
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.language || 'de');
+  
+  // Use multilingual hook to get localized content
+  const { data: localizedEpisode, isLoading: localizedLoading, error: localizedError } = useLocalizedEpisodeBySlug(slug || '', currentLanguage);
+  
+  // Fallback to original hook for backward compatibility
+  const { data: fallbackEpisode, isLoading: fallbackLoading, error: fallbackError } = useEpisodeBySlug(slug || '');
+  
+  // Use localized episode if available, otherwise fallback
+  const episode = localizedEpisode || fallbackEpisode;
+  const isLoading = localizedLoading || fallbackLoading;
+  const error = localizedError || fallbackError;
+  
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
   const [showNotesSection, setShowNotesSection] = useState(true);
+
+  // Listen for language changes
+  useEffect(() => {
+    const handleLanguageChange = (event: CustomEvent) => {
+      setCurrentLanguage(event.detail.language);
+    };
+
+    window.addEventListener('languageChanged', handleLanguageChange as EventListener);
+    
+    // Also respond to i18n language changes
+    setCurrentLanguage(i18n.language || 'de');
+    
+    return () => {
+      window.removeEventListener('languageChanged', handleLanguageChange as EventListener);
+    };
+  }, [i18n.language]);
 
   const handleCopyTranscript = async () => {
     if (!episode?.transcript) return;

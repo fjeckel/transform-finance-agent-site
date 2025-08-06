@@ -47,6 +47,7 @@ const NewInsight = lazy(() => import("./pages/NewInsight"));
 const EditInsight = lazy(() => import("./pages/EditInsight"));
 const AdminOverview = lazy(() => import("./pages/AdminOverview"));
 const AdminTranslations = lazy(() => import("./pages/AdminTranslations"));
+const AdminPromptComparator = lazy(() => import("./pages/AdminPromptComparator"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -131,6 +132,7 @@ const App = () => {
                   <Route path="/admin/insights/:id/edit" element={<AppLayout><AdminRoute><EditInsight /></AdminRoute></AppLayout>} />
                   <Route path="/admin/overview" element={<AppLayout><AdminRoute><AdminOverview /></AdminRoute></AppLayout>} />
                   <Route path="/admin/translations" element={<AppLayout><AdminRoute><AdminTranslations /></AdminRoute></AppLayout>} />
+                  <Route path="/admin/prompt-comparator" element={<AppLayout><AdminRoute><AdminPromptComparator /></AdminRoute></AppLayout>} />
                   
                   {/* Routes without sidebar (standalone pages) */}
                   <Route path="/auth" element={<Auth />} />
