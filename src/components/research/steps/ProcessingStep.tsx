@@ -20,6 +20,7 @@ import {
   AIResult,
   ResearchError
 } from "@/types/research";
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProcessingStepProps extends ResearchStepProps {
   onSessionUpdate: (updates: Partial<ResearchSession>) => void;
@@ -59,68 +60,100 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
   const timerRef = React.useRef<NodeJS.Timeout>();
   const isProcessingRef = React.useRef<boolean>(false);
 
-  // Mock processing simulation
-  const simulateProcessing = React.useCallback(async (
+  // Real AI processing function
+  const executeAIResearch = React.useCallback(async (
     provider: AIProvider,
     setProgress: (progress: ProcessingProgress) => void,
     setStatus: (status: AIResultStatus) => void
   ) => {
-    const stages: { stage: ProcessingStage; duration: number; message: string }[] = [
-      { 
-        stage: 'initializing', 
-        duration: 1500, 
-        message: 'Connecting to API and validating request...' 
-      },
-      { 
-        stage: 'processing', 
-        duration: 8000, 
-        message: `${provider === 'claude' ? 'Claude' : 'GPT'} is analyzing your research topic...` 
-      },
-      { 
-        stage: 'finalizing', 
-        duration: 1000, 
-        message: 'Formatting response and calculating costs...' 
-      }
-    ];
-
     setStatus('processing');
+    
+    // Stage 1: Initializing
+    setProgress({
+      provider,
+      stage: 'initializing',
+      percentage: 0,
+      message: 'Connecting to API and preparing request...',
+      timestamp: new Date()
+    });
 
-    for (const { stage, duration, message } of stages) {
+    if (!isProcessingRef.current) return;
+
+    try {
+      // Get authentication session
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      if (!authSession) {
+        throw new Error('Authentication required');
+      }
+
       setProgress({
         provider,
-        stage,
-        percentage: 0,
-        message,
+        stage: 'initializing',
+        percentage: 25,
+        message: 'Authentication validated, preparing research prompt...',
         timestamp: new Date()
       });
 
-      // Simulate progress within each stage
-      const steps = 20;
-      const stepDuration = duration / steps;
-      
-      for (let i = 0; i <= steps; i++) {
-        if (!isProcessingRef.current) break;
-        
-        const stageProgress = (i / steps) * 100;
-        const overallProgress = 
-          (stages.indexOf(stages.find(s => s.stage === stage)!) * 100 / stages.length) + 
-          (stageProgress / stages.length);
+      if (!isProcessingRef.current) return;
 
-        setProgress({
-          provider,
-          stage,
-          percentage: Math.min(overallProgress, 100),
-          message,
-          timestamp: new Date()
-        });
+      // Stage 2: Processing with real AI
+      setProgress({
+        provider,
+        stage: 'processing',
+        percentage: 30,
+        message: `${provider === 'claude' ? 'Claude' : 'OpenAI'} is analyzing your research topic...`,
+        timestamp: new Date()
+      });
 
-        await new Promise(resolve => setTimeout(resolve, stepDuration));
+      // Prepare the research prompt
+      const systemPrompt = session?.systemPrompt || `You are an expert research analyst. Provide comprehensive, well-structured analysis on the given topic with actionable insights and data-driven recommendations.`;
+      const userPrompt = session?.optimizedPrompt || session?.topic || 'Please provide a comprehensive research analysis.';
+
+      // Call the appropriate edge function
+      const functionName = provider === 'claude' ? 'ai-research-claude' : 'ai-research-openai';
+      const response = await fetch(`https://aumijfxmeclxweojrefa.supabase.co/functions/v1/${functionName}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authSession.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          systemPrompt,
+          userPrompt,
+          maxTokens: 4000,
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API call failed: ${response.status} ${response.statusText}`);
       }
-    }
 
-    // Simulate random completion or error
-    if (Math.random() > 0.1) { // 90% success rate
-      setStatus('completed');
+      setProgress({
+        provider,
+        stage: 'processing',
+        percentage: 80,
+        message: 'Receiving and processing AI response...',
+        timestamp: new Date()
+      });
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'AI processing failed');
+      }
+
+      // Stage 3: Finalizing
+      setProgress({
+        provider,
+        stage: 'finalizing',
+        percentage: 95,
+        message: 'Formatting response and calculating costs...',
+        timestamp: new Date()
+      });
+
+      if (!isProcessingRef.current) return;
+
       setProgress({
         provider,
         stage: 'finalizing',
@@ -129,27 +162,31 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
         timestamp: new Date()
       });
 
-      // Generate mock result
-      const mockResult: AIResult = {
+      // Generate the AI result
+      const aiResult: AIResult = {
         provider,
-        content: generateMockContent(provider, session?.topic || ""),
+        content: result.content || 'Analysis completed',
         metadata: {
-          model: provider === 'claude' ? 'claude-3-sonnet' : 'gpt-4-turbo',
-          tokensUsed: Math.floor(Math.random() * 2000) + 1000,
-          cost: Math.random() * 0.05 + 0.01,
-          processingTime: Date.now() - (startTimeRef.current?.getTime() || 0),
+          model: provider === 'claude' ? 'claude-3-5-sonnet' : 'gpt-4-turbo',
+          tokensUsed: result.tokensUsed || 0,
+          cost: result.cost || 0,
+          processingTime: result.processingTime || (Date.now() - (startTimeRef.current?.getTime() || 0)),
           finishReason: 'stop'
         },
         timestamp: new Date(),
         status: 'completed'
       };
 
-      return mockResult;
-    } else {
+      setStatus('completed');
+      return aiResult;
+      
+    } catch (error) {
+      console.error(`${provider} research error:`, error);
       setStatus('failed');
-      throw new Error(`${provider} processing failed due to API timeout`);
+      throw error;
     }
-  }, [session?.topic]);
+
+  }, [session?.topic, session?.systemPrompt, session?.optimizedPrompt]);
 
   const generateMockContent = (provider: AIProvider, topic: string): string => {
     const providerStyle = provider === 'claude' 
@@ -201,10 +238,10 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
     }, 100);
 
     try {
-      // Process both providers in parallel
+      // Process both providers in parallel with real AI calls
       const [claudeResult, openaiResult] = await Promise.allSettled([
-        simulateProcessing('claude', setClaudeProgress, setClaudeStatus),
-        simulateProcessing('openai', setOpenaiProgress, setOpenaiStatus)
+        executeAIResearch('claude', setClaudeProgress, setClaudeStatus),
+        executeAIResearch('openai', setOpenaiProgress, setOpenaiStatus)
       ]);
 
       const results = {
@@ -244,7 +281,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
         clearInterval(timerRef.current);
       }
     }
-  }, [onSessionUpdate, simulateProcessing]);
+  }, [onSessionUpdate, executeAIResearch]);
 
   const handleStopProcessing = React.useCallback(() => {
     setIsProcessing(false);
