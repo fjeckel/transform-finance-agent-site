@@ -1,51 +1,42 @@
 #!/bin/bash
 
 # Deploy Supabase Edge Functions
-# Usage: ./deploy-functions.sh
+# Run this locally to deploy functions directly
 
 echo "🚀 Deploying Supabase Edge Functions..."
 
-# Check if Supabase CLI is installed
+PROJECT_REF="aumijfxmeclxweojrefa"
+
+# Check if supabase CLI is installed
 if ! command -v supabase &> /dev/null; then
-    echo "❌ Supabase CLI is not installed. Please install it first:"
-    echo "   brew install supabase/tap/supabase"
+    echo "❌ Supabase CLI not found. Install it first:"
+    echo "npm install -g supabase"
     exit 1
 fi
 
-# Check if logged in
-if ! supabase db list &> /dev/null; then
-    echo "❌ Not logged in to Supabase. Please run:"
-    echo "   supabase login"
-    exit 1
-fi
+# Deploy functions one by one
+echo "📡 Deploying RSS feed function..."
+supabase functions deploy rss-feed --project-ref $PROJECT_REF
 
-# Deploy all functions
-FUNCTIONS=("rss-feed" "stripe-create-checkout-session" "stripe-webhook" "download-pdf" "stripe-create-payment-intent")
+echo "🌐 Deploying translation functions..."
+supabase functions deploy translate-content --project-ref $PROJECT_REF
+supabase functions deploy translate-content-claude --project-ref $PROJECT_REF
+supabase functions deploy batch-translate --project-ref $PROJECT_REF
 
-for func in "${FUNCTIONS[@]}"; do
-    echo "📡 Deploying $func function..."
-    supabase functions deploy $func
-    
-    if [ $? -eq 0 ]; then
-        echo "✅ $func function deployed successfully!"
-    else
-        echo "❌ $func deployment failed. Continuing with other functions..."
-    fi
-    echo ""
-done
+echo "🔬 Deploying AI research functions..."
+supabase functions deploy ai-research-claude --project-ref $PROJECT_REF
+supabase functions deploy ai-research-openai --project-ref $PROJECT_REF
+supabase functions deploy ai-research-parallel --project-ref $PROJECT_REF
 
-echo "📋 Your RSS feeds are now available at:"
-echo "   - All episodes: [PROJECT_URL]/functions/v1/rss-feed"
-echo "   - WTF: [PROJECT_URL]/functions/v1/rss-feed/wtf"
-echo "   - Finance Transformers: [PROJECT_URL]/functions/v1/rss-feed/finance_transformers"
-echo "   - CFO Memo: [PROJECT_URL]/functions/v1/rss-feed/cfo_memo"
+echo "✅ All functions deployed!"
 echo ""
-echo "💳 Stripe payment functions deployed:"
-echo "   - Checkout session creation: [PROJECT_URL]/functions/v1/stripe-create-checkout-session"
-echo "   - Webhook handler: [PROJECT_URL]/functions/v1/stripe-webhook"
-echo "   - PDF download: [PROJECT_URL]/functions/v1/download-pdf"
-
-# List all deployed functions
+echo "🔗 Functions are available at:"
+echo "- https://$PROJECT_REF.supabase.co/functions/v1/ai-research-claude"
+echo "- https://$PROJECT_REF.supabase.co/functions/v1/ai-research-openai"  
+echo "- https://$PROJECT_REF.supabase.co/functions/v1/ai-research-parallel"
 echo ""
-echo "📋 Currently deployed functions:"
-supabase functions list
+echo "🧪 Test the Claude function:"
+echo 'curl -X POST "https://'$PROJECT_REF'.supabase.co/functions/v1/ai-research-claude" \'
+echo '  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \'
+echo '  -H "Content-Type: application/json" \'
+echo '  -d '"'"'{"systemPrompt": "You are a helpful assistant", "userPrompt": "Hello!"}"'"
