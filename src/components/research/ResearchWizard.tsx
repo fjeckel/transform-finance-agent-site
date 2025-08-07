@@ -66,6 +66,9 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
     }
   }, [initialTopic]);
 
+  // State for form validation
+  const [step1Topic, setStep1Topic] = useState("");
+  
   // Wizard steps configuration
   const steps: WizardStep[] = [
     {
@@ -75,7 +78,7 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
       component: 'ResearchSetupStep',
       status: currentStep === 1 ? 'current' : currentStep > 1 ? 'completed' : 'pending',
       isClickable: true,
-      isValid: !!session?.topic
+      isValid: step1Topic.trim().length >= 10 || !!session?.topic
     },
     {
       id: 2,
@@ -214,6 +217,7 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
             onCancel={() => navigate('/admin')}
             onConfigUpdate={(config) => {
               // Handle config update
+              setStep1Topic(config.topic || "");
               console.log('Config updated:', config);
             }}
           />

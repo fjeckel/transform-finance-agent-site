@@ -30,6 +30,18 @@ const ResearchSetupStep: React.FC<ResearchSetupStepProps> = ({
 }) => {
   const [topic, setTopic] = React.useState(session?.topic || "");
   const [optimizedPrompt, setOptimizedPrompt] = React.useState(session?.optimizedPrompt || "");
+  
+  // Update parent when topic changes
+  React.useEffect(() => {
+    const config: ResearchConfig = {
+      topic: optimizedPrompt || topic,
+      optimizedPrompt: optimizedPrompt || undefined,
+      maxTokens: 4000,
+      temperature: 0.7,
+      providers: ['claude', 'openai']
+    };
+    onConfigUpdate(config);
+  }, [topic, optimizedPrompt, onConfigUpdate]);
   const [costEstimate, setCostEstimate] = React.useState<CostEstimate>({
     claude: 0.025,
     openai: 0.030,
@@ -139,12 +151,36 @@ const ResearchSetupStep: React.FC<ResearchSetupStepProps> = ({
     
     setIsOptimizing(true);
     
-    // Mock optimization - in real implementation, this would call an API
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Call the Supabase Edge Function for prompt optimization  
+      const response = await fetch(`https://aumijfxmeclxweojrefa.supabase.co/functions/v1/ai-research-claude`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1bWlqZnhtZWNseHdlb2pyZWZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzNzgwMDksImV4cCI6MjA2Njk1NDAwOX0.71K0TyaDwxCrzanRfM_ciVXGc0jm9-qN_yfckiRmayc`,
+        },
+        body: JSON.stringify({
+          action: 'optimize_prompt',
+          prompt: topic.trim(),
+          context: 'research_optimization'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to optimize prompt');
+      }
+
+      const data = await response.json();
+      const optimized = data.optimized_prompt || `Optimized research prompt: ${topic}\n\nProvide a comprehensive analysis including:\n1. Current market overview\n2. Key trends and developments\n3. Future outlook and projections\n4. Actionable insights and recommendations\n\nPlease ensure the response is well-structured with clear sections and data-driven insights.`;
+      
+      setOptimizedPrompt(optimized);
+    } catch (error) {
+      console.error('Prompt optimization error:', error);
+      // Fallback to enhanced static version
+      const optimized = `Optimized research prompt: Give me a research of ${topic}!\n\nProvide a comprehensive analysis including:\n1. Current market overview\n2. Key trends and developments\n3. Future outlook and projections\n4. Actionable insights and recommendations\n\nPlease ensure the response is well-structured with clear sections and data-driven insights.`;
+      setOptimizedPrompt(optimized);
+    }
     
-    const optimized = `Optimized research prompt: ${topic}\n\nProvide a comprehensive analysis including:\n1. Current market overview\n2. Key trends and developments\n3. Future outlook and projections\n4. Actionable insights and recommendations\n\nPlease ensure the response is well-structured with clear sections and data-driven insights.`;
-    
-    setOptimizedPrompt(optimized);
     setIsOptimizing(false);
   }, [topic]);
 
