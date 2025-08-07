@@ -31,7 +31,7 @@ interface ResearchWizardProps {
   onComplete?: (session: ResearchSession) => void;
 }
 
-export const ResearchWizard: React.FC<ResearchWizardProps> = ({ 
+const ResearchWizard: React.FC<ResearchWizardProps> = ({ 
   initialTopic, 
   onComplete 
 }) => {
@@ -362,3 +362,5 @@ export const ResearchWizard: React.FC<ResearchWizardProps> = ({
     </div>
   );
 };
+
+export default ResearchWizard;
