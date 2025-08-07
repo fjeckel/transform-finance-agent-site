@@ -50,6 +50,12 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
   const results = session?.results;
   const claudeResult = results?.claude;
   const openaiResult = results?.openai;
+  
+  // Debug logging for results
+  console.log('ResultsStep - Session:', session);
+  console.log('ResultsStep - Results:', results);
+  console.log('ResultsStep - Claude result:', claudeResult);
+  console.log('ResultsStep - OpenAI result:', openaiResult);
 
   const handleExport = React.useCallback(async (format: ExportFormat) => {
     if (!results) return;

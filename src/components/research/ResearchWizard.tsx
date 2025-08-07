@@ -148,7 +148,7 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
       component: 'ResultsStep',
       status: currentStep === 3 ? 'current' : currentStep > 3 ? 'completed' : 'pending',
       isClickable: currentStep >= 3,
-      isValid: session?.results && session.results.length > 0
+      isValid: session?.results && (session.results.claude || session.results.openai)
     }
   ];
 
@@ -236,9 +236,28 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
             onPrevious={() => setCurrentStep(1)}
             onCancel={() => navigate('/admin')}
             onSessionUpdate={(updates) => {
-              setSession(prev => prev ? { ...prev, ...updates } : null);
+              console.log('ResearchWizard - Session update received:', updates);
+              console.log('ResearchWizard - Previous session:', session);
+              
+              setSession(prev => {
+                // CRITICAL FIX: Handle undefined prev by creating new session with updates
+                const updated = prev ? { ...prev, ...updates } : { 
+                  id: 'generated-' + Date.now(),
+                  title: 'AI Research Session',
+                  topic: '',
+                  status: 'setup' as ResearchStatus,
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                  ...updates 
+                };
+                console.log('ResearchWizard - Updated session:', updated);
+                return updated;
+              });
+              
               if (updates.status === 'completed' && session) {
-                handleResearchComplete({ ...session, ...updates });
+                const completedSession = { ...session, ...updates };
+                console.log('ResearchWizard - Completed session:', completedSession);
+                handleResearchComplete(completedSession);
               }
             }}
           />

@@ -46,7 +46,7 @@ const SimpleCheckout: React.FC<SimpleCheckoutProps> = ({
           body: {
             pdfId,
             userId: user.id,
-            successUrl: `${window.location.origin}/dashboard?payment_success=true&pdf_id=${pdfId}`,
+            successUrl: `${window.location.origin}/thank-you?session_id={CHECKOUT_SESSION_ID}&success=true&pdf_id=${pdfId}`,
             cancelUrl: `${window.location.origin}/episodes?payment_cancelled=true`,
           },
         }

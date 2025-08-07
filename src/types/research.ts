@@ -12,7 +12,11 @@ export interface ResearchSession {
   totalSteps: number;
   
   // Configuration (frontend structure)
-  config: ResearchConfig;
+  config?: ResearchConfig;
+  
+  // Simplified prompt fields for compatibility
+  systemPrompt?: string;
+  optimizedPrompt?: string;
   
   // Results (unified structure)
   results?: ResearchResults;

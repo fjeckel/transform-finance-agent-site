@@ -220,7 +220,7 @@ serve(async (req) => {
       after_completion: {
         type: 'redirect',
         redirect: {
-          url: `${req.headers.get('origin') || 'https://aumijfxmeclxweojrefa.supabase.co'}/thank-you?session_id={CHECKOUT_SESSION_ID}&pdf_id=${pdfId}`,
+          url: `${req.headers.get('origin') || 'https://transform-finance-agent-site-dyvf7kr9k.vercel.app'}/thank-you?session_id={CHECKOUT_SESSION_ID}&pdf_id=${pdfId}`,
         },
       },
     })
