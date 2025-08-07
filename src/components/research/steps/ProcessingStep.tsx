@@ -57,6 +57,7 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
 
   const startTimeRef = React.useRef<Date>();
   const timerRef = React.useRef<NodeJS.Timeout>();
+  const isProcessingRef = React.useRef<boolean>(false);
 
   // Mock processing simulation
   const simulateProcessing = React.useCallback(async (
@@ -98,7 +99,7 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
       const stepDuration = duration / steps;
       
       for (let i = 0; i <= steps; i++) {
-        if (!isProcessing) break;
+        if (!isProcessingRef.current) break;
         
         const stageProgress = (i / steps) * 100;
         const overallProgress = 
@@ -148,7 +149,7 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
       setStatus('failed');
       throw new Error(`${provider} processing failed due to API timeout`);
     }
-  }, [isProcessing, session?.topic]);
+  }, [session?.topic]);
 
   const generateMockContent = (provider: AIProvider, topic: string): string => {
     const providerStyle = provider === 'claude' 
@@ -183,6 +184,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
     if (isProcessing) return;
     
     setIsProcessing(true);
+    isProcessingRef.current = true;
     setError(null);
     startTimeRef.current = new Date();
     
@@ -237,14 +239,16 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
       });
     } finally {
       setIsProcessing(false);
+      isProcessingRef.current = false;
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
     }
-  }, [isProcessing, onSessionUpdate, simulateProcessing]);
+  }, [onSessionUpdate, simulateProcessing]);
 
   const handleStopProcessing = React.useCallback(() => {
     setIsProcessing(false);
+    isProcessingRef.current = false;
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
