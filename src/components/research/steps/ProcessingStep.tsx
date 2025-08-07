@@ -145,10 +145,12 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
         progressIndex++;
       }, 3000); // Update every 3 seconds
 
+      // Call the appropriate edge function
+      const functionName = provider === 'claude' ? 'ai-research-claude' : 'ai-research-openai';
+      
+      let response;
       try {
-        // Call the appropriate edge function
-        const functionName = provider === 'claude' ? 'ai-research-claude' : 'ai-research-openai';
-        const response = await fetch(`https://aumijfxmeclxweojrefa.supabase.co/functions/v1/${functionName}`, {
+        response = await fetch(`https://aumijfxmeclxweojrefa.supabase.co/functions/v1/${functionName}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${authSession.access_token}`,
@@ -176,53 +178,54 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
           message: 'Processing comprehensive AI response...',
           timestamp: new Date()
         });
+
+        const result = await response.json();
+        
+        if (!result.success) {
+          throw new Error(result.error || 'AI processing failed');
+        }
+
+        // Stage 3: Finalizing
+        setProgress({
+          provider,
+          stage: 'finalizing',
+          percentage: 95,
+          message: 'Formatting response and calculating costs...',
+          timestamp: new Date()
+        });
+
+        if (!isProcessingRef.current) return;
+
+        setProgress({
+          provider,
+          stage: 'finalizing',
+          percentage: 100,
+          message: 'Analysis completed successfully!',
+          timestamp: new Date()
+        });
+
+        // Generate the AI result
+        const aiResult: AIResult = {
+          provider,
+          content: result.content || 'Analysis completed',
+          metadata: {
+            model: provider === 'claude' ? 'claude-3-5-sonnet' : 'gpt-4-turbo',
+            tokensUsed: result.tokensUsed || 0,
+            cost: result.cost || 0,
+            processingTime: result.processingTime || (Date.now() - (startTimeRef.current?.getTime() || 0)),
+            finishReason: 'stop'
+          },
+          timestamp: new Date(),
+          status: 'completed'
+        };
+
+        setStatus('completed');
+        return aiResult;
+        
       } catch (error) {
         clearInterval(progressInterval);
         throw error;
       }
-
-      const result = await response.json();
-      
-      if (!result.success) {
-        throw new Error(result.error || 'AI processing failed');
-      }
-
-      // Stage 3: Finalizing
-      setProgress({
-        provider,
-        stage: 'finalizing',
-        percentage: 95,
-        message: 'Formatting response and calculating costs...',
-        timestamp: new Date()
-      });
-
-      if (!isProcessingRef.current) return;
-
-      setProgress({
-        provider,
-        stage: 'finalizing',
-        percentage: 100,
-        message: 'Analysis completed successfully!',
-        timestamp: new Date()
-      });
-
-      // Generate the AI result
-      const aiResult: AIResult = {
-        provider,
-        content: result.content || 'Analysis completed',
-        metadata: {
-          model: provider === 'claude' ? 'claude-3-5-sonnet' : 'gpt-4-turbo',
-          tokensUsed: result.tokensUsed || 0,
-          cost: result.cost || 0,
-          processingTime: result.processingTime || (Date.now() - (startTimeRef.current?.getTime() || 0)),
-          finishReason: 'stop'
-        },
-        timestamp: new Date(),
-        status: 'completed'
-      };
-
-      setStatus('completed');
-      return aiResult;
       
     } catch (error) {
       console.error(`${provider} research error:`, error);
