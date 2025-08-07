@@ -33,15 +33,27 @@ const ResearchSetupStep: React.FC<ResearchSetupStepProps> = ({
   const [optimizedPrompt, setOptimizedPrompt] = React.useState(session?.optimizedPrompt || "");
   const [hasError, setHasError] = React.useState(false);
   const [isOptimizing, setIsOptimizing] = React.useState(false);
+  const [showAdvanced, setShowAdvanced] = React.useState(false);
+  const [systemPrompt, setSystemPrompt] = React.useState(`You are an expert research prompt optimizer. Your task is to transform user research topics into comprehensive, structured research prompts that will generate high-quality analytical content.
+
+When given a research topic, enhance it by:
+1. Adding specific analytical frameworks and methodologies
+2. Including key areas of investigation (market analysis, trends, competitive landscape, etc.)
+3. Requesting structured output with clear sections
+4. Ensuring data-driven insights and actionable recommendations
+5. Specifying the target audience and depth of analysis
+
+Make the prompt comprehensive but focused, ensuring it will generate professional research-grade content.`);
   
   // Update parent when topic changes - memoized to prevent infinite loops
   const currentConfig = React.useMemo(() => ({
     topic: optimizedPrompt || topic,
     optimizedPrompt: optimizedPrompt || undefined,
+    systemPrompt: systemPrompt,
     maxTokens: 4000,
     temperature: 0.7,
     providers: ['claude', 'openai'] as const
-  }), [topic, optimizedPrompt]);
+  }), [topic, optimizedPrompt, systemPrompt]);
 
   React.useEffect(() => {
     onConfigUpdate(currentConfig);
@@ -171,16 +183,7 @@ const ResearchSetupStep: React.FC<ResearchSetupStepProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          systemPrompt: `You are an expert research prompt optimizer. Your task is to transform user research topics into comprehensive, structured research prompts that will generate high-quality analytical content.
-
-When given a research topic, enhance it by:
-1. Adding specific analytical frameworks and methodologies
-2. Including key areas of investigation (market analysis, trends, competitive landscape, etc.)
-3. Requesting structured output with clear sections
-4. Ensuring data-driven insights and actionable recommendations
-5. Specifying the target audience and depth of analysis
-
-Make the prompt comprehensive but focused, ensuring it will generate professional research-grade content.`,
+          systemPrompt: systemPrompt,
           userPrompt: `Please optimize this research topic into a comprehensive research prompt:
 
 Topic: "${topic.trim()}"
@@ -242,12 +245,13 @@ Ensure all insights are data-driven and provide specific, actionable recommendat
     }
     
     setIsOptimizing(false);
-  }, [topic]);
+  }, [topic, systemPrompt]);
 
   const handleNext = React.useCallback(() => {
     const config: ResearchConfig = {
       topic: optimizedPrompt || topic,
       optimizedPrompt: optimizedPrompt || undefined,
+      systemPrompt: systemPrompt,
       maxTokens: 4000,
       temperature: 0.7,
       providers: ['claude', 'openai']
@@ -255,7 +259,7 @@ Ensure all insights are data-driven and provide specific, actionable recommendat
     
     onConfigUpdate(config);
     onNext?.();
-  }, [topic, optimizedPrompt, onConfigUpdate, onNext]);
+  }, [topic, optimizedPrompt, systemPrompt, onConfigUpdate, onNext]);
 
   const isValidTopic = topic.trim().length >= 10 && topic.trim().length <= 1000;
   const charCount = topic.length;
@@ -327,6 +331,75 @@ Ensure all insights are data-driven and provide specific, actionable recommendat
                   {charCount}/{charLimit}
                 </span>
               </div>
+            </div>
+
+            {/* Advanced Settings */}
+            <div className="space-y-3">
+              <Separator />
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium">Advanced Settings</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Customize the AI system prompt for optimization
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                >
+                  {showAdvanced ? 'Hide' : 'Show'} Advanced
+                </Button>
+              </div>
+
+              {showAdvanced && (
+                <div className="space-y-3 p-4 bg-gray-50 rounded-lg border">
+                  <div>
+                    <Label htmlFor="system-prompt" className="text-sm font-medium">
+                      System Prompt
+                    </Label>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Define how the AI should optimize your research prompts. This controls the optimization behavior.
+                    </p>
+                    <Textarea
+                      id="system-prompt"
+                      placeholder="Enter custom system prompt for AI optimization..."
+                      value={systemPrompt}
+                      onChange={(e) => setSystemPrompt(e.target.value)}
+                      className="min-h-[160px] resize-none font-mono text-xs"
+                      maxLength={2000}
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-xs text-muted-foreground">
+                        Controls how AI optimizes your prompts
+                      </p>
+                      <span className="text-xs text-muted-foreground">
+                        {systemPrompt.length}/2000
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSystemPrompt(`You are an expert research prompt optimizer. Your task is to transform user research topics into comprehensive, structured research prompts that will generate high-quality analytical content.
+
+When given a research topic, enhance it by:
+1. Adding specific analytical frameworks and methodologies
+2. Including key areas of investigation (market analysis, trends, competitive landscape, etc.)
+3. Requesting structured output with clear sections
+4. Ensuring data-driven insights and actionable recommendations
+5. Specifying the target audience and depth of analysis
+
+Make the prompt comprehensive but focused, ensuring it will generate professional research-grade content.`)}
+                    >
+                      Reset to Default
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Optimization */}

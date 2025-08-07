@@ -65,6 +65,7 @@ export type ResearchSessionStatus = 'pending' | 'in_progress' | 'completed' | 'f
 export interface ResearchConfig {
   topic: string;
   optimizedPrompt?: string;
+  systemPrompt?: string;
   maxTokens: number;
   temperature: number;
   providers: ('claude' | 'openai')[];

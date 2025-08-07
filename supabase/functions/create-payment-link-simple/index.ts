@@ -2,9 +2,36 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
 
+// Simple rate limiting (in production, use Redis or similar)
+const rateLimitMap = new Map<string, { count: number, resetTime: number }>()
+
+function checkRateLimit(ip: string): boolean {
+  const limit = 10 // requests per minute
+  const windowMs = 60 * 1000 // 1 minute
+  const now = Date.now()
+  
+  const current = rateLimitMap.get(ip)
+  
+  if (!current || now > current.resetTime) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs })
+    return true
+  }
+  
+  if (current.count >= limit) {
+    return false
+  }
+  
+  current.count++
+  return true
+}
+
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': process.env.NODE_ENV === 'production' ? 'https://aumijfxmeclxweojrefa.supabase.co' : '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Credentials': 'true',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
 }
 
 serve(async (req) => {
@@ -14,6 +41,16 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limiting
+    const clientIP = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+    if (!checkRateLimit(clientIP)) {
+      console.warn('Rate limit exceeded for IP:', clientIP)
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    
     console.log('=== Payment Link Creation Started ===')
     
     // Parse request body
@@ -30,6 +67,25 @@ serve(async (req) => {
 
     const { pdfId } = body
     console.log('PDF ID received:', pdfId)
+    
+    // Input validation
+    if (!pdfId || typeof pdfId !== 'string') {
+      console.error('Invalid pdfId parameter')
+      return new Response(
+        JSON.stringify({ error: 'Invalid pdfId parameter' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+    if (!uuidRegex.test(pdfId)) {
+      console.error('Invalid UUID format for pdfId:', pdfId)
+      return new Response(
+        JSON.stringify({ error: 'Invalid PDF ID format' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     if (!pdfId) {
       console.error('Missing pdfId in request')
@@ -90,6 +146,15 @@ serve(async (req) => {
     }
 
     console.log('PDF found:', { id: pdf.id, title: pdf.title, price: pdf.price, is_premium: pdf.is_premium })
+    
+    // Additional security: Validate PDF data
+    if (typeof pdf.price !== 'number' || pdf.price < 0 || pdf.price > 99999) {
+      console.error('Invalid PDF price:', pdf.price)
+      return new Response(
+        JSON.stringify({ error: 'Invalid PDF pricing configuration' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     // Check if it's a premium PDF
     if (!pdf.is_premium || !pdf.price || pdf.price <= 0) {
@@ -156,7 +221,7 @@ serve(async (req) => {
       after_completion: {
         type: 'redirect',
         redirect: {
-          url: `${req.headers.get('origin') || 'https://your-domain.com'}/thank-you?session_id={CHECKOUT_SESSION_ID}&pdf_id=${pdfId}`,
+          url: `${req.headers.get('origin') || 'https://aumijfxmeclxweojrefa.supabase.co'}/thank-you?session_id={CHECKOUT_SESSION_ID}&pdf_id=${pdfId}`,
         },
       },
     })
