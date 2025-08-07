@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/((?!api|assets|manifest\\.json|.*\\..*).*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ],
