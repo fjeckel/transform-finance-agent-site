@@ -31,17 +31,18 @@ const ResearchSetupStep: React.FC<ResearchSetupStepProps> = ({
   const [topic, setTopic] = React.useState(session?.topic || "");
   const [optimizedPrompt, setOptimizedPrompt] = React.useState(session?.optimizedPrompt || "");
   
-  // Update parent when topic changes
+  // Update parent when topic changes - memoized to prevent infinite loops
+  const currentConfig = React.useMemo(() => ({
+    topic: optimizedPrompt || topic,
+    optimizedPrompt: optimizedPrompt || undefined,
+    maxTokens: 4000,
+    temperature: 0.7,
+    providers: ['claude', 'openai'] as const
+  }), [topic, optimizedPrompt]);
+
   React.useEffect(() => {
-    const config: ResearchConfig = {
-      topic: optimizedPrompt || topic,
-      optimizedPrompt: optimizedPrompt || undefined,
-      maxTokens: 4000,
-      temperature: 0.7,
-      providers: ['claude', 'openai']
-    };
-    onConfigUpdate(config);
-  }, [topic, optimizedPrompt, onConfigUpdate]);
+    onConfigUpdate(currentConfig);
+  }, [currentConfig, onConfigUpdate]);
   const [costEstimate, setCostEstimate] = React.useState<CostEstimate>({
     claude: 0.025,
     openai: 0.030,
@@ -152,37 +153,74 @@ const ResearchSetupStep: React.FC<ResearchSetupStepProps> = ({
     setIsOptimizing(true);
     
     try {
-      // Call the Supabase Edge Function for prompt optimization  
-      const response = await fetch(`https://aumijfxmeclxweojrefa.supabase.co/functions/v1/ai-research-claude`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1bWlqZnhtZWNseHdlb2pyZWZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzNzgwMDksImV4cCI6MjA2Njk1NDAwOX0.71K0TyaDwxCrzanRfM_ciVXGc0jm9-qN_yfckiRmayc`,
-        },
-        body: JSON.stringify({
-          action: 'optimize_prompt',
-          prompt: topic.trim(),
-          context: 'research_optimization'
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to optimize prompt');
-      }
-
-      const data = await response.json();
-      const optimized = data.optimized_prompt || `Optimized research prompt: ${topic}\n\nProvide a comprehensive analysis including:\n1. Current market overview\n2. Key trends and developments\n3. Future outlook and projections\n4. Actionable insights and recommendations\n\nPlease ensure the response is well-structured with clear sections and data-driven insights.`;
+      // Use the researchService to properly call the function with authentication
+      const { researchService } = await import('@/services/research/researchService');
       
-      setOptimizedPrompt(optimized);
+      const result = await researchService.executeClaudeResearch({
+        sessionId: session?.id || 'temp',
+        prompt: `You are an expert research prompt optimizer. Transform this user research topic into a comprehensive, structured research prompt:
+
+Topic: "${topic.trim()}"
+
+Enhance it by:
+1. Adding specific analytical frameworks and methodologies
+2. Including key areas of investigation (market analysis, trends, competitive landscape, etc.)  
+3. Requesting structured output with clear sections
+4. Ensuring data-driven insights and actionable recommendations
+5. Specifying the target audience and depth of analysis
+
+Return only the optimized prompt, make it comprehensive but focused.`,
+        maxTokens: 1000,
+        temperature: 0.7
+      });
+      
+      if (result.success && result.response) {
+        setOptimizedPrompt(result.response.trim());
+      } else {
+        throw new Error(result.error || 'Failed to get optimized prompt from API');
+      }
+      
     } catch (error) {
       console.error('Prompt optimization error:', error);
       // Fallback to enhanced static version
-      const optimized = `Optimized research prompt: Give me a research of ${topic}!\n\nProvide a comprehensive analysis including:\n1. Current market overview\n2. Key trends and developments\n3. Future outlook and projections\n4. Actionable insights and recommendations\n\nPlease ensure the response is well-structured with clear sections and data-driven insights.`;
+      const optimized = `Conduct a comprehensive research analysis on: ${topic}
+
+Please provide:
+
+1. **Executive Summary**: Key findings and insights overview
+
+2. **Current Market Analysis**: 
+   - Market size and growth trends
+   - Key players and competitive landscape
+   - Current market dynamics
+
+3. **Trend Analysis**:
+   - Emerging trends and patterns
+   - Historical context and evolution
+   - Future trajectory indicators
+
+4. **Strategic Insights**:
+   - Opportunities and challenges
+   - Risk factors and mitigation strategies
+   - Success factors and best practices
+
+5. **Actionable Recommendations**:
+   - Strategic recommendations
+   - Implementation considerations
+   - Expected outcomes and metrics
+
+6. **Data-Driven Evidence**:
+   - Relevant statistics and metrics
+   - Industry benchmarks
+   - Supporting research and sources
+
+Please structure the response with clear headings, bullet points where appropriate, and ensure all insights are supported by evidence and analysis.`;
+      
       setOptimizedPrompt(optimized);
     }
     
     setIsOptimizing(false);
-  }, [topic]);
+  }, [topic, session?.id]);
 
   const handleNext = React.useCallback(() => {
     const config: ResearchConfig = {

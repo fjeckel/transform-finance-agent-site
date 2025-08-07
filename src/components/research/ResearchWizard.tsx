@@ -215,11 +215,10 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
             session={session}
             onNext={handleNext}
             onCancel={() => navigate('/admin')}
-            onConfigUpdate={(config) => {
+            onConfigUpdate={React.useCallback((config) => {
               // Handle config update
               setStep1Topic(config.topic || "");
-              console.log('Config updated:', config);
-            }}
+            }, [])}
           />
         );
         
