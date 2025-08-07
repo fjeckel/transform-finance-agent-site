@@ -51,17 +51,30 @@ const SimplePurchaseButton: React.FC<SimplePurchaseButtonProps> = ({ pdf }) => {
         return;
       }
 
-      // Create new payment link
+      // Create new payment link using anonymous access
       console.log('Creating payment link for PDF:', pdf.id);
       
-      const { data, error } = await supabase.functions.invoke('create-payment-link-simple', {
-        body: { pdfId: pdf.id }
+      // Use environment variables directly for anonymous access
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://aumijfxmeclxweojrefa.supabase.co';
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1bWlqZnhtZWNseHdlb2pyZWZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzNzgwMDksImV4cCI6MjA2Njk1NDAwOX0.71K0TyaDwxCrzanRfM_ciVXGc0jm9-qN_yfckiRmayc';
+      
+      const response = await fetch(`${supabaseUrl}/functions/v1/create-payment-link-simple`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${supabaseAnonKey}`
+        },
+        body: JSON.stringify({ pdfId: pdf.id })
       });
-
-      if (error) {
-        throw new Error(error.message || 'Failed to create payment link');
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
       }
-
+      
+      const data = await response.json();
+      
       if (!data?.paymentLinkUrl) {
         throw new Error('No payment link received');
       }

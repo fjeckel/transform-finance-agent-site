@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/((?!assets/|.*\\..*$).*)",
+      "source": "/((?!assets/|manifest\\.json|.*\\..*$).*)",
       "destination": "/index.html"
     }
   ],
@@ -14,6 +14,19 @@
         {
           "key": "Cache-Control",
           "value": "public, immutable, max-age=31536000"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
         }
       ]
     },

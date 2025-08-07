@@ -67,7 +67,7 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
         focusAreas: []
       });
     }
-  }, [initialTopic]);
+  }, [initialTopic, session, handleCreateSession]);
 
   // State for form validation
   const [step1Topic, setStep1Topic] = useState("");
@@ -103,8 +103,14 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
     }
   ];
 
-  // Handle session creation
-  const handleCreateSession = async (formData: TopicInputForm) => {
+  // Stable callback for config updates - defined at top level to prevent hook violations
+  const handleConfigUpdate = React.useCallback((config: any) => {
+    // Handle config update
+    setStep1Topic(config.topic || "");
+  }, []);
+
+  // Handle session creation - memoized to prevent infinite loops in useEffect
+  const handleCreateSession = React.useCallback(async (formData: TopicInputForm) => {
     setIsLoading(true);
     
     try {
@@ -144,7 +150,7 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
   // Handle step navigation
   const handleStepNavigation = (targetStep: number) => {
@@ -218,15 +224,12 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
             session={session}
             onNext={handleNext}
             onCancel={() => navigate('/admin')}
-            onConfigUpdate={React.useCallback((config) => {
-              // Handle config update
-              setStep1Topic(config.topic || "");
-            }, [])}
+            onConfigUpdate={handleConfigUpdate}
           />
         );
         
       case 2:
-        return session ? (
+        return (
           <ProcessingStep
             session={session}
             onNext={() => setCurrentStep(3)}
@@ -234,15 +237,15 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
             onCancel={() => navigate('/admin')}
             onSessionUpdate={(updates) => {
               setSession(prev => prev ? { ...prev, ...updates } : null);
-              if (updates.status === 'completed') {
+              if (updates.status === 'completed' && session) {
                 handleResearchComplete({ ...session, ...updates });
               }
             }}
           />
-        ) : null;
+        );
         
       case 3:
-        return session ? (
+        return (
           <ResultsStep
             session={session}
             onExport={(format) => {
@@ -256,7 +259,7 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
               setCurrentStep(1);
             }}
           />
-        ) : null;
+        );
         
       default:
         return null;

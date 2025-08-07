@@ -478,135 +478,144 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
     </div>
   );
 
-  if (!results) {
+  // Render content based on results availability
+  const renderContent = () => {
+    if (!results) {
+      return (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">No results available</p>
+        </div>
+      );
+    }
+
     return (
-      <div className={cn("text-center py-8", className)}>
-        <p className="text-muted-foreground">No results available</p>
-      </div>
+      <>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Results & Comparison</h2>
+            <p className="text-muted-foreground">
+              Review and compare AI-generated research insights
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowMetadata(!showMetadata)}
+            >
+              {showMetadata ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showMetadata ? 'Hide' : 'Show'} Details
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShare}
+            >
+              <Share2 className="w-4 h-4 mr-1" />
+              Share
+            </Button>
+          </div>
+        </div>
+
+        {/* Export Controls */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Download className="w-5 h-5" />
+              Export Results
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                onClick={() => handleExport('pdf')}
+                disabled={isExporting}
+                className="flex items-center gap-2"
+              >
+                {isExporting ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <FileText className="w-4 h-4" />
+                )}
+                Export PDF
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => handleExport('docx')}
+                disabled={isExporting}
+              >
+                Export Word
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => handleExport('markdown')}
+                disabled={isExporting}
+              >
+                Export Markdown
+              </Button>
+            </div>
+            
+            <p className="text-xs text-muted-foreground mt-2">
+              Export includes both AI responses and comparison analysis
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Results Display */}
+        {isMobile ? renderMobileResults() : renderDesktopResults()}
+
+        {/* Final Summary */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              Research Complete
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <p className="text-sm text-gray-700">
+                Your AI research comparison has been completed successfully! 
+                Both Claude and OpenAI have analyzed your topic and provided comprehensive insights.
+              </p>
+              
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline">
+                  <Clock className="w-3 h-3 mr-1" />
+                  {session?.processingTime ? formatTime(session?.processingTime) : 'N/A'}
+                </Badge>
+                <Badge variant="outline">
+                  <DollarSign className="w-3 h-3 mr-1" />
+                  ${session?.totalCost.toFixed(4)}
+                </Badge>
+                <Badge variant="outline">
+                  <TrendingUp className="w-3 h-3 mr-1" />
+                  High Quality Results
+                </Badge>
+              </div>
+              
+              {onComplete && (
+                <div className="pt-3">
+                  <Button onClick={() => onComplete(results)} className="w-full sm:w-auto">
+                    Save to My Research
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </>
     );
-  }
+  };
 
   return (
     <div className={cn("space-y-6", className)}>
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Results & Comparison</h2>
-          <p className="text-muted-foreground">
-            Review and compare AI-generated research insights
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowMetadata(!showMetadata)}
-          >
-            {showMetadata ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            {showMetadata ? 'Hide' : 'Show'} Details
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleShare}
-          >
-            <Share2 className="w-4 h-4 mr-1" />
-            Share
-          </Button>
-        </div>
-      </div>
-
-      {/* Export Controls */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Download className="w-5 h-5" />
-            Export Results
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              onClick={() => handleExport('pdf')}
-              disabled={isExporting}
-              className="flex items-center gap-2"
-            >
-              {isExporting ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <FileText className="w-4 h-4" />
-              )}
-              Export PDF
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={() => handleExport('docx')}
-              disabled={isExporting}
-            >
-              Export Word
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={() => handleExport('markdown')}
-              disabled={isExporting}
-            >
-              Export Markdown
-            </Button>
-          </div>
-          
-          <p className="text-xs text-muted-foreground mt-2">
-            Export includes both AI responses and comparison analysis
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Results Display */}
-      {isMobile ? renderMobileResults() : renderDesktopResults()}
-
-      {/* Final Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            Research Complete
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <p className="text-sm text-gray-700">
-              Your AI research comparison has been completed successfully! 
-              Both Claude and OpenAI have analyzed your topic and provided comprehensive insights.
-            </p>
-            
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">
-                <Clock className="w-3 h-3 mr-1" />
-                {session?.processingTime ? formatTime(session?.processingTime) : 'N/A'}
-              </Badge>
-              <Badge variant="outline">
-                <DollarSign className="w-3 h-3 mr-1" />
-                ${session?.totalCost.toFixed(4)}
-              </Badge>
-              <Badge variant="outline">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                High Quality Results
-              </Badge>
-            </div>
-            
-            {onComplete && (
-              <div className="pt-3">
-                <Button onClick={() => onComplete(results)} className="w-full sm:w-auto">
-                  Save to My Research
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      {renderContent()}
     </div>
   );
 };

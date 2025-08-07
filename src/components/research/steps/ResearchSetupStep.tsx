@@ -265,10 +265,10 @@ Ensure all insights are data-driven and provide specific, actionable recommendat
   const charCount = topic.length;
   const charLimit = 1000;
 
-  return (
-    <div className={cn("space-y-6", className)}>
-      {hasError ? (
-        // Error state - service temporarily unavailable
+  // Render error state if needed
+  const renderContent = () => {
+    if (hasError) {
+      return (
         <div className="text-center p-8">
           <div className="text-red-600 mb-4">
             Service temporarily unavailable. Please try again in a moment.
@@ -280,17 +280,20 @@ Ensure all insights are data-driven and provide specific, actionable recommendat
             Try Again
           </Button>
         </div>
-      ) : (
-        <>
-          {/* Header */}
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Research Setup
-            </h2>
-            <p className="text-muted-foreground">
-              Define your research topic and let AI generate comprehensive insights
-            </p>
-          </div>
+      );
+    }
+
+    return (
+      <>
+        {/* Header */}
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Research Setup
+          </h2>
+          <p className="text-muted-foreground">
+            Define your research topic and let AI generate comprehensive insights
+          </p>
+        </div>
 
       {/* Main Content */}
       <div className="space-y-6">
@@ -530,8 +533,13 @@ Make the prompt comprehensive but focused, ensuring it will generate professiona
           </Alert>
         )}
       </div>
-        </>
-      )}
+      </>
+    );
+  };
+
+  return (
+    <div className={cn("space-y-6", className)}>
+      {renderContent()}
     </div>
   );
 };
