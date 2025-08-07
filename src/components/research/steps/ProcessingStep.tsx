@@ -77,7 +77,10 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
       timestamp: new Date()
     });
 
-    if (!isProcessingRef.current) return;
+    if (!isProcessingRef.current) {
+      console.log(`${provider} - Processing cancelled at start`);
+      return null;
+    }
 
     try {
       // Get authentication session
@@ -94,7 +97,10 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
         timestamp: new Date()
       });
 
-      if (!isProcessingRef.current) return;
+      if (!isProcessingRef.current) {
+        console.log(`${provider} - Processing cancelled after auth`);
+        return null;
+      }
 
       // Stage 2: Processing with real AI (long-running)
       setProgress({
@@ -181,8 +187,16 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
 
         const result = await response.json();
         
+        console.log(`${provider} API response:`, result);
+        
         if (!result.success) {
+          console.error(`${provider} API error:`, result.error);
           throw new Error(result.error || 'AI processing failed');
+        }
+        
+        if (!result.content) {
+          console.error(`${provider} returned empty content:`, result);
+          throw new Error(`${provider} returned empty content`);
         }
 
         // Stage 3: Finalizing
@@ -194,7 +208,10 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
           timestamp: new Date()
         });
 
-        if (!isProcessingRef.current) return;
+        if (!isProcessingRef.current) {
+          console.log(`${provider} - Processing cancelled by user`);
+          return null;
+        }
 
         setProgress({
           provider,
@@ -204,10 +221,18 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
           timestamp: new Date()
         });
 
+        // Validate result content before creating AIResult
+        if (!result.content || result.content.trim().length === 0) {
+          console.error(`${provider} returned empty or invalid content:`, result);
+          throw new Error(`${provider} returned empty or invalid content`);
+        }
+        
+        console.log(`${provider} - Creating AIResult with content length:`, result.content.length);
+        
         // Generate the AI result
         const aiResult: AIResult = {
           provider,
-          content: result.content || 'Analysis completed',
+          content: result.content,
           metadata: {
             model: provider === 'claude' ? 'claude-3-5-sonnet' : 'gpt-4-turbo',
             tokensUsed: result.tokensUsed || 0,
@@ -220,6 +245,7 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
         };
 
         setStatus('completed');
+        console.log(`${provider} - Returning AIResult:`, aiResult);
         return aiResult;
         
       } catch (error) {
@@ -301,13 +327,37 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
         executeAIResearch('openai', setOpenaiProgress, setOpenaiStatus)
       ]);
 
+      // Debug Promise.allSettled results
+      console.log('Claude Promise.allSettled result:', claudeResult);
+      console.log('OpenAI Promise.allSettled result:', openaiResult);
+      
       const results = {
-        claude: claudeResult.status === 'fulfilled' ? claudeResult.value : undefined,
-        openai: openaiResult.status === 'fulfilled' ? openaiResult.value : undefined
+        claude: claudeResult.status === 'fulfilled' && claudeResult.value ? claudeResult.value : undefined,
+        openai: openaiResult.status === 'fulfilled' && openaiResult.value ? openaiResult.value : undefined
       };
+      
+      // Check if we have at least one result
+      if (!results.claude && !results.openai) {
+        console.error('No results from either AI provider');
+        throw new Error('No results from either AI provider - processing may have been cancelled');
+      }
+      
+      // Additional debugging for rejected promises
+      if (claudeResult.status === 'rejected') {
+        console.error('Claude research failed:', claudeResult.reason);
+      }
+      if (openaiResult.status === 'rejected') {
+        console.error('OpenAI research failed:', openaiResult.reason);
+      }
 
       const totalCost = (results.claude?.metadata.cost || 0) + (results.openai?.metadata.cost || 0);
 
+      // Debug logging to identify the issue
+      console.log('Processing completed - Results:', results);
+      console.log('Claude result:', results.claude);
+      console.log('OpenAI result:', results.openai);
+      console.log('Total cost:', totalCost);
+      
       onSessionUpdate({
         status: 'completed' as ResearchStatus,
         results,
@@ -367,7 +417,17 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
     return `${minutes}:${(seconds % 60).toString().padStart(2, '0')}`;
   };
 
-  const canProceed = session?.status === 'completed' && session?.results;
+  const canProceed = session?.status === 'completed' && session?.results && (session.results.claude || session.results.openai);
+  
+  // Debug canProceed logic
+  console.log('ProcessingStep - canProceed evaluation:', {
+    sessionStatus: session?.status,
+    hasResults: !!session?.results,
+    hasClaudeResults: !!session?.results?.claude,
+    hasOpenAIResults: !!session?.results?.openai,
+    canProceed: canProceed,
+    fullResults: session?.results
+  });
   const hasError = session?.status === 'failed' || error;
 
   React.useEffect(() => {
@@ -568,7 +628,40 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
         </Alert>
       )}
 
-      {/* Results Summary */}
+      {/* Prominent Success State */}
+      {canProceed && (
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-xl p-8 mb-6">
+          <div className="text-center">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-green-800 mb-2">
+              🎉 RESEARCH ANALYSIS COMPLETE!
+            </h3>
+            <p className="text-green-700 text-lg mb-6">
+              Both AI models have finished analyzing your topic
+            </p>
+            
+            <Button 
+              onClick={() => {
+                console.log('PROMINENT View Results button clicked - Session:', session);
+                console.log('PROMINENT View Results button clicked - Results:', session?.results);
+                onNext && onNext();
+              }} 
+              size="lg"
+              className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+            >
+              🔍 VIEW YOUR RESULTS & COMPARISON
+            </Button>
+            
+            <div className="mt-4 text-sm text-green-600">
+              Ready to compare Claude vs OpenAI analysis!
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Technical Details Summary (Collapsed) */}
       {session?.status === 'completed' && session?.results && (
         <Card>
           <CardHeader>
@@ -619,7 +712,11 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
                   Ready to compare results and export your research!
                 </p>
                 {canProceed && (
-                  <Button onClick={onNext} size="lg">
+                  <Button onClick={() => {
+                    console.log('View Results button clicked - Session:', session);
+                    console.log('View Results button clicked - Results:', session?.results);
+                    onNext && onNext();
+                  }} size="lg">
                     View Results & Comparison
                   </Button>
                 )}
