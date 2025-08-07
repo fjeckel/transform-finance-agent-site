@@ -188,7 +188,6 @@ serve(async (req) => {
       unit_amount: Math.round(pdf.price * 100),
       product_data: {
         name: pdf.title,
-        description: pdf.description || 'Premium PDF Report',
         images: pdf.image_url ? [pdf.image_url] : [],
         metadata: {
           pdf_id: pdfId,
