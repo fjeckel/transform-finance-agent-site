@@ -1,42 +1,75 @@
 import { supabase } from '@/integrations/supabase/client';
 import { rateLimitingService, withRateLimit } from './rateLimitingService';
 
-// Types for research system
-export type ResearchTaskType = 
-  | 'comparative_analysis' 
-  | 'market_research' 
-  | 'competitive_analysis' 
-  | 'trend_analysis' 
-  | 'risk_assessment' 
-  | 'investment_analysis' 
-  | 'custom';
+import type { 
+  ResearchSession,
+  ResearchSessionDB,
+  ResearchTaskType,
+  ResearchSessionStatus,
+  ResearchConfig,
+  ResearchResults,
+  AIProviderName,
+  ResearchError,
+  ResearchStatus
+} from '@/types/research';
 
-export type ResearchSessionStatus = 
-  | 'pending' 
-  | 'in_progress' 
-  | 'completed' 
-  | 'failed' 
-  | 'cancelled';
+// Service-specific types
+export type AIProvider = AIProviderName | 'parallel';
 
-export type AIProvider = 'openai' | 'claude' | 'parallel';
+// Type converters for service layer compatibility
+export class ResearchTypeConverter {
+  static dbToFrontend(dbSession: ResearchSessionDB): ResearchSession {
+    return {
+      id: dbSession.id,
+      title: dbSession.title,
+      topic: dbSession.research_prompt,
+      description: dbSession.description,
+      status: this.convertDBStatusToFrontend(dbSession.status),
+      currentStep: 1,
+      totalSteps: 3,
+      config: {
+        topic: dbSession.research_prompt,
+        maxTokens: dbSession.max_tokens,
+        temperature: dbSession.temperature,
+        providers: ['claude', 'openai']
+      },
+      estimatedCost: {
+        minCost: dbSession.estimated_cost_usd * 0.8,
+        maxCost: dbSession.estimated_cost_usd * 1.2,
+        expectedCost: dbSession.estimated_cost_usd,
+        currency: 'USD',
+        breakdown: {},
+        confidence: 85,
+        basedOnSimilarQueries: 10
+      },
+      totalCost: dbSession.actual_cost_usd,
+      createdAt: new Date(dbSession.created_at),
+      updatedAt: new Date(dbSession.updated_at),
+      completedAt: dbSession.completed_at ? new Date(dbSession.completed_at) : undefined,
+      userId: dbSession.user_id,
+      isPublic: false
+    };
+  }
 
-export interface ResearchSession {
-  id: string;
-  user_id: string;
-  title: string;
-  description?: string;
-  research_type: ResearchTaskType;
-  research_prompt: string;
-  max_tokens: number;
-  temperature: number;
-  status: ResearchSessionStatus;
-  priority: 'high' | 'medium' | 'low';
-  estimated_cost_usd: number;
-  actual_cost_usd: number;
-  created_at: string;
-  updated_at: string;
-  started_at?: string;
-  completed_at?: string;
+  static configToDBRequest(config: ResearchConfig): Partial<ResearchSessionDB> {
+    return {
+      research_prompt: config.topic,
+      max_tokens: config.maxTokens,
+      temperature: config.temperature,
+      research_type: config.parameters?.researchType || 'custom'
+    };
+  }
+
+  private static convertDBStatusToFrontend(dbStatus: ResearchSessionStatus): ResearchStatus {
+    switch (dbStatus) {
+      case 'pending': return 'setup';
+      case 'in_progress': return 'processing';
+      case 'completed': return 'completed';
+      case 'failed': return 'failed';
+      case 'cancelled': return 'cancelled';
+      default: return 'setup';
+    }
+  }
 }
 
 export interface ResearchResult {
@@ -246,25 +279,84 @@ class ResearchService {
   }
 
   /**
-   * Create a new research session
+   * Create a new research session (legacy method for backwards compatibility)
    */
-  async createSession(request: CreateSessionRequest): Promise<ResearchSession> {
-    const { data, error } = await supabase
-      .from('research_sessions')
-      .insert({
-        title: request.title,
-        description: request.description,
-        research_type: request.research_type,
-        research_prompt: request.research_prompt,
-        max_tokens: request.max_tokens || 8000,
-        temperature: request.temperature || 0.3,
-        priority: request.priority || 'medium'
-      })
-      .select()
-      .single();
+  async createSession(request: CreateSessionRequest): Promise<ResearchSession>;
+  
+  /**
+   * Create a new research session (frontend-friendly signature)
+   */
+  async createSession(
+    title: string, 
+    topic: string, 
+    parameters: import('@/types/research').ResearchParameters
+  ): Promise<{ success: boolean; data?: ResearchSession; error?: { message: string } }>;
+  
+  /**
+   * Create a new research session (implementation)
+   */
+  async createSession(
+    requestOrTitle: CreateSessionRequest | string,
+    topic?: string,
+    parameters?: import('@/types/research').ResearchParameters
+  ): Promise<ResearchSession | { success: boolean; data?: ResearchSession; error?: { message: string } }> {
+    try {
+      let insertData: any;
+      
+      if (typeof requestOrTitle === 'string') {
+        // Frontend call signature
+        insertData = {
+          title: requestOrTitle,
+          research_type: parameters?.researchType || 'custom',
+          research_prompt: topic!,
+          max_tokens: 8000,
+          temperature: 0.3,
+          priority: 'medium' as const,
+          estimated_cost_usd: 0.05 // Default estimate
+        };
+      } else {
+        // Legacy call signature
+        insertData = {
+          title: requestOrTitle.title,
+          description: requestOrTitle.description,
+          research_type: requestOrTitle.research_type,
+          research_prompt: requestOrTitle.research_prompt,
+          max_tokens: requestOrTitle.max_tokens || 8000,
+          temperature: requestOrTitle.temperature || 0.3,
+          priority: requestOrTitle.priority || 'medium'
+        };
+      }
 
-    if (error) throw error;
-    return data;
+      const { data, error } = await supabase
+        .from('research_sessions')
+        .insert(insertData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      // Convert DB session to frontend session
+      const frontendSession = ResearchTypeConverter.dbToFrontend(data as ResearchSessionDB);
+      
+      // Return based on call signature
+      if (typeof requestOrTitle === 'string') {
+        return { success: true, data: frontendSession };
+      } else {
+        return frontendSession;
+      }
+      
+    } catch (error) {
+      console.error('Session creation error:', error);
+      
+      if (typeof requestOrTitle === 'string') {
+        return { 
+          success: false, 
+          error: { message: error instanceof Error ? error.message : 'Failed to create session' }
+        };
+      } else {
+        throw error;
+      }
+    }
   }
 
   /**
@@ -341,7 +433,7 @@ class ResearchService {
       .range(offset, offset + limit - 1);
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map(session => ResearchTypeConverter.dbToFrontend(session as ResearchSessionDB));
   }
 
   /**
@@ -355,7 +447,7 @@ class ResearchService {
       .single();
 
     if (error) throw error;
-    return data;
+    return data ? ResearchTypeConverter.dbToFrontend(data as ResearchSessionDB) : null;
   }
 
   /**
@@ -390,15 +482,33 @@ class ResearchService {
    * Update research session
    */
   async updateSession(sessionId: string, updates: Partial<ResearchSession>): Promise<ResearchSession> {
+    // Convert frontend updates to DB format
+    const dbUpdates: Partial<ResearchSessionDB> = {};
+    
+    if (updates.title) dbUpdates.title = updates.title;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.status) {
+      // Convert frontend status to DB status
+      const statusMap: Record<ResearchStatus, ResearchSessionStatus> = {
+        'setup': 'pending',
+        'processing': 'in_progress',
+        'completed': 'completed',
+        'failed': 'failed',
+        'cancelled': 'cancelled'
+      };
+      dbUpdates.status = statusMap[updates.status];
+    }
+    if (updates.totalCost) dbUpdates.actual_cost_usd = updates.totalCost;
+
     const { data, error } = await supabase
       .from('research_sessions')
-      .update(updates)
+      .update(dbUpdates)
       .eq('id', sessionId)
       .select()
       .single();
 
     if (error) throw error;
-    return data;
+    return ResearchTypeConverter.dbToFrontend(data as ResearchSessionDB);
   }
 
   /**

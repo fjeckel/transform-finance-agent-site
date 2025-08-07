@@ -31,7 +31,7 @@ const ResearchDemo: React.FC<ResearchDemoProps> = ({ className }) => {
   }, []);
 
   const handleViewExisting = React.useCallback(() => {
-    setDemoTopic(mockResearchSession.config.topic);
+    setDemoTopic(mockResearchSession.topic);
     setDemoMode('existing');
     setShowWizard(true);
   }, []);

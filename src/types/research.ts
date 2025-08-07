@@ -1,26 +1,28 @@
 // AI Research Comparator Type Definitions
-// Based on UX analysis and architectural review
+// Unified type system resolving frontend/backend conflicts
 
+// === Core Session Types ===
 export interface ResearchSession {
   id: string;
   title: string;
   topic: string;
   description?: string;
-  status: 'draft' | 'processing' | 'completed' | 'error' | 'cancelled';
+  status: ResearchStatus;
   currentStep: number;
   totalSteps: number;
   
-  // Configuration
-  providers: AIProvider[];
-  parameters: ResearchParameters;
+  // Configuration (frontend structure)
+  config: ResearchConfig;
   
-  // Results
-  results: ResearchResult[];
+  // Results (unified structure)
+  results?: ResearchResults;
   comparison?: ComparisonAnalysis;
   
   // Cost tracking
   estimatedCost: CostEstimate;
-  actualCost: CostBreakdown;
+  actualCost?: CostBreakdown;
+  totalCost: number;
+  processingTime?: number;
   
   // Timestamps
   createdAt: Date;
@@ -30,11 +32,66 @@ export interface ResearchSession {
   // User context
   userId: string;
   isPublic: boolean;
+  
+  // Error handling
+  error?: ResearchError;
 }
+
+// Database representation (for service layer)
+export interface ResearchSessionDB {
+  id: string;
+  user_id: string;
+  title: string;
+  description?: string;
+  research_type: ResearchTaskType;
+  research_prompt: string;
+  max_tokens: number;
+  temperature: number;
+  status: ResearchSessionStatus;
+  priority: 'high' | 'medium' | 'low';
+  estimated_cost_usd: number;
+  actual_cost_usd: number;
+  created_at: string;
+  updated_at: string;
+  started_at?: string;
+  completed_at?: string;
+}
+
+// Status types
+export type ResearchStatus = 'setup' | 'processing' | 'completed' | 'failed' | 'cancelled';
+export type ResearchSessionStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
+
+// Configuration interface (what step components expect)
+export interface ResearchConfig {
+  topic: string;
+  optimizedPrompt?: string;
+  maxTokens: number;
+  temperature: number;
+  providers: ('claude' | 'openai')[];
+  parameters?: ResearchParameters;
+}
+
+// Results structure (unified for components)
+export interface ResearchResults {
+  claude?: AIResult;
+  openai?: AIResult;
+}
+
+// Step component props (missing definition)
+export interface ResearchStepProps {
+  session: ResearchSession;
+  onNext?: () => void;
+  onPrevious?: () => void;
+  onCancel?: () => void;
+  className?: string;
+}
+
+// === AI Provider Types ===
+export type AIProviderName = 'claude' | 'openai';
 
 export interface AIProvider {
   id: string;
-  name: 'claude' | 'openai';
+  name: AIProviderName;
   displayName: string;
   model: string;
   isEnabled: boolean;
@@ -57,9 +114,91 @@ export interface AIProvider {
   lastUsed?: Date;
 }
 
+// AI Result types (what components actually expect)
+export interface AIResult {
+  provider: AIProviderName;
+  content: string;
+  metadata: {
+    model: string;
+    tokensUsed: number;
+    cost: number;
+    processingTime: number;
+    finishReason: string;
+  };
+  timestamp: Date;
+  status: AIResultStatus;
+}
+
+export type AIResultStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
+// Processing progress types (expected by ProcessingStep)
+export interface ProcessingProgress {
+  provider: AIProviderName;
+  stage: ProcessingStage;
+  percentage: number;
+  message: string;
+  timestamp: Date;
+}
+
+export type ProcessingStage = 'initializing' | 'processing' | 'finalizing';
+
+// === Missing Types for Components ===
+
+// Sample topic interface (expected by ResearchSetupStep)
+export interface SampleTopic {
+  id: string;
+  title: string;
+  description: string;
+  category: TopicCategory;
+  estimatedCost: number;
+  complexity: 'beginner' | 'intermediate' | 'advanced';
+  keywords: string[];
+  prompt: string;
+  expectedOutput: string;
+}
+
+export type TopicCategory = 
+  | 'finance' 
+  | 'technology' 
+  | 'business' 
+  | 'marketing' 
+  | 'healthcare' 
+  | 'education' 
+  | 'sustainability' 
+  | 'general';
+
+// Export formats (expected by ResultsStep)
+export type ExportFormat = 'pdf' | 'docx' | 'markdown' | 'json';
+
+export interface ExportOptions {
+  format: ExportFormat;
+  includeMetadata: boolean;
+  includeComparison: boolean;
+}
+
+// Research task types (from service layer)
+export type ResearchTaskType = 
+  | 'comparative_analysis' 
+  | 'market_research' 
+  | 'competitive_analysis' 
+  | 'trend_analysis' 
+  | 'risk_assessment' 
+  | 'investment_analysis' 
+  | 'custom';
+
+// Research error interface (comprehensive)
+export interface ResearchError {
+  type: 'api_error' | 'validation_error' | 'timeout_error' | 'rate_limit_error';
+  message: string;
+  timestamp: Date;
+  recoverable: boolean;
+  retryCount: number;
+  details?: Record<string, any>;
+}
+
 export interface ResearchParameters {
   // Research depth and focus
-  researchType: 'market_analysis' | 'competitive_intelligence' | 'trend_analysis' | 'investment_research' | 'custom';
+  researchType: ResearchTaskType;
   depth: 'basic' | 'comprehensive' | 'expert';
   focusAreas: string[];
   
@@ -81,6 +220,7 @@ export interface ResearchParameters {
   targetAudience?: 'executives' | 'analysts' | 'investors' | 'general';
 }
 
+// Legacy ResearchResult interface (for backwards compatibility with service layer)
 export interface ResearchResult {
   id: string;
   sessionId: string;
@@ -122,13 +262,53 @@ export interface ResearchResult {
   processingStages: ProcessingStage[];
 }
 
-export interface ProcessingStage {
+// Legacy ProcessingStage interface (different from the one used by components)
+export interface LegacyProcessingStage {
   stage: 'initialization' | 'processing' | 'compilation';
   startTime: Date;
   endTime?: Date;
   progress: number; // 0-100
   message: string;
   status: 'pending' | 'active' | 'completed' | 'error';
+}
+
+// === Service Layer Compatibility Types ===
+// These types match what's expected by the existing service layer
+
+// Service layer types (re-exported from researchService.ts for compatibility)
+export type { 
+  ResearchSessionDB,
+  ResearchTaskType,
+  ResearchSessionStatus 
+};
+
+// Conversion utility types
+export interface ServiceToFrontendMapper {
+  // Convert database session to frontend session
+  mapSessionFromDB(dbSession: ResearchSessionDB): ResearchSession;
+  
+  // Convert frontend config to service request
+  mapConfigToServiceRequest(config: ResearchConfig): {
+    research_prompt: string;
+    max_tokens: number;
+    temperature: number;
+    research_type: ResearchTaskType;
+  };
+}
+
+// === Additional Missing Types for Step Components ===
+
+// Form interfaces for wizard steps (used by ResearchSetupStep)
+export interface TopicInputForm {
+  topic: string;
+  researchType: ResearchTaskType;
+  depth: 'basic' | 'comprehensive' | 'expert';
+  focusAreas: string[];
+  timeframe?: {
+    period: 'current' | 'historical' | 'forecast';
+    startDate?: Date;
+    endDate?: Date;
+  };
 }
 
 export interface ComparisonAnalysis {

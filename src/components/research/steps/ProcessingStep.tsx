@@ -131,7 +131,7 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
       // Generate mock result
       const mockResult: AIResult = {
         provider,
-        content: generateMockContent(provider, session.config.topic),
+        content: generateMockContent(provider, session.topic),
         metadata: {
           model: provider === 'claude' ? 'claude-3-sonnet' : 'gpt-4-turbo',
           tokensUsed: Math.floor(Math.random() * 2000) + 1000,
@@ -148,7 +148,7 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
       setStatus('failed');
       throw new Error(`${provider} processing failed due to API timeout`);
     }
-  }, [isProcessing, session.config.topic]);
+  }, [isProcessing, session.topic]);
 
   const generateMockContent = (provider: AIProvider, topic: string): string => {
     const providerStyle = provider === 'claude' 
@@ -300,7 +300,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
         <CardContent>
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-sm text-gray-700 whitespace-pre-wrap">
-              {session.config.optimizedPrompt || session.config.topic}
+              {session.optimizedPrompt || session.topic}
             </p>
           </div>
           

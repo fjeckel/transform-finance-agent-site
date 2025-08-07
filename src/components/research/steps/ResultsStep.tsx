@@ -90,7 +90,7 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
   const handleShare = React.useCallback(() => {
     const shareData = {
       title: 'AI Research Comparison Results',
-      text: session.config.topic,
+      text: session.topic,
       url: window.location.href
     };
     
@@ -100,7 +100,7 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
       // Fallback to clipboard
       navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`);
     }
-  }, [session.config.topic]);
+  }, [session.topic]);
 
   const formatTime = (ms: number) => {
     return `${(ms / 1000).toFixed(1)}s`;
