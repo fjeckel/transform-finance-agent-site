@@ -31,7 +31,7 @@ const Auth = lazy(() => import("./pages/Auth"));
 const Legal = lazy(() => import("./pages/Legal"));
 const PremiumReport = lazy(() => import("./pages/PremiumReport"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
-const TestCheckout = lazy(() => import("./pages/TestCheckout"));
+// const TestCheckout = lazy(() => import("./pages/TestCheckout")); // Removed - using simplified payment links approach
 const ThankYou = lazy(() => import("./pages/ThankYou"));
 
 // Lazy load admin pages (heavy components)
@@ -116,7 +116,7 @@ const App = () => {
                   <Route path="/insights/:slug" element={<AppLayout><InsightDetail /></AppLayout>} />
                   <Route path="/report/:id" element={<AppLayout><PremiumReport /></AppLayout>} />
                   <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
-                  <Route path="/test-checkout" element={<AppLayout><TestCheckout /></AppLayout>} />
+                  {/* <Route path="/test-checkout" element={<AppLayout><TestCheckout /></AppLayout>} /> Removed - using simplified payment links */}
                   <Route path="/thank-you" element={<AppLayout><ThankYou /></AppLayout>} />
                   
                   {/* Admin routes with sidebar */}

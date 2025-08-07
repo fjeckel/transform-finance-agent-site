@@ -16,7 +16,7 @@ import {
   TopicCategory, 
   CostEstimate 
 } from "@/types/research";
-import { researchService } from '@/services/research/researchService';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ResearchSetupStepProps extends ResearchStepProps {
   onConfigUpdate: (config: ResearchConfig) => void;
@@ -156,23 +156,52 @@ const ResearchSetupStep: React.FC<ResearchSetupStepProps> = ({
     setHasError(false);
     
     try {
-      // Simple direct call to the research service
-      const optimizationPrompt = `Optimize this prompt: ${topic.trim()}
+      // Use the same pattern as the successful translation service
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('Authentication required for prompt optimization');
+      }
 
-Transform this into a comprehensive research prompt that will generate high-quality analysis. Include specific areas to investigate, analytical frameworks, and ensure structured output with actionable insights.`;
-      
-      const result = await researchService.executeClaudeResearch({
-        sessionId: session?.id || 'temp-optimization',
-        prompt: optimizationPrompt,
-        maxTokens: 1000,
-        temperature: 0.7
+      // Call the ai-research-claude edge function directly
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/ai-research-claude`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          systemPrompt: `You are an expert research prompt optimizer. Your task is to transform user research topics into comprehensive, structured research prompts that will generate high-quality analytical content.
+
+When given a research topic, enhance it by:
+1. Adding specific analytical frameworks and methodologies
+2. Including key areas of investigation (market analysis, trends, competitive landscape, etc.)
+3. Requesting structured output with clear sections
+4. Ensuring data-driven insights and actionable recommendations
+5. Specifying the target audience and depth of analysis
+
+Make the prompt comprehensive but focused, ensuring it will generate professional research-grade content.`,
+          userPrompt: `Please optimize this research topic into a comprehensive research prompt:
+
+Topic: "${topic.trim()}"
+
+Transform this into a detailed research prompt that will generate a thorough analysis with clear structure, data-driven insights, and actionable recommendations.`,
+          maxTokens: 1000,
+          temperature: 0.7
+        }),
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API error: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
       
-      if (result.success && result.response) {
-        setOptimizedPrompt(result.response.trim());
+      if (result.success && result.content) {
+        setOptimizedPrompt(result.content.trim());
       } else {
-        // Try fallback to a well-structured version
-        throw new Error('Optimization failed, using structured template');
+        throw new Error(result.error || 'Failed to get optimized prompt from API');
       }
       
     } catch (error) {
@@ -213,7 +242,7 @@ Ensure all insights are data-driven and provide specific, actionable recommendat
     }
     
     setIsOptimizing(false);
-  }, [topic, session?.id]);
+  }, [topic]);
 
   const handleNext = React.useCallback(() => {
     const config: ResearchConfig = {
