@@ -35,8 +35,7 @@ export default defineConfig(({ mode }) => ({
           // Separate research services to prevent dynamic import issues
           'research-services': [
             './src/services/research/researchService.ts',
-            './src/services/researchService.ts',
-            './src/hooks/useResearchService.ts'
+            './src/services/researchService.ts'
           ],
           
           // Separate admin components

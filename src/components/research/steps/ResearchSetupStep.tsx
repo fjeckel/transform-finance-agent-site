@@ -16,7 +16,7 @@ import {
   TopicCategory, 
   CostEstimate 
 } from "@/types/research";
-import { useResearchService } from "@/hooks/useResearchService";
+import { researchService } from '@/services/research/researchService';
 
 interface ResearchSetupStepProps extends ResearchStepProps {
   onConfigUpdate: (config: ResearchConfig) => void;
@@ -32,9 +32,7 @@ const ResearchSetupStep: React.FC<ResearchSetupStepProps> = ({
   const [topic, setTopic] = React.useState(session?.topic || "");
   const [optimizedPrompt, setOptimizedPrompt] = React.useState(session?.optimizedPrompt || "");
   const [hasError, setHasError] = React.useState(false);
-  
-  // Use the research service hook for better production stability
-  const { executeClaudeResearch, isAvailable } = useResearchService();
+  const [isOptimizing, setIsOptimizing] = React.useState(false);
   
   // Update parent when topic changes - memoized to prevent infinite loops
   const currentConfig = React.useMemo(() => ({
@@ -54,7 +52,6 @@ const ResearchSetupStep: React.FC<ResearchSetupStepProps> = ({
     total: 0.055,
     currency: 'USD'
   });
-  const [isOptimizing, setIsOptimizing] = React.useState(false);
 
   const sampleTopics: SampleTopic[] = [
     {
@@ -156,27 +153,17 @@ const ResearchSetupStep: React.FC<ResearchSetupStepProps> = ({
     if (!topic.trim()) return;
     
     setIsOptimizing(true);
+    setHasError(false);
     
     try {
-      // Use the hook-provided method for better stability
-      if (!executeClaudeResearch || !isAvailable) {
-        throw new Error('Research service not available. Please try again later.');
-      }
+      // Simple direct call to the research service
+      const optimizationPrompt = `Optimize this prompt: ${topic.trim()}
+
+Transform this into a comprehensive research prompt that will generate high-quality analysis. Include specific areas to investigate, analytical frameworks, and ensure structured output with actionable insights.`;
       
-      const result = await executeClaudeResearch({
-        sessionId: session?.id || 'temp',
-        prompt: `You are an expert research prompt optimizer. Transform this user research topic into a comprehensive, structured research prompt:
-
-Topic: "${topic.trim()}"
-
-Enhance it by:
-1. Adding specific analytical frameworks and methodologies
-2. Including key areas of investigation (market analysis, trends, competitive landscape, etc.)  
-3. Requesting structured output with clear sections
-4. Ensuring data-driven insights and actionable recommendations
-5. Specifying the target audience and depth of analysis
-
-Return only the optimized prompt, make it comprehensive but focused.`,
+      const result = await researchService.executeClaudeResearch({
+        sessionId: session?.id || 'temp-optimization',
+        prompt: optimizationPrompt,
         maxTokens: 1000,
         temperature: 0.7
       });
@@ -184,51 +171,45 @@ Return only the optimized prompt, make it comprehensive but focused.`,
       if (result.success && result.response) {
         setOptimizedPrompt(result.response.trim());
       } else {
-        throw new Error(result.error || 'Failed to get optimized prompt from API');
+        // Try fallback to a well-structured version
+        throw new Error('Optimization failed, using structured template');
       }
       
     } catch (error) {
       console.error('Prompt optimization error:', error);
-      setHasError(true);
       
-      // Reset error after a delay to allow retry
-      setTimeout(() => setHasError(false), 5000);
-      
-      // Fallback to enhanced static version
-      const optimized = `Conduct a comprehensive research analysis on: ${topic}
+      // Use a well-structured fallback that works
+      const fallbackOptimized = `Analyze the following topic comprehensively: "${topic}"
 
-Please provide:
+Please provide a detailed research report including:
 
-1. **Executive Summary**: Key findings and insights overview
+1. Executive Summary
+   - Key findings and insights
+   - Main conclusions
 
-2. **Current Market Analysis**: 
-   - Market size and growth trends
-   - Key players and competitive landscape
-   - Current market dynamics
+2. Market Analysis
+   - Current market size and trends
+   - Key players and competition
+   - Growth opportunities
 
-3. **Trend Analysis**:
+3. Detailed Analysis
+   - Core challenges and pain points
    - Emerging trends and patterns
-   - Historical context and evolution
-   - Future trajectory indicators
+   - Future projections
 
-4. **Strategic Insights**:
-   - Opportunities and challenges
-   - Risk factors and mitigation strategies
-   - Success factors and best practices
+4. Strategic Recommendations
+   - Actionable next steps
+   - Implementation strategies
+   - Success metrics
 
-5. **Actionable Recommendations**:
-   - Strategic recommendations
-   - Implementation considerations
-   - Expected outcomes and metrics
-
-6. **Data-Driven Evidence**:
-   - Relevant statistics and metrics
+5. Supporting Evidence
+   - Relevant data and statistics
    - Industry benchmarks
-   - Supporting research and sources
+   - Case studies if applicable
 
-Please structure the response with clear headings, bullet points where appropriate, and ensure all insights are supported by evidence and analysis.`;
+Ensure all insights are data-driven and provide specific, actionable recommendations.`;
       
-      setOptimizedPrompt(optimized);
+      setOptimizedPrompt(fallbackOptimized);
     }
     
     setIsOptimizing(false);
