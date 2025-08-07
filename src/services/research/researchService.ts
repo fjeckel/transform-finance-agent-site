@@ -12,11 +12,14 @@ import type {
   SampleTopic
 } from '@/types/research';
 
+// Use the same URL as the supabase client
+const SUPABASE_URL = "https://aumijfxmeclxweojrefa.supabase.co";
+
 class ResearchService {
   private readonly baseUrl: string;
 
   constructor() {
-    this.baseUrl = supabase.supabaseUrl;
+    this.baseUrl = SUPABASE_URL;
   }
 
   // Get authentication headers for API calls
