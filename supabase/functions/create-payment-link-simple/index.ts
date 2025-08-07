@@ -26,7 +26,7 @@ function checkRateLimit(ip: string): boolean {
 }
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': process.env.NODE_ENV === 'production' ? 'https://aumijfxmeclxweojrefa.supabase.co' : '*',
+  'Access-Control-Allow-Origin': '*', // Allow all origins for now, can restrict later
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Credentials': 'true',
   'X-Content-Type-Options': 'nosniff',
