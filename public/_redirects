@@ -1,9 +1,0 @@
-# Netlify _redirects file for SPA routing
-# All routes should serve the main index.html for client-side routing
-/*    /index.html   200
-
-# API routes should be handled separately (if any local API)
-/api/*  /api/:splat  200
-
-# RSS feed routes (these are actual files/functions)
-/rss-feed/*  /rss-feed/:splat  200
