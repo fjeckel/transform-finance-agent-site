@@ -32,6 +32,13 @@ export default defineConfig(({ mode }) => ({
           'i18n-vendor': ['react-i18next', 'i18next', 'i18next-browser-languagedetector'],
           'markdown-vendor': ['react-markdown'],
           
+          // Separate research services to prevent dynamic import issues
+          'research-services': [
+            './src/services/research/researchService.ts',
+            './src/services/researchService.ts',
+            './src/hooks/useResearchService.ts'
+          ],
+          
           // Separate admin components
           'admin': [
             './src/pages/Admin.tsx',

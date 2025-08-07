@@ -382,6 +382,15 @@ export interface CostBreakdown {
   timestamp: Date;
 }
 
+export type ResearchErrorType = 
+  | 'network_error' 
+  | 'timeout' 
+  | 'rate_limit' 
+  | 'api_error' 
+  | 'insufficient_credits' 
+  | 'invalid_input' 
+  | 'unknown';
+
 export interface ResearchError {
   code: string;
   message: string;

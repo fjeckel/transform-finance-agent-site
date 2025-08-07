@@ -16,6 +16,7 @@ import {
   TopicCategory, 
   CostEstimate 
 } from "@/types/research";
+import { useResearchService } from "@/hooks/useResearchService";
 
 interface ResearchSetupStepProps extends ResearchStepProps {
   onConfigUpdate: (config: ResearchConfig) => void;
@@ -30,6 +31,10 @@ const ResearchSetupStep: React.FC<ResearchSetupStepProps> = ({
 }) => {
   const [topic, setTopic] = React.useState(session?.topic || "");
   const [optimizedPrompt, setOptimizedPrompt] = React.useState(session?.optimizedPrompt || "");
+  const [hasError, setHasError] = React.useState(false);
+  
+  // Use the research service hook for better production stability
+  const { executeClaudeResearch, isAvailable } = useResearchService();
   
   // Update parent when topic changes - memoized to prevent infinite loops
   const currentConfig = React.useMemo(() => ({
@@ -153,10 +158,12 @@ const ResearchSetupStep: React.FC<ResearchSetupStepProps> = ({
     setIsOptimizing(true);
     
     try {
-      // Use the researchService to properly call the function with authentication
-      const { researchService } = await import('@/services/research/researchService');
+      // Use the hook-provided method for better stability
+      if (!executeClaudeResearch || !isAvailable) {
+        throw new Error('Research service not available. Please try again later.');
+      }
       
-      const result = await researchService.executeClaudeResearch({
+      const result = await executeClaudeResearch({
         sessionId: session?.id || 'temp',
         prompt: `You are an expert research prompt optimizer. Transform this user research topic into a comprehensive, structured research prompt:
 
@@ -182,6 +189,11 @@ Return only the optimized prompt, make it comprehensive but focused.`,
       
     } catch (error) {
       console.error('Prompt optimization error:', error);
+      setHasError(true);
+      
+      // Reset error after a delay to allow retry
+      setTimeout(() => setHasError(false), 5000);
+      
       // Fallback to enhanced static version
       const optimized = `Conduct a comprehensive research analysis on: ${topic}
 
@@ -241,15 +253,30 @@ Please structure the response with clear headings, bullet points where appropria
 
   return (
     <div className={cn("space-y-6", className)}>
-      {/* Header */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Research Setup
-        </h2>
-        <p className="text-muted-foreground">
-          Define your research topic and let AI generate comprehensive insights
-        </p>
-      </div>
+      {hasError ? (
+        // Error state - service temporarily unavailable
+        <div className="text-center p-8">
+          <div className="text-red-600 mb-4">
+            Service temporarily unavailable. Please try again in a moment.
+          </div>
+          <Button 
+            onClick={() => setHasError(false)} 
+            variant="outline"
+          >
+            Try Again
+          </Button>
+        </div>
+      ) : (
+        <>
+          {/* Header */}
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Research Setup
+            </h2>
+            <p className="text-muted-foreground">
+              Define your research topic and let AI generate comprehensive insights
+            </p>
+          </div>
 
       {/* Main Content */}
       <div className="space-y-6">
@@ -308,7 +335,7 @@ Please structure the response with clear headings, bullet points where appropria
                     variant="outline"
                     size="sm"
                     onClick={handleOptimizePrompt}
-                    disabled={isOptimizing}
+                    disabled={isOptimizing || hasError}
                   >
                     {isOptimizing ? (
                       <>
@@ -420,6 +447,8 @@ Please structure the response with clear headings, bullet points where appropria
           </Alert>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 };

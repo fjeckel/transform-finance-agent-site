@@ -26,6 +26,9 @@ import { WizardNavigation } from './WizardNavigation';
 // Progress component
 import { ProgressIndicator } from './ProgressIndicator';
 
+// Error boundary
+import ResearchErrorBoundary from './ResearchErrorBoundary';
+
 interface ResearchWizardProps {
   initialTopic?: string;
   onComplete?: (session: ResearchSession) => void;
@@ -261,7 +264,16 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <ResearchErrorBoundary
+      onReset={() => {
+        setSession(null);
+        setCurrentStep(1);
+      }}
+      onRetry={() => {
+        window.location.reload();
+      }}
+    >
+      <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -362,6 +374,7 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
         </div>
       </div>
     </div>
+    </ResearchErrorBoundary>
   );
 };
 
