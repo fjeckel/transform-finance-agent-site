@@ -57,51 +57,8 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Initialize session if we have an initial topic
-  useEffect(() => {
-    if (initialTopic && !session) {
-      handleCreateSession({
-        topic: initialTopic,
-        researchType: 'custom',
-        depth: 'comprehensive',
-        focusAreas: []
-      });
-    }
-  }, [initialTopic, session, handleCreateSession]);
-
   // State for form validation
   const [step1Topic, setStep1Topic] = useState("");
-  
-  // Wizard steps configuration
-  const steps: WizardStep[] = [
-    {
-      id: 1,
-      title: 'Research Setup',
-      description: 'Define your research topic and parameters',
-      component: 'ResearchSetupStep',
-      status: currentStep === 1 ? 'current' : currentStep > 1 ? 'completed' : 'pending',
-      isClickable: true,
-      isValid: step1Topic.trim().length >= 10 || !!session?.topic
-    },
-    {
-      id: 2,
-      title: 'AI Processing',
-      description: 'Claude and OpenAI analyze your research topic',
-      component: 'ProcessingStep',
-      status: currentStep === 2 ? 'current' : currentStep > 2 ? 'completed' : 'pending',
-      isClickable: currentStep >= 2 || (currentStep > 2),
-      isValid: session?.status === 'completed'
-    },
-    {
-      id: 3,
-      title: 'Results & Export',
-      description: 'Review analysis and export your research',
-      component: 'ResultsStep',
-      status: currentStep === 3 ? 'current' : currentStep > 3 ? 'completed' : 'pending',
-      isClickable: currentStep >= 3,
-      isValid: session?.results && session.results.length > 0
-    }
-  ];
 
   // Stable callback for config updates - defined at top level to prevent hook violations
   const handleConfigUpdate = React.useCallback((config: any) => {
@@ -151,6 +108,49 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
       setIsLoading(false);
     }
   }, [toast]);
+
+  // Initialize session if we have an initial topic
+  useEffect(() => {
+    if (initialTopic && !session) {
+      handleCreateSession({
+        topic: initialTopic,
+        researchType: 'custom',
+        depth: 'comprehensive',
+        focusAreas: []
+      });
+    }
+  }, [initialTopic, session, handleCreateSession]);
+
+  // Wizard steps configuration
+  const steps: WizardStep[] = [
+    {
+      id: 1,
+      title: 'Research Setup',
+      description: 'Define your research topic and parameters',
+      component: 'ResearchSetupStep',
+      status: currentStep === 1 ? 'current' : currentStep > 1 ? 'completed' : 'pending',
+      isClickable: true,
+      isValid: step1Topic.trim().length >= 10 || !!session?.topic
+    },
+    {
+      id: 2,
+      title: 'AI Processing',
+      description: 'Claude and OpenAI analyze your research topic',
+      component: 'ProcessingStep',
+      status: currentStep === 2 ? 'current' : currentStep > 2 ? 'completed' : 'pending',
+      isClickable: currentStep >= 2 || (currentStep > 2),
+      isValid: session?.status === 'completed'
+    },
+    {
+      id: 3,
+      title: 'Results & Export',
+      description: 'Review analysis and export your research',
+      component: 'ResultsStep',
+      status: currentStep === 3 ? 'current' : currentStep > 3 ? 'completed' : 'pending',
+      isClickable: currentStep >= 3,
+      isValid: session?.results && session.results.length > 0
+    }
+  ];
 
   // Handle step navigation
   const handleStepNavigation = (targetStep: number) => {
