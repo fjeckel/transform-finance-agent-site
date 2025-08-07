@@ -79,7 +79,7 @@ export interface ResearchResults {
 
 // Step component props (missing definition)
 export interface ResearchStepProps {
-  session: ResearchSession;
+  session?: ResearchSession | null;
   onNext?: () => void;
   onPrevious?: () => void;
   onCancel?: () => void;

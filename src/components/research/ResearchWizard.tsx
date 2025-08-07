@@ -209,14 +209,13 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
       case 1:
         return (
           <ResearchSetupStep
-            initialData={initialTopic ? { 
-              topic: initialTopic,
-              researchType: 'custom',
-              depth: 'comprehensive',
-              focusAreas: []
-            } : undefined}
-            onComplete={handleCreateSession}
-            isLoading={isLoading}
+            session={session}
+            onNext={handleNext}
+            onCancel={() => navigate('/admin')}
+            onConfigUpdate={(config) => {
+              // Handle config update
+              console.log('Config updated:', config);
+            }}
           />
         );
         

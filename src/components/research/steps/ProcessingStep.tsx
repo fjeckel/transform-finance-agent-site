@@ -131,7 +131,7 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
       // Generate mock result
       const mockResult: AIResult = {
         provider,
-        content: generateMockContent(provider, session.topic),
+        content: generateMockContent(provider, session?.topic || ""),
         metadata: {
           model: provider === 'claude' ? 'claude-3-sonnet' : 'gpt-4-turbo',
           tokensUsed: Math.floor(Math.random() * 2000) + 1000,
@@ -148,7 +148,7 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
       setStatus('failed');
       throw new Error(`${provider} processing failed due to API timeout`);
     }
-  }, [isProcessing, session.topic]);
+  }, [isProcessing, session?.topic]);
 
   const generateMockContent = (provider: AIProvider, topic: string): string => {
     const providerStyle = provider === 'claude' 
@@ -269,8 +269,8 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
     return `${minutes}:${(seconds % 60).toString().padStart(2, '0')}`;
   };
 
-  const canProceed = session.status === 'completed' && session.results;
-  const hasError = session.status === 'failed' || error;
+  const canProceed = session?.status === 'completed' && session?.results;
+  const hasError = session?.status === 'failed' || error;
 
   React.useEffect(() => {
     return () => {
@@ -300,7 +300,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
         <CardContent>
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-sm text-gray-700 whitespace-pre-wrap">
-              {session.optimizedPrompt || session.topic}
+              {session?.optimizedPrompt || session?.topic || ""}
             </p>
           </div>
           
@@ -317,7 +317,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center justify-center gap-4">
-            {!isProcessing && session.status !== 'completed' && !hasError && (
+            {!isProcessing && session?.status !== 'completed' && !hasError && (
               <Button
                 onClick={handleStartProcessing}
                 size="lg"
@@ -352,7 +352,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
               </Button>
             )}
 
-            {session.status === 'completed' && (
+            {session?.status === 'completed' && (
               <div className="flex items-center gap-2 text-green-600">
                 <CheckCircle className="w-5 h-5" />
                 <span className="font-medium">Analysis Completed</span>
@@ -363,7 +363,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
       </Card>
 
       {/* Processing Animation */}
-      {(isProcessing || session.status === 'completed') && (
+      {(isProcessing || session?.status === 'completed') && (
         <DualProcessingAnimation
           claudeProgress={{
             stage: claudeProgress.stage,
@@ -381,7 +381,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
       )}
 
       {/* Status Summary */}
-      {(isProcessing || session.status === 'completed') && (
+      {(isProcessing || session?.status === 'completed') && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Claude Status */}
           <Card className="relative">
@@ -436,7 +436,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
           <AlertDescription>
             <div className="space-y-2">
               <p className="font-medium">Processing Error</p>
-              <p className="text-sm">{error?.message || session.error?.message}</p>
+              <p className="text-sm">{error?.message || session?.error?.message}</p>
               <p className="text-xs text-muted-foreground">
                 Don't worry, you can retry the analysis or go back to modify your topic.
               </p>

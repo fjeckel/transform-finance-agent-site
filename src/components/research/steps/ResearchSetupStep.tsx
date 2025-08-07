@@ -28,8 +28,8 @@ const ResearchSetupStep: React.FC<ResearchSetupStepProps> = ({
   onConfigUpdate,
   className
 }) => {
-  const [topic, setTopic] = React.useState(session.topic);
-  const [optimizedPrompt, setOptimizedPrompt] = React.useState(session.optimizedPrompt || "");
+  const [topic, setTopic] = React.useState(session?.topic || "");
+  const [optimizedPrompt, setOptimizedPrompt] = React.useState(session?.optimizedPrompt || "");
   const [costEstimate, setCostEstimate] = React.useState<CostEstimate>({
     claude: 0.025,
     openai: 0.030,

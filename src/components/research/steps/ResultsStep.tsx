@@ -47,7 +47,7 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
   const [exportFormat, setExportFormat] = React.useState<ExportFormat>("pdf");
   const [showMetadata, setShowMetadata] = React.useState(false);
 
-  const results = session.results;
+  const results = session?.results;
   const claudeResult = results?.claude;
   const openaiResult = results?.openai;
 
@@ -90,7 +90,7 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
   const handleShare = React.useCallback(() => {
     const shareData = {
       title: 'AI Research Comparison Results',
-      text: session.topic,
+      text: session?.topic,
       url: window.location.href
     };
     
@@ -100,7 +100,7 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
       // Fallback to clipboard
       navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`);
     }
-  }, [session.topic]);
+  }, [session?.topic]);
 
   const formatTime = (ms: number) => {
     return `${(ms / 1000).toFixed(1)}s`;
@@ -419,7 +419,7 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
         <Card>
           <CardContent className="pt-4 text-center">
             <div className="text-2xl font-bold text-blue-600">
-              ${session.totalCost.toFixed(4)}
+              ${session?.totalCost.toFixed(4)}
             </div>
             <p className="text-sm font-medium">Total Cost</p>
             <p className="text-xs text-muted-foreground">USD</p>
@@ -429,7 +429,7 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
         <Card>
           <CardContent className="pt-4 text-center">
             <div className="text-2xl font-bold text-purple-600">
-              {session.processingTime ? formatTime(session.processingTime) : 'N/A'}
+              {session?.processingTime ? formatTime(session?.processingTime) : 'N/A'}
             </div>
             <p className="text-sm font-medium">Processing Time</p>
             <p className="text-xs text-muted-foreground">Total elapsed</p>
@@ -585,11 +585,11 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline">
                 <Clock className="w-3 h-3 mr-1" />
-                {session.processingTime ? formatTime(session.processingTime) : 'N/A'}
+                {session?.processingTime ? formatTime(session?.processingTime) : 'N/A'}
               </Badge>
               <Badge variant="outline">
                 <DollarSign className="w-3 h-3 mr-1" />
-                ${session.totalCost.toFixed(4)}
+                ${session?.totalCost.toFixed(4)}
               </Badge>
               <Badge variant="outline">
                 <TrendingUp className="w-3 h-3 mr-1" />
