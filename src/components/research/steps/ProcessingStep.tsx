@@ -96,12 +96,12 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
 
       if (!isProcessingRef.current) return;
 
-      // Stage 2: Processing with real AI
+      // Stage 2: Processing with real AI (long-running)
       setProgress({
         provider,
         stage: 'processing',
         percentage: 30,
-        message: `${provider === 'claude' ? 'Claude' : 'OpenAI'} is analyzing your research topic...`,
+        message: `${provider === 'claude' ? 'Claude' : 'OpenAI'} is conducting deep research analysis...`,
         timestamp: new Date()
       });
 
@@ -109,33 +109,77 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
       const systemPrompt = session?.systemPrompt || `You are an expert research analyst. Provide comprehensive, well-structured analysis on the given topic with actionable insights and data-driven recommendations.`;
       const userPrompt = session?.optimizedPrompt || session?.topic || 'Please provide a comprehensive research analysis.';
 
-      // Call the appropriate edge function
-      const functionName = provider === 'claude' ? 'ai-research-claude' : 'ai-research-openai';
-      const response = await fetch(`https://aumijfxmeclxweojrefa.supabase.co/functions/v1/${functionName}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authSession.access_token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          systemPrompt,
-          userPrompt,
-          maxTokens: 4000,
-          temperature: 0.7
-        })
-      });
+      // Set up progress tracking for long-running AI call (15-20 minutes)
+      const progressMessages = [
+        'Analyzing core concepts and frameworks...',
+        'Researching market trends and data points...',
+        'Evaluating competitive landscape...',
+        'Synthesizing insights and recommendations...',
+        'Structuring comprehensive analysis...',
+        'Finalizing research findings...',
+        'Quality checking analysis depth...'
+      ];
+      
+      let progressIndex = 0;
+      let currentPercentage = 35;
+      
+      // Start periodic progress updates during AI processing
+      const progressInterval = setInterval(() => {
+        if (!isProcessingRef.current) {
+          clearInterval(progressInterval);
+          return;
+        }
+        
+        // Gradually increase progress over ~18 minutes (until 90%)
+        currentPercentage = Math.min(90, currentPercentage + 1);
+        const messageIndex = Math.floor(progressIndex / 60) % progressMessages.length; // Change message every minute
+        
+        setProgress({
+          provider,
+          stage: 'processing',
+          percentage: currentPercentage,
+          message: `${provider === 'claude' ? 'Claude' : 'OpenAI'}: ${progressMessages[messageIndex]}`,
+          timestamp: new Date()
+        });
+        
+        progressIndex++;
+      }, 3000); // Update every 3 seconds
 
-      if (!response.ok) {
-        throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+      try {
+        // Call the appropriate edge function
+        const functionName = provider === 'claude' ? 'ai-research-claude' : 'ai-research-openai';
+        const response = await fetch(`https://aumijfxmeclxweojrefa.supabase.co/functions/v1/${functionName}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${authSession.access_token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            systemPrompt,
+            userPrompt,
+            maxTokens: 4000,
+            temperature: 0.7
+          })
+        });
+
+        // Clear the progress interval once API call completes
+        clearInterval(progressInterval);
+
+        if (!response.ok) {
+          throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+        }
+
+        setProgress({
+          provider,
+          stage: 'processing',
+          percentage: 95,
+          message: 'Processing comprehensive AI response...',
+          timestamp: new Date()
+        });
+      } catch (error) {
+        clearInterval(progressInterval);
+        throw error;
       }
-
-      setProgress({
-        provider,
-        stage: 'processing',
-        percentage: 80,
-        message: 'Receiving and processing AI response...',
-        timestamp: new Date()
-      });
 
       const result = await response.json();
       
@@ -183,6 +227,16 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
     } catch (error) {
       console.error(`${provider} research error:`, error);
       setStatus('failed');
+      
+      // Set error progress state
+      setProgress({
+        provider,
+        stage: 'initializing',
+        percentage: 0,
+        message: `${provider} analysis failed. Please try again.`,
+        timestamp: new Date()
+      });
+      
       throw error;
     }
 
@@ -328,9 +382,34 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           AI Processing
         </h2>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground mb-3">
           Dual AI analysis in progress - Claude and OpenAI working in parallel
         </p>
+        
+        {/* Processing time warning */}
+        {!isProcessing && session?.status !== 'completed' && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 max-w-md mx-auto">
+            <div className="flex items-center gap-2 text-amber-800">
+              <Clock className="w-4 h-4" />
+              <span className="text-sm font-medium">Deep Research Analysis</span>
+            </div>
+            <p className="text-xs text-amber-700 mt-1">
+              This comprehensive analysis takes 15-20 minutes. Both AI models will conduct thorough research with detailed insights.
+            </p>
+          </div>
+        )}
+        
+        {isProcessing && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 max-w-md mx-auto">
+            <div className="flex items-center gap-2 text-blue-800">
+              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm font-medium">Analysis in Progress</span>
+            </div>
+            <p className="text-xs text-blue-700 mt-1">
+              Please keep this tab open. Deep analysis typically takes 15-20 minutes to complete.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Research Topic Display */}
