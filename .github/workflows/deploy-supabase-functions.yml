@@ -38,6 +38,16 @@ jobs:
           
           supabase functions deploy batch-translate \
             --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          
+          # Deploy AI research functions
+          supabase functions deploy ai-research-claude \
+            --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          
+          supabase functions deploy ai-research-openai \
+            --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          
+          supabase functions deploy ai-research-parallel \
+            --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
@@ -64,6 +74,11 @@ jobs:
             echo "- https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co/functions/v1/translate-content"
             echo "- https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co/functions/v1/translate-content-claude"
             echo "- https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co/functions/v1/batch-translate"
+            echo ""
+            echo "🔬 AI Research functions are available at:"
+            echo "- https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co/functions/v1/ai-research-claude"
+            echo "- https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co/functions/v1/ai-research-openai"
+            echo "- https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co/functions/v1/ai-research-parallel"
           else
             echo "❌ Deployment failed. Check the logs above for details."
           fi
