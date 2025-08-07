@@ -446,7 +446,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
       )}
 
       {/* Results Summary */}
-      {session.status === 'completed' && session.results && (
+      {session?.status === 'completed' && session?.results && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg text-green-700">
@@ -458,24 +458,24 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                 <div className="bg-blue-50 rounded-lg p-3">
                   <p className="text-2xl font-bold text-blue-600">
-                    {session.results.claude ? '✓' : '✗'}
+                    {session?.results?.claude ? '✓' : '✗'}
                   </p>
                   <p className="text-sm text-blue-800">Claude Analysis</p>
-                  {session.results.claude && (
+                  {session?.results?.claude && (
                     <p className="text-xs text-blue-600">
-                      ${session.results.claude.metadata.cost.toFixed(4)}
+                      ${session?.results?.claude?.metadata?.cost?.toFixed(4)}
                     </p>
                   )}
                 </div>
                 
                 <div className="bg-green-50 rounded-lg p-3">
                   <p className="text-2xl font-bold text-green-600">
-                    {session.results.openai ? '✓' : '✗'}
+                    {session?.results?.openai ? '✓' : '✗'}
                   </p>
                   <p className="text-sm text-green-800">OpenAI Analysis</p>
-                  {session.results.openai && (
+                  {session?.results?.openai && (
                     <p className="text-xs text-green-600">
-                      ${session.results.openai.metadata.cost.toFixed(4)}
+                      ${session?.results?.openai?.metadata?.cost?.toFixed(4)}
                     </p>
                   )}
                 </div>
@@ -486,7 +486,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
                   </p>
                   <p className="text-sm text-gray-800">Total Time</p>
                   <p className="text-xs text-gray-600">
-                    ${session.totalCost.toFixed(4)} total
+                    ${session?.totalCost?.toFixed(4) || '0.0000'} total
                   </p>
                 </div>
               </div>

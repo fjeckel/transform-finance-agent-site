@@ -229,14 +229,14 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
         return session ? (
           <ProcessingStep
             session={session}
-            onComplete={handleResearchComplete}
-            onError={(error) => {
-              console.error('Processing error:', error);
-              toast({
-                title: "Research Error",
-                description: error.message || "An error occurred during processing",
-                variant: "destructive",
-              });
+            onNext={() => setCurrentStep(3)}
+            onPrevious={() => setCurrentStep(1)}
+            onCancel={() => navigate('/admin')}
+            onSessionUpdate={(updates) => {
+              setSession(prev => prev ? { ...prev, ...updates } : null);
+              if (updates.status === 'completed') {
+                handleResearchComplete({ ...session, ...updates });
+              }
             }}
           />
         ) : null;
