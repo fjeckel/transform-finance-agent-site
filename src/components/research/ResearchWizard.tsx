@@ -12,7 +12,8 @@ import type {
   WizardStep, 
   TopicInputForm, 
   ResearchParameters,
-  CostEstimate
+  CostEstimate,
+  ResearchStatus
 } from '@/types/research';
 
 // Step components
@@ -72,19 +73,19 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
     
     try {
       const parameters: ResearchParameters = {
-        researchType: formData.researchType,
-        depth: formData.depth,
-        focusAreas: formData.focusAreas,
+        researchType: formData?.researchType || 'custom',
+        depth: formData?.depth || 'comprehensive',
+        focusAreas: formData?.focusAreas || [],
         outputFormat: 'detailed',
         outputLength: 'comprehensive',
         includeSourceData: true,
         targetAudience: 'executives',
-        timeframe: formData.timeframe
+        timeframe: formData?.timeframe || '6-months'
       };
 
       const result = await researchService.createSession(
-        `Research: ${formData.topic.slice(0, 50)}...`,
-        formData.topic,
+        `Research: ${(formData?.topic || '').slice(0, 50)}...`,
+        formData?.topic || '',
         parameters
       );
 
