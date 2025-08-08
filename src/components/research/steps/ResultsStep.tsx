@@ -13,7 +13,9 @@ import {
   DollarSign,
   CheckCircle,
   AlertTriangle,
-  RefreshCw
+  RefreshCw,
+  MessageCircle,
+  Lightbulb
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -571,72 +573,121 @@ Please provide a comprehensive research analysis incorporating this additional i
     if (!needsClarification || clarificationQuestions.length === 0) return null;
     
     return (
-      <Card className="border-amber-200 bg-amber-50">
+      <Card className="border-blue-200 bg-blue-50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-amber-800">
-            <AlertTriangle className="w-5 h-5" />
-            AI Models Need Clarification
+          <CardTitle className="flex items-center gap-2 text-blue-800">
+            <Lightbulb className="w-5 h-5" />
+            Help Us Provide Better Results
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <p className="text-sm text-amber-700">
-              The AI models are asking for additional information to provide a comprehensive analysis.
-              Please clarify your research topic or provide more specific details.
+            {/* Value proposition */}
+            <div className="bg-green-50 border-l-4 border-green-400 p-4">
+              <div className="flex">
+                <CheckCircle className="w-5 h-5 text-green-400 mr-3 mt-0.5" />
+                <div>
+                  <p className="text-sm text-green-700">
+                    <strong>Good news!</strong> The AI detected that more specific information 
+                    could significantly improve your research quality and depth.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-sm text-blue-700">
+              Your research topic was broad enough that both AI models are asking for clarification 
+              to provide more targeted, valuable insights.
             </p>
             
             {clarificationQuestions.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="font-medium text-amber-800">Questions detected:</h4>
-                <ul className="list-disc list-inside space-y-1">
-                  {clarificationQuestions.slice(0, 5).map((question, index) => (
-                    <li key={index} className="text-sm text-amber-700">
-                      {question}
-                    </li>
-                  ))}
-                </ul>
+              <div className="space-y-3">
+                {/* Most important question prominently displayed */}
+                <div className="bg-blue-100 p-4 rounded-lg">
+                  <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4" />
+                    Key clarification needed:
+                  </h4>
+                  <p className="text-blue-800">{clarificationQuestions[0]}</p>
+                </div>
+
+                {/* Additional questions collapsed by default */}
+                {clarificationQuestions.length > 1 && (
+                  <details className="group">
+                    <summary className="cursor-pointer text-sm text-blue-700 hover:text-blue-800 font-medium">
+                      + {clarificationQuestions.length - 1} additional questions the AI models have
+                    </summary>
+                    <ul className="list-disc list-inside space-y-1 mt-2 ml-4">
+                      {clarificationQuestions.slice(1, 4).map((question, index) => (
+                        <li key={index} className="text-sm text-blue-600">
+                          {question}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
               </div>
             )}
             
             <div className="space-y-3">
-              <Label htmlFor="clarification-input" className="text-amber-800">
-                Provide additional information:
+              <Label htmlFor="clarification-input" className="text-blue-800 font-medium">
+                Add specific details to enhance your analysis:
               </Label>
               <Textarea
                 id="clarification-input"
-                placeholder="Enter clarifications or more specific details about your research topic..."
+                placeholder="Example: Focus on B2B SaaS companies in North America, analyze trends from 2020-2024, target audience is C-level executives..."
                 value={clarificationText}
                 onChange={(e) => setClarificationText(e.target.value)}
-                className="min-h-[100px] border-amber-300 focus:border-amber-400"
+                className="min-h-[120px] border-blue-300 focus:border-blue-400"
               />
+              <p className="text-xs text-blue-600">
+                The more specific you are, the better insights you'll get from both AI models.
+              </p>
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={handleSubmitClarification}
                 disabled={!clarificationText.trim() || isReprocessing}
-                className="bg-amber-600 hover:bg-amber-700 text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 {isReprocessing ? (
                   <>
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Re-processing...
+                    Enhancing Analysis...
                   </>
                 ) : (
                   <>
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Re-run Analysis with Clarifications
+                    <Lightbulb className="w-4 h-4 mr-2" />
+                    Improve Results
                   </>
                 )}
               </Button>
               <Button
                 variant="outline"
                 onClick={handleSkipClarification}
-                className="border-amber-300 text-amber-700 hover:bg-amber-100"
+                className="border-blue-300 text-blue-700 hover:bg-blue-100"
               >
-                Skip & Use Current Results
+                Continue with Basic Analysis
               </Button>
             </div>
+
+            {/* Process feedback for reprocessing */}
+            {isReprocessing && (
+              <div className="bg-blue-100 border border-blue-300 rounded-lg p-4 mt-4">
+                <div className="flex items-center gap-2 text-blue-800">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span className="font-medium">Enhancing Your Analysis</span>
+                </div>
+                <p className="text-sm text-blue-700 mt-1">
+                  Re-running analysis with your additional details. This will take 15-20 minutes 
+                  and will provide more targeted, comprehensive results.
+                </p>
+                <div className="mt-2 text-xs text-blue-600">
+                  Please keep this tab open during processing.
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

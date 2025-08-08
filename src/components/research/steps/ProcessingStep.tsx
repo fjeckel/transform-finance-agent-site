@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Play, Pause, Square, RefreshCw, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { Play, Pause, Square, RefreshCw, AlertTriangle, CheckCircle, Clock, MessageCircle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,6 +60,29 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
   const startTimeRef = React.useRef<Date>();
   const timerRef = React.useRef<NodeJS.Timeout>();
   const isProcessingRef = React.useRef<boolean>(false);
+
+  // Early clarification detection
+  const detectVaguePrompt = React.useCallback((topic: string): boolean => {
+    const lowerTopic = topic.toLowerCase();
+    const vagueIndicators = [
+      'research', 'analyze', 'study', 'investigate', 'explore',
+      'tell me about', 'what is', 'how to', 'help me',
+      'general', 'basic', 'simple', 'overview'
+    ];
+    
+    // Check for very short prompts or generic terms
+    const isShort = topic.trim().length < 50;
+    const hasVagueTerms = vagueIndicators.some(indicator => 
+      lowerTopic.includes(indicator) && lowerTopic.split(' ').length < 10
+    );
+    
+    return isShort || hasVagueTerms;
+  }, []);
+
+  const topicNeedsClarification = React.useMemo(() => {
+    const topic = session?.optimizedPrompt || session?.topic || "";
+    return detectVaguePrompt(topic);
+  }, [session?.topic, session?.optimizedPrompt, detectVaguePrompt]);
 
   // Real AI processing function
   const executeAIResearch = React.useCallback(async (
@@ -612,16 +635,32 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
           Dual AI analysis in progress - Claude and OpenAI working in parallel
         </p>
         
-        {/* Processing time warning */}
+        {/* Processing time warning and topic quality check */}
         {!isProcessing && session?.status !== 'completed' && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 max-w-md mx-auto">
-            <div className="flex items-center gap-2 text-amber-800">
-              <Clock className="w-4 h-4" />
-              <span className="text-sm font-medium">Deep Research Analysis</span>
+          <div className="space-y-3">
+            {/* Vague topic warning */}
+            {session?.topic && session.topic.trim().length < 50 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 max-w-md mx-auto">
+                <div className="flex items-center gap-2 text-blue-800">
+                  <Lightbulb className="w-4 h-4" />
+                  <span className="text-sm font-medium">Quick Tip</span>
+                </div>
+                <p className="text-xs text-blue-700 mt-1">
+                  Your topic seems brief. AI models may ask for clarification to provide the best analysis. Consider being more specific upfront.
+                </p>
+              </div>
+            )}
+            
+            {/* Processing time info */}
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 max-w-md mx-auto">
+              <div className="flex items-center gap-2 text-amber-800">
+                <Clock className="w-4 h-4" />
+                <span className="text-sm font-medium">Deep Research Analysis</span>
+              </div>
+              <p className="text-xs text-amber-700 mt-1">
+                This comprehensive analysis takes 15-20 minutes. Both AI models will conduct thorough research with detailed insights.
+              </p>
             </div>
-            <p className="text-xs text-amber-700 mt-1">
-              This comprehensive analysis takes 15-20 minutes. Both AI models will conduct thorough research with detailed insights.
-            </p>
           </div>
         )}
         
@@ -637,6 +676,28 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
           </div>
         )}
       </div>
+
+      {/* Early Clarification Warning */}
+      {topicNeedsClarification && !isProcessing && session?.status !== 'completed' && (
+        <Alert className="border-blue-200 bg-blue-50">
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <div className="space-y-2">
+              <p className="font-medium text-blue-800">
+                Heads up: Your research topic might benefit from more specificity
+              </p>
+              <p className="text-sm text-blue-700">
+                Based on your topic, the AI models may ask for clarification to provide better results. 
+                Consider adding specific details like target audience, time frame, or particular aspects you want analyzed.
+              </p>
+              <div className="flex items-center gap-2 text-xs text-blue-600 mt-2">
+                <MessageCircle className="w-3 h-3" />
+                <span>This won't stop the analysis, but more details = better insights</span>
+              </div>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Research Topic Display */}
       <Card>
