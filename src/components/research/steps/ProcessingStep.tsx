@@ -18,7 +18,8 @@ import {
   AIResultStatus,
   ResearchStatus,
   AIResult,
-  ResearchError
+  ResearchError,
+  ResponseClassification
 } from "@/types/research";
 import { supabase } from '@/integrations/supabase/client';
 
@@ -229,10 +230,15 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
         
         console.log(`${provider} - Creating AIResult with content length:`, result.content.length);
         
+        // Classify the response
+        const classification = classifyResponse(result.content);
+        console.log(`${provider} - Response classification:`, classification);
+        
         // Generate the AI result
         const aiResult: AIResult = {
           provider,
           content: result.content,
+          classification,
           metadata: {
             model: provider === 'claude' ? 'claude-3-5-sonnet' : 'gpt-4-turbo',
             tokensUsed: result.tokensUsed || 0,
@@ -241,7 +247,7 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
             finishReason: 'stop'
           },
           timestamp: new Date(),
-          status: 'completed'
+          status: classification.type === 'analysis' ? 'completed' : 'needs_clarification'
         };
 
         setStatus('completed');
@@ -270,6 +276,74 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
     }
 
   }, [session?.topic, session?.systemPrompt, session?.optimizedPrompt]);
+
+  // Function to classify AI responses
+  const classifyResponse = (content: string): ResponseClassification => {
+    const questionIndicators = [
+      'could you clarify',
+      'could you specify',
+      'need more information',
+      'need to know',
+      'what specifically',
+      'which aspect',
+      'which type',
+      'can you provide more details',
+      'it would be helpful to know',
+      'i\'d need to understand',
+      'i need to know',
+      'before i can analyze',
+      'to better assist',
+      'to provide a comprehensive'
+    ];
+    
+    const partialIndicators = [
+      'based on limited information',
+      'with the information provided',
+      'however, without more context',
+      'additional details would',
+      'incomplete analysis'
+    ];
+    
+    const lowerContent = content.toLowerCase();
+    
+    // Count question indicators
+    const questionCount = questionIndicators.filter(indicator => 
+      lowerContent.includes(indicator)
+    ).length;
+    
+    // Count partial indicators
+    const partialCount = partialIndicators.filter(indicator => 
+      lowerContent.includes(indicator)
+    ).length;
+    
+    // Extract questions (sentences ending with ?)
+    const questions = content.match(/[^.!?]*\?/g) || [];
+    
+    // Determine type based on content analysis
+    if (questionCount >= 2 || questions.length >= 3) {
+      return {
+        type: 'question',
+        confidence: Math.min(0.9, (questionCount + questions.length) * 0.15),
+        detectedQuestions: questions.slice(0, 5).map(q => q.trim())
+      };
+    }
+    
+    if (partialCount >= 1 || (questionCount === 1 && questions.length >= 1)) {
+      return {
+        type: 'partial',
+        confidence: Math.min(0.8, (partialCount + questionCount) * 0.25),
+        detectedQuestions: questions.map(q => q.trim()),
+        missingInfo: partialIndicators.filter(indicator => 
+          lowerContent.includes(indicator)
+        )
+      };
+    }
+    
+    return {
+      type: 'analysis',
+      confidence: 0.9
+    };
+  };
 
   const generateMockContent = (provider: AIProvider, topic: string): string => {
     const providerStyle = provider === 'claude' 
@@ -358,11 +432,18 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
       console.log('OpenAI result:', results.openai);
       console.log('Total cost:', totalCost);
       
+      // Check if any results need clarification
+      const needsClarification = 
+        (results.claude?.classification?.type !== 'analysis') ||
+        (results.openai?.classification?.type !== 'analysis');
+      
       onSessionUpdate({
         status: 'completed' as ResearchStatus,
         results,
         totalCost,
         processingTime: Date.now() - (startTimeRef.current?.getTime() || 0),
+        needsClarification,
+        clarificationStatus: needsClarification ? 'pending' : 'none',
         updatedAt: new Date()
       });
 

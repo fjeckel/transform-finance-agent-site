@@ -37,6 +37,11 @@ export interface ResearchSession {
   userId: string;
   isPublic: boolean;
   
+  // Clarification support
+  clarificationRequests?: ClarificationRequest[];
+  needsClarification?: boolean;
+  clarificationStatus?: 'none' | 'pending' | 'provided' | 'skipped';
+  
   // Error handling
   error?: ResearchError;
 }
@@ -119,10 +124,19 @@ export interface AIProvider {
   lastUsed?: Date;
 }
 
+// Response classification for detecting questions vs analysis
+export interface ResponseClassification {
+  type: 'analysis' | 'question' | 'partial';
+  confidence: number;
+  detectedQuestions?: string[];
+  missingInfo?: string[];
+}
+
 // AI Result types (what components actually expect)
 export interface AIResult {
   provider: AIProviderName;
   content: string;
+  classification?: ResponseClassification;
   metadata: {
     model: string;
     tokensUsed: number;
@@ -134,7 +148,7 @@ export interface AIResult {
   status: AIResultStatus;
 }
 
-export type AIResultStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type AIResultStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'needs_clarification';
 
 // Processing progress types (expected by ProcessingStep)
 export interface ProcessingProgress {
@@ -600,4 +614,16 @@ export interface ResearchAnalytics {
   period: 'daily' | 'weekly' | 'monthly';
   startDate: Date;
   endDate: Date;
+}
+
+// Clarification request tracking
+export interface ClarificationRequest {
+  id: string;
+  sessionId: string;
+  provider: AIProviderName;
+  questions: string[];
+  requestedAt: Date;
+  response?: string;
+  respondedAt?: Date;
+  status: 'pending' | 'answered' | 'skipped';
 }

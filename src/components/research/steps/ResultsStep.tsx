@@ -11,7 +11,9 @@ import {
   TrendingUp,
   Clock,
   DollarSign,
-  CheckCircle
+  CheckCircle,
+  AlertTriangle,
+  RefreshCw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,6 +24,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   ResearchStepProps, 
@@ -34,11 +38,15 @@ import {
 
 interface ResultsStepProps extends ResearchStepProps {
   onComplete?: (results: ResearchResults) => void;
+  onSessionUpdate?: (updates: Partial<ResearchSession>) => void;
+  onReprocess?: () => void;
 }
 
 const ResultsStep: React.FC<ResultsStepProps> = ({
   session,
   onComplete,
+  onSessionUpdate,
+  onReprocess,
   className
 }) => {
   const isMobile = useIsMobile();
@@ -46,6 +54,9 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
   const [isExporting, setIsExporting] = React.useState(false);
   const [exportFormat, setExportFormat] = React.useState<ExportFormat>("pdf");
   const [showMetadata, setShowMetadata] = React.useState(false);
+  const [showClarificationModal, setShowClarificationModal] = React.useState(false);
+  const [clarificationText, setClarificationText] = React.useState("");
+  const [isReprocessing, setIsReprocessing] = React.useState(false);
 
   const results = session?.results;
   const claudeResult = results?.claude;
@@ -56,6 +67,29 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
   console.log('ResultsStep - Results:', results);
   console.log('ResultsStep - Claude result:', claudeResult);
   console.log('ResultsStep - OpenAI result:', openaiResult);
+
+  // Check if any results need clarification
+  const needsClarification = React.useMemo(() => {
+    const claudeNeedsClarity = claudeResult?.classification?.type !== 'analysis';
+    const openaiNeedsClarity = openaiResult?.classification?.type !== 'analysis';
+    return claudeNeedsClarity || openaiNeedsClarity;
+  }, [claudeResult, openaiResult]);
+
+  // Extract questions from AI responses
+  const clarificationQuestions = React.useMemo(() => {
+    const questions: string[] = [];
+    
+    if (claudeResult?.classification?.detectedQuestions) {
+      questions.push(...claudeResult.classification.detectedQuestions);
+    }
+    
+    if (openaiResult?.classification?.detectedQuestions) {
+      questions.push(...openaiResult.classification.detectedQuestions);
+    }
+    
+    // Remove duplicates and clean up
+    return [...new Set(questions)].map(q => q.trim()).filter(q => q.length > 0);
+  }, [claudeResult, openaiResult]);
 
   const handleExport = React.useCallback(async (format: ExportFormat) => {
     if (!results) return;
@@ -107,6 +141,53 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
       navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`);
     }
   }, [session?.topic]);
+
+  const handleSubmitClarification = React.useCallback(async () => {
+    if (!session || !onSessionUpdate || !clarificationText.trim()) return;
+    
+    setIsReprocessing(true);
+    setShowClarificationModal(false);
+    
+    try {
+      // Enhance the original prompt with clarification
+      const enhancedPrompt = `${session.optimizedPrompt || session.topic}
+
+ADDITIONAL CLARIFICATIONS PROVIDED:
+${clarificationText}
+
+Please provide a comprehensive research analysis incorporating this additional information.`;
+
+      // Update session with enhanced prompt
+      onSessionUpdate({
+        optimizedPrompt: enhancedPrompt,
+        clarificationStatus: 'provided',
+        needsClarification: false,
+        updatedAt: new Date()
+      });
+      
+      // Trigger reprocessing
+      if (onReprocess) {
+        setTimeout(() => {
+          onReprocess();
+        }, 500);
+      }
+      
+    } catch (error) {
+      console.error('Clarification submission error:', error);
+    } finally {
+      setIsReprocessing(false);
+    }
+  }, [clarificationText, session, onSessionUpdate, onReprocess]);
+
+  const handleSkipClarification = React.useCallback(() => {
+    if (!session || !onSessionUpdate) return;
+    
+    onSessionUpdate({
+      clarificationStatus: 'skipped',
+      needsClarification: false,
+      updatedAt: new Date()
+    });
+  }, [session, onSessionUpdate]);
 
   const formatTime = (ms: number) => {
     return `${(ms / 1000).toFixed(1)}s`;
@@ -484,6 +565,83 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
     </div>
   );
 
+  // Render clarification interface when AI needs more information
+  const renderClarificationInterface = () => {
+    if (!needsClarification || clarificationQuestions.length === 0) return null;
+    
+    return (
+      <Card className="border-amber-200 bg-amber-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-amber-800">
+            <AlertTriangle className="w-5 h-5" />
+            AI Models Need Clarification
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <p className="text-sm text-amber-700">
+              The AI models are asking for additional information to provide a comprehensive analysis.
+              Please clarify your research topic or provide more specific details.
+            </p>
+            
+            {clarificationQuestions.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-amber-800">Questions detected:</h4>
+                <ul className="list-disc list-inside space-y-1">
+                  {clarificationQuestions.slice(0, 5).map((question, index) => (
+                    <li key={index} className="text-sm text-amber-700">
+                      {question}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            <div className="space-y-3">
+              <Label htmlFor="clarification-input" className="text-amber-800">
+                Provide additional information:
+              </Label>
+              <Textarea
+                id="clarification-input"
+                placeholder="Enter clarifications or more specific details about your research topic..."
+                value={clarificationText}
+                onChange={(e) => setClarificationText(e.target.value)}
+                className="min-h-[100px] border-amber-300 focus:border-amber-400"
+              />
+            </div>
+            
+            <div className="flex gap-2">
+              <Button
+                onClick={handleSubmitClarification}
+                disabled={!clarificationText.trim() || isReprocessing}
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                {isReprocessing ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Re-processing...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Re-run Analysis with Clarifications
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleSkipClarification}
+                className="border-amber-300 text-amber-700 hover:bg-amber-100"
+              >
+                Skip & Use Current Results
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   // Render content based on results availability
   const renderContent = () => {
     if (!results) {
@@ -496,6 +654,9 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
 
     return (
       <>
+        {/* Clarification Interface - Show at top when needed */}
+        {renderClarificationInterface()}
+        
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

@@ -278,6 +278,14 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
               setSession(null);
               setCurrentStep(1);
             }}
+            onSessionUpdate={(updates) => {
+              console.log('ResearchWizard - ResultsStep session update:', updates);
+              setSession(prev => prev ? { ...prev, ...updates } : null);
+            }}
+            onReprocess={() => {
+              console.log('ResearchWizard - Reprocessing requested');
+              setCurrentStep(2); // Go back to processing step
+            }}
           />
         );
         
