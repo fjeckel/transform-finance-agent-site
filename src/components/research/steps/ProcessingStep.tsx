@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   DualProcessingAnimation 
 } from "../animations/LoadingAnimations";
@@ -36,6 +37,8 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
   className
 }) => {
   const [isProcessing, setIsProcessing] = React.useState(false);
+  const [isEditingPrompt, setIsEditingPrompt] = React.useState(false);
+  const [editablePrompt, setEditablePrompt] = React.useState(session?.optimizedPrompt || session?.topic || "");
   const [claudeProgress, setClaudeProgress] = React.useState<ProcessingProgress>({
     provider: 'claude',
     stage: 'initializing',
@@ -136,7 +139,35 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
       });
 
       // Prepare the research prompt - prioritize optimized prompt, then topic, with fallback
-      const systemPrompt = session?.systemPrompt || `You are an expert research analyst. Provide comprehensive, well-structured analysis on the given topic with actionable insights and data-driven recommendations.`;
+      const systemPrompt = session?.systemPrompt || `You are an elite research analyst and strategic consultant with deep expertise across multiple industries and analytical frameworks. Your task is to conduct comprehensive, professional-grade research analysis that would typically require weeks of work from a research team.
+
+ANALYSIS FRAMEWORK:
+1. **Market Intelligence**: Analyze current market size, growth rates, key trends, disruption factors
+2. **Competitive Landscape**: Identify major players, market positioning, competitive advantages/disadvantages  
+3. **Stakeholder Analysis**: Map key stakeholders, their interests, influence, and impact
+4. **Risk Assessment**: Evaluate strategic, operational, financial, and regulatory risks
+5. **Opportunity Identification**: Pinpoint emerging opportunities, market gaps, growth vectors
+6. **Data-Driven Insights**: Include relevant statistics, forecasts, and quantitative analysis where possible
+7. **Strategic Recommendations**: Provide actionable, prioritized recommendations with implementation roadmaps
+
+RESEARCH DEPTH REQUIREMENTS:
+- Go beyond surface-level analysis - dig into underlying drivers and root causes
+- Consider multiple perspectives and scenarios (bull/bear cases)
+- Include forward-looking analysis and trend forecasting
+- Address potential challenges and mitigation strategies
+- Provide specific, measurable, and time-bound recommendations
+
+OUTPUT STRUCTURE:
+Your analysis must be comprehensive (2000-4000 words) and structured as:
+- Executive Summary (key findings & recommendations)
+- Market Context & Background
+- Detailed Analysis (multiple sections as relevant)
+- Risk Assessment & Mitigation
+- Strategic Opportunities
+- Implementation Roadmap
+- Conclusion & Next Steps
+
+Use professional consulting language, include specific examples, and ensure all insights are actionable and valuable for executive decision-making.`;
       const userPrompt = (session?.optimizedPrompt && session.optimizedPrompt.trim()) 
         ? session.optimizedPrompt 
         : (session?.topic && session.topic.trim())
@@ -311,6 +342,106 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
     }
 
   }, [session?.topic, session?.systemPrompt, session?.optimizedPrompt]);
+
+  // AI-powered comparison analysis function
+  const generateComparisonAnalysis = async (claudeResult: AIResult, openaiResult: AIResult) => {
+    console.log('Generating AI comparison analysis...');
+    
+    const comparisonSystemPrompt = `You are an expert research analysis evaluator. Your task is to provide a comprehensive comparison and synthesis of two AI-generated research reports on the same topic.
+
+ANALYSIS FRAMEWORK:
+1. **Content Quality Assessment**: Evaluate depth, accuracy, comprehensiveness, and professional quality
+2. **Analytical Rigor**: Compare methodology, data usage, logical reasoning, and evidence quality
+3. **Strategic Value**: Assess actionability of recommendations, practical applicability, strategic insight
+4. **Coverage Comparison**: Identify what each analysis covers well vs. gaps or weaknesses
+5. **Synthesis Opportunities**: Find complementary insights that strengthen overall understanding
+6. **Differentiation Analysis**: Highlight unique perspectives, approaches, or insights from each
+
+COMPARISON OUTPUT STRUCTURE:
+## Executive Assessment
+- Overall quality comparison (scores out of 10)
+- Best-in-class elements from each analysis
+- Combined strategic value proposition
+
+## Detailed Comparison Matrix
+- **Depth & Comprehensiveness**: Compare thoroughness and coverage
+- **Data & Evidence**: Evaluate use of statistics, examples, case studies
+- **Strategic Insights**: Assess quality of recommendations and actionability  
+- **Presentation & Clarity**: Compare structure, readability, professional quality
+- **Innovation & Perspective**: Unique angles or fresh thinking
+
+## Synthesis & Integration
+- **Complementary Strengths**: How the analyses reinforce each other
+- **Conflicting Views**: Areas of disagreement and possible resolution
+- **Enhanced Recommendations**: Improved insights combining both perspectives
+- **Implementation Priorities**: Unified action plan leveraging best of both
+
+## Final Recommendation
+- Which analysis is stronger overall and why
+- How to best utilize both analyses together
+- Key takeaways for decision makers
+
+Provide specific examples and concrete comparisons. Be objective but decisive in your assessment.`;
+
+    const userPrompt = `Please analyze and compare these two research reports on the same topic:
+
+**RESEARCH TOPIC**: ${session?.topic || session?.optimizedPrompt}
+
+**CLAUDE ANALYSIS** (${claudeResult.metadata.tokensUsed} tokens, $${claudeResult.metadata.cost.toFixed(4)}):
+${claudeResult.content}
+
+**OPENAI ANALYSIS** (${openaiResult.metadata.tokensUsed} tokens, $${openaiResult.metadata.cost.toFixed(4)}):
+${openaiResult.content}
+
+Please provide a comprehensive comparison and synthesis following the framework above.`;
+
+    try {
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      if (!authSession) {
+        throw new Error('Authentication required for comparison analysis');
+      }
+
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/ai-research-claude`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authSession.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          systemPrompt: comparisonSystemPrompt,
+          userPrompt: userPrompt,
+          maxTokens: 3000,
+          temperature: 0.3 // Lower temperature for more consistent analysis
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Comparison API error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success && result.content) {
+        return {
+          id: `comparison-${Date.now()}`,
+          content: result.content,
+          metadata: {
+            tokensUsed: result.tokensUsed || 0,
+            cost: result.cost || 0,
+            processingTime: result.processingTime || 0,
+            generatedBy: 'claude',
+            timestamp: new Date()
+          }
+        };
+      } else {
+        throw new Error(result.error || 'Failed to generate comparison');
+      }
+      
+    } catch (error) {
+      console.error('Comparison analysis error:', error);
+      throw error;
+    }
+  };
 
   // Function to classify AI responses
   const classifyResponse = (content: string): ResponseClassification => {
@@ -547,6 +678,18 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
       console.log('Processing completed - Results:', results);
       console.log('Claude result:', results.claude);
       console.log('OpenAI result:', results.openai);
+
+      // Generate AI-powered comparison analysis if we have both results
+      let comparisonAnalysis = null;
+      if (results.claude && results.openai) {
+        console.log('Both results available - generating AI comparison analysis...');
+        try {
+          comparisonAnalysis = await generateComparisonAnalysis(results.claude, results.openai);
+          console.log('Comparison analysis generated:', comparisonAnalysis);
+        } catch (compError) {
+          console.warn('Failed to generate comparison analysis:', compError);
+        }
+      }
       console.log('Total cost:', totalCost);
       
       // Check if any results need clarification
@@ -557,7 +700,8 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
       onSessionUpdate({
         status: 'completed' as ResearchStatus,
         results,
-        totalCost,
+        comparison: comparisonAnalysis,
+        totalCost: totalCost + (comparisonAnalysis?.metadata.cost || 0),
         processingTime: Date.now() - (startTimeRef.current?.getTime() || 0),
         needsClarification,
         clarificationStatus: needsClarification ? 'pending' : 'none',
@@ -711,17 +855,72 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
         </Alert>
       )}
 
-      {/* Research Topic Display */}
+      {/* Editable Research Topic */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Research Topic</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Research Topic</CardTitle>
+            {!isProcessing && session?.status !== 'completed' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditingPrompt(!isEditingPrompt)}
+              >
+                {isEditingPrompt ? 'Save Changes' : 'Edit Prompt'}
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">
-              {session?.optimizedPrompt || session?.topic || ""}
-            </p>
-          </div>
+          {isEditingPrompt ? (
+            <div className="space-y-3">
+              <Textarea
+                value={editablePrompt}
+                onChange={(e) => setEditablePrompt(e.target.value)}
+                placeholder="Enter your research topic or question..."
+                className="min-h-[120px] text-sm"
+                disabled={isProcessing}
+              />
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Be specific for better results</span>
+                <span>{editablePrompt.length} characters</span>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    if (onSessionUpdate) {
+                      onSessionUpdate({
+                        topic: editablePrompt,
+                        optimizedPrompt: editablePrompt,
+                        updatedAt: new Date()
+                      });
+                    }
+                    setIsEditingPrompt(false);
+                  }}
+                  disabled={!editablePrompt.trim()}
+                >
+                  Save & Update Research
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setEditablePrompt(session?.optimizedPrompt || session?.topic || "");
+                    setIsEditingPrompt(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                {session?.optimizedPrompt || session?.topic || ""}
+              </p>
+            </div>
+          )}
           
           <div className="flex items-center justify-between mt-3 text-sm text-muted-foreground">
             <span>Processing with: Claude & OpenAI</span>
