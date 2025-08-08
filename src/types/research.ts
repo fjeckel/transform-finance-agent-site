@@ -14,6 +14,9 @@ export interface ResearchSession {
   // Configuration (frontend structure)
   config?: ResearchConfig;
   
+  // Research parameters (critical for UI components)
+  parameters?: ResearchParameters;
+  
   // Simplified prompt fields for compatibility
   systemPrompt?: string;
   optimizedPrompt?: string;

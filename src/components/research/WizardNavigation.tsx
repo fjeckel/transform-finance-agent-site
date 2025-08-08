@@ -140,13 +140,13 @@ export const WizardNavigation: React.FC<WizardNavigationProps> = ({
               <div className="flex justify-between">
                 <span className="text-gray-600">Type:</span>
                 <span className="font-medium capitalize">
-                  {session.parameters.researchType.replace('_', ' ')}
+                  {session.parameters?.researchType?.replace('_', ' ') || 'Custom'}
                 </span>
               </div>
               
               <div className="flex justify-between">
                 <span className="text-gray-600">Depth:</span>
-                <span className="font-medium capitalize">{session.parameters.depth}</span>
+                <span className="font-medium capitalize">{session.parameters?.depth || 'Standard'}</span>
               </div>
               
               <div className="flex justify-between">

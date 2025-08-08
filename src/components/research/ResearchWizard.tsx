@@ -69,24 +69,26 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
   }, []);
 
   // Handle session creation - memoized to prevent infinite loops in useEffect
-  const handleCreateSession = React.useCallback(async (formData: TopicInputForm) => {
+  const handleCreateSession = React.useCallback(async (formData?: TopicInputForm | null) => {
     setIsLoading(true);
     
     try {
+      // Defensive parameter creation with full type safety
+      const safeFormData = formData || {};
       const parameters: ResearchParameters = {
-        researchType: (formData?.researchType as ResearchTaskType) || 'custom',
-        depth: formData?.depth || 'comprehensive',
-        focusAreas: formData?.focusAreas || [],
+        researchType: (safeFormData.researchType as ResearchTaskType) || 'custom',
+        depth: safeFormData.depth || 'comprehensive',
+        focusAreas: safeFormData.focusAreas || [],
         outputFormat: 'detailed',
         outputLength: 'comprehensive',
         includeSourceData: true,
         targetAudience: 'executives',
-        timeframe: '6-months' // Set a default value instead of accessing undefined property
+        timeframe: '6-months'
       };
 
       const result = await researchService.createSession(
-        `Research: ${(formData?.topic || '').slice(0, 50)}...`,
-        formData?.topic || '',
+        `Research: ${(safeFormData.topic || '').slice(0, 50)}...`,
+        safeFormData.topic || '',
         parameters
       );
 
@@ -251,6 +253,15 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
                     status: (updates.status as ResearchStatus) || 'setup',
                     currentStep: 2,
                     totalSteps: 3,
+                    parameters: {
+                      researchType: 'custom',
+                      depth: 'comprehensive',
+                      focusAreas: [],
+                      outputFormat: 'detailed',
+                      outputLength: 'comprehensive',
+                      includeSourceData: true,
+                      targetAudience: 'executives'
+                    },
                     estimatedCost: {
                       minCost: 0.045,
                       maxCost: 0.065,
