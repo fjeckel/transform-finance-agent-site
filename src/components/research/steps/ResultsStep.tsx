@@ -75,8 +75,19 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
   const needsClarification = React.useMemo(() => {
     const claudeNeedsClarity = claudeResult?.classification?.type !== 'analysis';
     const openaiNeedsClarity = openaiResult?.classification?.type !== 'analysis';
-    return claudeNeedsClarity || openaiNeedsClarity;
-  }, [claudeResult, openaiResult]);
+    const result = claudeNeedsClarity || openaiNeedsClarity;
+    
+    console.log('ResultsStep - Clarification Check:', {
+      claudeType: claudeResult?.classification?.type,
+      openaiType: openaiResult?.classification?.type,
+      claudeNeedsClarity,
+      openaiNeedsClarity,
+      needsClarification: result,
+      sessionNeedsClarification: session?.needsClarification
+    });
+    
+    return result;
+  }, [claudeResult, openaiResult, session?.needsClarification]);
 
   // Extract questions from AI responses
   const clarificationQuestions = React.useMemo(() => {
@@ -92,6 +103,28 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
     
     // Remove duplicates and clean up
     return [...new Set(questions)].map(q => q.trim()).filter(q => q.length > 0);
+  }, [claudeResult, openaiResult]);
+
+  // Extract AI feedback content for display
+  const aiFeedback = React.useMemo(() => {
+    const feedback: { provider: string; content: string }[] = [];
+    
+    if (claudeResult?.classification?.type !== 'analysis' && claudeResult?.content) {
+      feedback.push({
+        provider: 'Claude',
+        content: claudeResult.content
+      });
+    }
+    
+    if (openaiResult?.classification?.type !== 'analysis' && openaiResult?.content) {
+      feedback.push({
+        provider: 'OpenAI',
+        content: openaiResult.content
+      });
+    }
+    
+    console.log('ResultsStep - AI Feedback:', feedback);
+    return feedback;
   }, [claudeResult, openaiResult]);
 
   const handleExport = React.useCallback(async (format: ExportFormat) => {
@@ -509,7 +542,7 @@ Please provide a comprehensive research analysis incorporating this additional i
         <Card>
           <CardContent className="pt-4 text-center">
             <div className="text-2xl font-bold text-blue-600">
-              ${session?.totalCost.toFixed(4)}
+              ${(session?.totalCost || 0).toFixed(4)}
             </div>
             <p className="text-sm font-medium">Total Cost</p>
             <p className="text-xs text-muted-foreground">USD</p>
@@ -570,127 +603,177 @@ Please provide a comprehensive research analysis incorporating this additional i
 
   // Render clarification interface when AI needs more information
   const renderClarificationInterface = () => {
-    if (!needsClarification || clarificationQuestions.length === 0) return null;
+    if (!needsClarification) return null;
     
     return (
-      <Card className="border-blue-200 bg-blue-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-blue-800">
-            <Lightbulb className="w-5 h-5" />
-            Help Us Provide Better Results
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Value proposition */}
-            <div className="bg-green-50 border-l-4 border-green-400 p-4">
-              <div className="flex">
-                <CheckCircle className="w-5 h-5 text-green-400 mr-3 mt-0.5" />
-                <div>
-                  <p className="text-sm text-green-700">
-                    <strong>Good news!</strong> The AI detected that more specific information 
-                    could significantly improve your research quality and depth.
-                  </p>
-                </div>
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 mb-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Prominent headline */}
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 text-white rounded-full mb-4">
+              <Lightbulb className="w-8 h-8" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Get More Targeted Results
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Your topic has great potential! Adding specific details will unlock deeper, more actionable insights from both AI models.
+            </p>
+          </div>
+
+          {/* Clear value proposition */}
+          <div className="bg-white border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Why This Matters</h3>
+                <p className="text-gray-700 text-sm">
+                  Instead of generic overviews, you'll get specific analysis tailored to your exact needs, 
+                  industry, and goals - making your research immediately actionable.
+                </p>
               </div>
             </div>
+          </div>
 
-            <p className="text-sm text-blue-700">
-              Your research topic was broad enough that both AI models are asking for clarification 
-              to provide more targeted, valuable insights.
+          {/* Show actual AI feedback prominently */}
+          {aiFeedback.length > 0 && (
+            <div className="bg-white border border-blue-200 rounded-lg p-4 mb-6">
+              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-blue-600" />
+                What the AI Models Are Saying
+              </h3>
+              <div className="space-y-4">
+                {aiFeedback.map((feedback, index) => (
+                  <div key={index} className="border-l-4 border-blue-400 bg-blue-50 p-4 rounded-r-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-medium text-blue-900">
+                        {feedback.provider === 'Claude' ? '🤖' : '⚡'} {feedback.provider}:
+                      </span>
+                    </div>
+                    <p className="text-blue-800 text-sm leading-relaxed whitespace-pre-line">
+                      {feedback.content}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* AI Questions in digestible format */}
+          {clarificationQuestions.length > 0 && (
+            <div className="bg-white border border-blue-200 rounded-lg p-4 mb-6">
+              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-blue-600" />
+                Questions Both AI Models Want to Know
+              </h3>
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <p className="text-blue-900 font-medium mb-1">Most Important:</p>
+                <p className="text-blue-800 text-sm">{clarificationQuestions[0]}</p>
+              </div>
+              {clarificationQuestions.length > 1 && (
+                <details className="mt-3 group">
+                  <summary className="cursor-pointer text-sm text-blue-700 hover:text-blue-800 font-medium flex items-center gap-1">
+                    <span>+ {clarificationQuestions.length - 1} more questions</span>
+                  </summary>
+                  <div className="mt-2 space-y-2">
+                    {clarificationQuestions.slice(1, 3).map((question, index) => (
+                      <div key={index} className="bg-blue-50 p-2 rounded text-sm text-blue-800">
+                        {question}
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
+            </div>
+          )}
+          
+          {/* Input section */}
+          <div className="bg-white border border-blue-200 rounded-lg p-6">
+            <h3 className="font-semibold text-gray-900 mb-2">
+              Add Your Specific Requirements
+            </h3>
+            <p className="text-gray-600 text-sm mb-4">
+              The more details you provide, the more valuable and actionable your research will be.
             </p>
             
-            {clarificationQuestions.length > 0 && (
-              <div className="space-y-3">
-                {/* Most important question prominently displayed */}
-                <div className="bg-blue-100 p-4 rounded-lg">
-                  <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
-                    <MessageCircle className="w-4 h-4" />
-                    Key clarification needed:
-                  </h4>
-                  <p className="text-blue-800">{clarificationQuestions[0]}</p>
-                </div>
+            <Textarea
+              id="clarification-input"
+              placeholder="Be specific about:
+• Your industry or market segment
+• Time period you're interested in
+• Geographic focus
+• Target audience for your research
+• Specific challenges or opportunities
+• Budget range or company size
 
-                {/* Additional questions collapsed by default */}
-                {clarificationQuestions.length > 1 && (
-                  <details className="group">
-                    <summary className="cursor-pointer text-sm text-blue-700 hover:text-blue-800 font-medium">
-                      + {clarificationQuestions.length - 1} additional questions the AI models have
-                    </summary>
-                    <ul className="list-disc list-inside space-y-1 mt-2 ml-4">
-                      {clarificationQuestions.slice(1, 4).map((question, index) => (
-                        <li key={index} className="text-sm text-blue-600">
-                          {question}
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
-                )}
-              </div>
-            )}
+Example: Focus on B2B SaaS companies in North America with 50-500 employees, analyze pricing strategy trends from 2022-2024 for software aimed at marketing teams..."
+              value={clarificationText}
+              onChange={(e) => setClarificationText(e.target.value)}
+              className="min-h-[140px] border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm"
+            />
             
-            <div className="space-y-3">
-              <Label htmlFor="clarification-input" className="text-blue-800 font-medium">
-                Add specific details to enhance your analysis:
-              </Label>
-              <Textarea
-                id="clarification-input"
-                placeholder="Example: Focus on B2B SaaS companies in North America, analyze trends from 2020-2024, target audience is C-level executives..."
-                value={clarificationText}
-                onChange={(e) => setClarificationText(e.target.value)}
-                className="min-h-[120px] border-blue-300 focus:border-blue-400"
-              />
-              <p className="text-xs text-blue-600">
-                The more specific you are, the better insights you'll get from both AI models.
+            <div className="flex items-center justify-between mt-3 mb-6">
+              <p className="text-xs text-gray-500">
+                More specificity = better insights
               </p>
+              <span className="text-xs text-gray-400">
+                {clarificationText.length} characters
+              </span>
             </div>
             
+            {/* Prominent CTA */}
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={handleSubmitClarification}
                 disabled={!clarificationText.trim() || isReprocessing}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white text-base py-3 px-6 flex-1"
+                size="lg"
               >
                 {isReprocessing ? (
                   <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Enhancing Analysis...
+                    <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                    Generating Enhanced Analysis...
                   </>
                 ) : (
                   <>
-                    <Lightbulb className="w-4 h-4 mr-2" />
-                    Improve Results
+                    <Lightbulb className="w-5 h-5 mr-2" />
+                    Get My Enhanced Results
                   </>
                 )}
               </Button>
               <Button
                 variant="outline"
                 onClick={handleSkipClarification}
-                className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 sm:flex-initial"
+                disabled={isReprocessing}
               >
-                Continue with Basic Analysis
+                Skip & Use Current Results
               </Button>
             </div>
-
-            {/* Process feedback for reprocessing */}
+            
+            {/* Process feedback */}
             {isReprocessing && (
-              <div className="bg-blue-100 border border-blue-300 rounded-lg p-4 mt-4">
-                <div className="flex items-center gap-2 text-blue-800">
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span className="font-medium">Enhancing Your Analysis</span>
-                </div>
-                <p className="text-sm text-blue-700 mt-1">
-                  Re-running analysis with your additional details. This will take 15-20 minutes 
-                  and will provide more targeted, comprehensive results.
-                </p>
-                <div className="mt-2 text-xs text-blue-600">
-                  Please keep this tab open during processing.
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+                <div className="flex items-start gap-3">
+                  <RefreshCw className="w-5 h-5 text-blue-600 animate-spin mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-blue-900">Enhancing Your Research</h4>
+                    <p className="text-sm text-blue-700 mt-1">
+                      Both AI models are re-analyzing with your specific requirements. 
+                      This typically takes 15-20 minutes and will deliver much more targeted results.
+                    </p>
+                    <div className="mt-2 text-xs text-blue-600 bg-blue-100 inline-block px-2 py-1 rounded">
+                      Keep this tab open to see your enhanced results
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   };
 
@@ -704,13 +787,46 @@ Please provide a comprehensive research analysis incorporating this additional i
       );
     }
 
+    // If clarification is needed, show simplified interface
+    if (needsClarification && clarificationQuestions.length > 0) {
+      return (
+        <div className="space-y-6">
+          {renderClarificationInterface()}
+          
+          {/* Minimalist preview of what user will get */}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+            <div className="max-w-md mx-auto">
+              <div className="flex justify-center mb-4">
+                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                  <Eye className="w-6 h-6 text-gray-400" />
+                </div>
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Your Analysis is Ready</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Both AI models have completed their analysis. Add clarifications above to unlock more targeted insights, 
+                or continue with the current results.
+              </p>
+              <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+                <div className="flex items-center gap-1">
+                  <CheckCircle className="w-4 h-4" />
+                  Claude Analysis Ready
+                </div>
+                <div className="flex items-center gap-1">
+                  <CheckCircle className="w-4 h-4" />
+                  OpenAI Analysis Ready
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Full results interface when no clarification needed
     return (
-      <>
-        {/* Clarification Interface - Show at top when needed */}
-        {renderClarificationInterface()}
-        
+      <>        
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Results & Comparison</h2>
             <p className="text-muted-foreground">
@@ -740,7 +856,7 @@ Please provide a comprehensive research analysis incorporating this additional i
         </div>
 
         {/* Export Controls */}
-        <Card>
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Download className="w-5 h-5" />
@@ -810,7 +926,7 @@ Please provide a comprehensive research analysis incorporating this additional i
                 </Badge>
                 <Badge variant="outline">
                   <DollarSign className="w-3 h-3 mr-1" />
-                  ${session?.totalCost.toFixed(4)}
+                  ${(session?.totalCost || 0).toFixed(4)}
                 </Badge>
                 <Badge variant="outline">
                   <TrendingUp className="w-3 h-3 mr-1" />

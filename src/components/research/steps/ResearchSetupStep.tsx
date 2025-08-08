@@ -517,22 +517,38 @@ Make the prompt comprehensive but focused, ensuring it will generate professiona
           </CardContent>
         </Card>
 
-        {/* Cost Estimate */}
+        {/* Cost Estimate and Info */}
         {isValidTopic && (
-          <Alert>
-            <DollarSign className="h-4 w-4" />
-            <AlertDescription>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">
-                  Estimated cost: <strong>${costEstimate.total.toFixed(3)} USD</strong>
-                </span>
-                <div className="text-xs text-muted-foreground">
-                  Claude: ${costEstimate.claude.toFixed(3)} • 
-                  OpenAI: ${costEstimate.openai.toFixed(3)}
+          <div className="space-y-3">
+            <Alert>
+              <DollarSign className="h-4 w-4" />
+              <AlertDescription>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">
+                    Estimated cost: <strong>${costEstimate.total.toFixed(3)} USD</strong>
+                  </span>
+                  <div className="text-xs text-muted-foreground">
+                    Claude: ${costEstimate.claude.toFixed(3)} • 
+                    OpenAI: ${costEstimate.openai.toFixed(3)}
+                  </div>
+                </div>
+              </AlertDescription>
+            </Alert>
+            
+            {/* Info about clarifications */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <MessageCircle className="w-4 h-4 text-blue-600 mt-0.5" />
+                <div>
+                  <p className="text-sm text-blue-800 font-medium">Smart Enhancement Available</p>
+                  <p className="text-xs text-blue-700 mt-1">
+                    If your topic is broad, AI models may ask for clarifications to provide more targeted insights.
+                    This helps deliver analysis that's specifically relevant to your needs.
+                  </p>
                 </div>
               </div>
-            </AlertDescription>
-          </Alert>
+            </div>
+          </div>
         )}
 
         {/* Validation Messages */}
