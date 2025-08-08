@@ -135,9 +135,21 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
         timestamp: new Date()
       });
 
-      // Prepare the research prompt
+      // Prepare the research prompt - prioritize optimized prompt, then topic, with fallback
       const systemPrompt = session?.systemPrompt || `You are an expert research analyst. Provide comprehensive, well-structured analysis on the given topic with actionable insights and data-driven recommendations.`;
-      const userPrompt = session?.optimizedPrompt || session?.topic || 'Please provide a comprehensive research analysis.';
+      const userPrompt = (session?.optimizedPrompt && session.optimizedPrompt.trim()) 
+        ? session.optimizedPrompt 
+        : (session?.topic && session.topic.trim())
+        ? session.topic
+        : 'Please provide a comprehensive research analysis.';
+
+      // Debug logging to track what prompt is being sent
+      console.log(`ProcessingStep - Sending to ${provider}:`, {
+        sessionTopic: session?.topic,
+        sessionOptimizedPrompt: session?.optimizedPrompt,
+        finalUserPrompt: userPrompt,
+        promptLength: userPrompt.length
+      });
 
       // Set up progress tracking for long-running AI call (15-20 minutes)
       const progressMessages = [

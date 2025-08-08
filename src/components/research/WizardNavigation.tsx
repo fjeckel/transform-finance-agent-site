@@ -168,7 +168,7 @@ export const WizardNavigation: React.FC<WizardNavigationProps> = ({
                     ${session.estimatedCost.expectedCost.toFixed(4)}
                   </span>
                 </div>
-                {session.actualCost.totalCost > 0 && (
+                {session.actualCost?.totalCost && session.actualCost.totalCost > 0 && (
                   <div className="flex justify-between mt-1">
                     <span className="text-gray-600">Actual Cost:</span>
                     <span className="text-green-600 font-medium">

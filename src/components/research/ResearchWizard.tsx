@@ -179,13 +179,64 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
     const nextStep = Math.min(currentStep + 1, steps.length);
     
     // Special handling for step transitions
-    if (currentStep === 1 && session) {
-      // Moving from setup to processing - validate and confirm cost
-      const costConfirmed = await confirmCost(session.estimatedCost);
-      if (!costConfirmed) return;
-      
-      // Update session status
-      setSession(prev => prev ? { ...prev, status: 'processing', currentStep: 2 } : null);
+    if (currentStep === 1) {
+      // Create or update session when moving from setup to processing
+      if (!session && step1Topic.trim()) {
+        // Create new session with the topic from step 1
+        const newSession: ResearchSession = {
+          id: 'generated-' + Date.now(),
+          title: `Research: ${step1Topic.slice(0, 50)}...`,
+          topic: step1Topic,
+          status: 'processing',
+          currentStep: 2,
+          totalSteps: 3,
+          parameters: {
+            researchType: 'custom',
+            depth: 'comprehensive',
+            focusAreas: [],
+            outputFormat: 'detailed',
+            outputLength: 'comprehensive',
+            includeSourceData: true,
+            targetAudience: 'executives'
+          },
+          estimatedCost: {
+            minCost: 0.045,
+            maxCost: 0.065,
+            expectedCost: 0.055,
+            currency: 'USD',
+            breakdown: {
+              claude: { minCost: 0.020, maxCost: 0.030, expectedTokens: 3500 },
+              openai: { minCost: 0.025, maxCost: 0.035, expectedTokens: 3500 }
+            },
+            confidence: 85,
+            basedOnSimilarQueries: 150
+          },
+          totalCost: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          userId: 'anonymous',
+          isPublic: false
+        };
+        
+        // Confirm cost before proceeding
+        const costConfirmed = await confirmCost(newSession.estimatedCost);
+        if (!costConfirmed) return;
+        
+        setSession(newSession);
+      } else if (session) {
+        // Update existing session
+        const costConfirmed = await confirmCost(session.estimatedCost);
+        if (!costConfirmed) return;
+        
+        // Update session status and ensure topic is set
+        setSession(prev => prev ? { 
+          ...prev, 
+          status: 'processing', 
+          currentStep: 2,
+          topic: prev.topic || step1Topic || '',
+          updatedAt: new Date()
+        } : null);
+      }
     }
     
     setCurrentStep(nextStep);
@@ -249,7 +300,7 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
                   const newSession: ResearchSession = { 
                     id: 'generated-' + Date.now(),
                     title: 'AI Research Session',
-                    topic: updates.optimizedPrompt || '',
+                    topic: updates.optimizedPrompt || step1Topic || '',
                     status: (updates.status as ResearchStatus) || 'setup',
                     currentStep: 2,
                     totalSteps: 3,
