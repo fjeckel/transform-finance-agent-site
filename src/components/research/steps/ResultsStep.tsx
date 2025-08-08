@@ -38,6 +38,7 @@ import {
   ExportFormat,
   ResearchSession
 } from "@/types/research";
+import { ExportService } from "@/services/export/exportService";
 
 interface ResultsStepProps extends ResearchStepProps {
   onComplete?: (results: ResearchResults) => void;
@@ -128,34 +129,37 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
   }, [claudeResult, openaiResult]);
 
   const handleExport = React.useCallback(async (format: ExportFormat) => {
-    if (!results) return;
+    if (!session) return;
     
     setIsExporting(true);
     
     try {
-      // Mock export functionality
-      const exportOptions: ExportOptions = {
-        format,
-        includeMetadata: true,
-        includeComparison: true
-      };
+      console.log(`Exporting research in ${format} format...`);
       
-      // Simulate export process
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const result = await ExportService.exportResearch(session, format);
       
-      // In real implementation, this would call an API to generate the export
-      console.log('Exporting results:', exportOptions);
-      
-      // Mock download
-      const filename = `ai-research-comparison.${format}`;
-      console.log(`Downloaded: ${filename}`);
+      if (result.success) {
+        console.log(`✅ Export successful - ${format.toUpperCase()} file downloaded`);
+        
+        // Show success feedback (you could add a toast here)
+        const message = format === 'pdf' 
+          ? 'PDF export opened in new window for printing'
+          : `${format.toUpperCase()} file downloaded successfully`;
+        
+        console.log(message);
+        
+      } else {
+        throw new Error(result.error || 'Export failed');
+      }
       
     } catch (error) {
       console.error('Export failed:', error);
+      // You could add error toast notification here
+      alert(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsExporting(false);
     }
-  }, [results]);
+  }, [session]);
 
   const handleCopyResult = React.useCallback((result: AIResult) => {
     navigator.clipboard.writeText(result.content);
