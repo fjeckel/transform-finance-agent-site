@@ -13,7 +13,8 @@ import type {
   TopicInputForm, 
   ResearchParameters,
   CostEstimate,
-  ResearchStatus
+  ResearchStatus,
+  ResearchTaskType
 } from '@/types/research';
 
 // Step components
@@ -73,14 +74,14 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
     
     try {
       const parameters: ResearchParameters = {
-        researchType: formData?.researchType || 'custom',
+        researchType: (formData?.researchType as ResearchTaskType) || 'custom',
         depth: formData?.depth || 'comprehensive',
         focusAreas: formData?.focusAreas || [],
         outputFormat: 'detailed',
         outputLength: 'comprehensive',
         includeSourceData: true,
         targetAudience: 'executives',
-        timeframe: formData?.timeframe || '6-months'
+        timeframe: '6-months' // Set a default value instead of accessing undefined property
       };
 
       const result = await researchService.createSession(
@@ -242,23 +243,52 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
               
               setSession(prev => {
                 // CRITICAL FIX: Handle undefined prev by creating new session with updates
-                const updated = prev ? { ...prev, ...updates } : { 
-                  id: 'generated-' + Date.now(),
-                  title: 'AI Research Session',
-                  topic: '',
-                  status: 'setup' as ResearchStatus,
-                  createdAt: new Date(),
-                  updatedAt: new Date(),
-                  ...updates 
-                };
+                if (!prev) {
+                  const newSession: ResearchSession = { 
+                    id: 'generated-' + Date.now(),
+                    title: 'AI Research Session',
+                    topic: updates.optimizedPrompt || '',
+                    status: (updates.status as ResearchStatus) || 'setup',
+                    currentStep: 2,
+                    totalSteps: 3,
+                    estimatedCost: {
+                      minCost: 0.045,
+                      maxCost: 0.065,
+                      expectedCost: 0.055,
+                      currency: 'USD',
+                      breakdown: {
+                        claude: { minCost: 0.020, maxCost: 0.030, expectedTokens: 3500 },
+                        openai: { minCost: 0.025, maxCost: 0.035, expectedTokens: 3500 }
+                      },
+                      confidence: 85,
+                      basedOnSimilarQueries: 150
+                    },
+                    totalCost: 0,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    userId: 'anonymous',
+                    isPublic: false,
+                    ...updates 
+                  };
+                  console.log('ResearchWizard - Created new session:', newSession);
+                  return newSession;
+                }
+                
+                const updated = { ...prev, ...updates, updatedAt: new Date() };
                 console.log('ResearchWizard - Updated session:', updated);
                 return updated;
               });
               
-              if (updates.status === 'completed' && session) {
-                const completedSession = { ...session, ...updates };
-                console.log('ResearchWizard - Completed session:', completedSession);
-                handleResearchComplete(completedSession);
+              if (updates.status === 'completed') {
+                // Use the updated session for completion handling
+                setSession(currentSession => {
+                  if (currentSession) {
+                    const completedSession = { ...currentSession, ...updates };
+                    console.log('ResearchWizard - Completed session:', completedSession);
+                    handleResearchComplete(completedSession);
+                  }
+                  return currentSession;
+                });
               }
             }}
           />

@@ -33,7 +33,8 @@ import {
   AIResult, 
   AIProvider, 
   ExportOptions, 
-  ExportFormat 
+  ExportFormat,
+  ResearchSession
 } from "@/types/research";
 
 interface ResultsStepProps extends ResearchStepProps {

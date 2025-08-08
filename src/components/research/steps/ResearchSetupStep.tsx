@@ -59,10 +59,24 @@ Make the prompt comprehensive but focused, ensuring it will generate professiona
     onConfigUpdate(currentConfig);
   }, [currentConfig, onConfigUpdate]);
   const [costEstimate, setCostEstimate] = React.useState<CostEstimate>({
-    claude: 0.025,
-    openai: 0.030,
-    total: 0.055,
-    currency: 'USD'
+    minCost: 0.045,
+    maxCost: 0.065,
+    expectedCost: 0.055,
+    currency: 'USD',
+    breakdown: {
+      claude: {
+        minCost: 0.020,
+        maxCost: 0.030,
+        expectedTokens: 3500
+      },
+      openai: {
+        minCost: 0.025,
+        maxCost: 0.035,
+        expectedTokens: 3500
+      }
+    },
+    confidence: 85,
+    basedOnSimilarQueries: 150
   });
 
   const sampleTopics: SampleTopic[] = [

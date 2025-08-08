@@ -280,9 +280,15 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
   // Function to classify AI responses
   const classifyResponse = (content: string): ResponseClassification => {
     const questionIndicators = [
+      'i\'ll need you to specify',
+      'i\'d be happy to',
+      'but i\'ll need',
+      'please share the specific topic',
+      'please provide more details',
       'could you clarify',
       'could you specify',
       'need more information',
+      'need specific details',
       'need to know',
       'what specifically',
       'which aspect',
@@ -291,9 +297,18 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
       'it would be helpful to know',
       'i\'d need to understand',
       'i need to know',
+      'i would need specific',
       'before i can analyze',
       'to better assist',
-      'to provide a comprehensive'
+      'to provide a comprehensive',
+      'specify the topic',
+      'what you want to achieve',
+      // CRITICAL ADDITIONS based on actual AI responses
+      'to provide a comprehensive research analysis, i would need specific details',
+      'i\'d be happy to provide a comprehensive research analysis',
+      'i\'ll need you to specify the topic',
+      'would need specific details about the topic',
+      'need you to specify'
     ];
     
     const partialIndicators = [
@@ -301,10 +316,27 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
       'with the information provided',
       'however, without more context',
       'additional details would',
-      'incomplete analysis'
+      'incomplete analysis',
+      'i can guide you'
     ];
     
     const lowerContent = content.toLowerCase();
+    
+    // ENHANCED: Check for the exact patterns from your logs
+    const containsClaudePattern = lowerContent.includes('i\'d be happy to provide a comprehensive research analysis') ||
+                                 lowerContent.includes('i\'ll need you to specify the topic');
+    
+    const containsOpenAIPattern = lowerContent.includes('to provide a comprehensive research analysis, i would need specific details') ||
+                                 lowerContent.includes('would need specific details about the topic you are interested in');
+    
+    // Check for explicit request patterns (ENHANCED)
+    const hasExplicitRequest = lowerContent.includes('please share') || 
+                               lowerContent.includes('please provide') ||
+                               lowerContent.includes('please specify') ||
+                               (lowerContent.includes('i\'ll need') && lowerContent.includes('specify')) ||
+                               (lowerContent.includes('i would need') && lowerContent.includes('specific')) ||
+                               containsClaudePattern ||
+                               containsOpenAIPattern;
     
     // Count question indicators
     const questionCount = questionIndicators.filter(indicator => 
@@ -319,12 +351,62 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
     // Extract questions (sentences ending with ?)
     const questions = content.match(/[^.!?]*\?/g) || [];
     
-    // Determine type based on content analysis
-    if (questionCount >= 2 || questions.length >= 3) {
+    // Check if response is asking for topic clarification
+    const askingForTopic = (lowerContent.includes('topic') && 
+                          (lowerContent.includes('specify') || 
+                           lowerContent.includes('provide') || 
+                           lowerContent.includes('share') ||
+                           lowerContent.includes('need'))) ||
+                          containsClaudePattern ||
+                          containsOpenAIPattern;
+    
+    // ENHANCED: More aggressive detection for clarification requests
+    const shortResponse = content.length < 500; // Clarification requests are typically short
+    const containsNeed = lowerContent.includes('need') && (lowerContent.includes('specific') || lowerContent.includes('details'));
+    const containsWould = lowerContent.includes('would need') || lowerContent.includes('i would');
+    
+    console.log('Classification Debug:', {
+      contentLength: content.length,
+      shortResponse,
+      hasExplicitRequest,
+      askingForTopic,
+      questionCount,
+      questionsLength: questions.length,
+      containsClaudePattern,
+      containsOpenAIPattern,
+      containsNeed,
+      containsWould
+    });
+    
+    // ENHANCED: Lower threshold for detecting questions
+    if (hasExplicitRequest || 
+        askingForTopic || 
+        (shortResponse && containsNeed) ||
+        (shortResponse && containsWould) ||
+        questionCount >= 1 || 
+        questions.length >= 1 ||
+        containsClaudePattern ||
+        containsOpenAIPattern) {
+      
+      // Extract key requests from the content
+      const detectedQuestions = [];
+      if (lowerContent.includes('topic')) {
+        detectedQuestions.push('What specific topic would you like me to research?');
+      }
+      if (lowerContent.includes('objective')) {
+        detectedQuestions.push('What is your research objective?');
+      }
+      if (questions.length > 0) {
+        detectedQuestions.push(...questions.slice(0, 3).map(q => q.trim()));
+      }
+      if (detectedQuestions.length === 0) {
+        detectedQuestions.push('Please provide more specific details about your research topic');
+      }
+      
       return {
         type: 'question',
-        confidence: Math.min(0.9, (questionCount + questions.length) * 0.15),
-        detectedQuestions: questions.slice(0, 5).map(q => q.trim())
+        confidence: hasExplicitRequest || askingForTopic || containsClaudePattern || containsOpenAIPattern ? 0.95 : 0.85,
+        detectedQuestions
       };
     }
     
