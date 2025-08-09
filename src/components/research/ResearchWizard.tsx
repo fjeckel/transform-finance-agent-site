@@ -399,24 +399,19 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
       <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                onClick={() => navigate('/admin')}
-                className="text-sm"
-              >
-                ← Back to Admin
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">AI Research Comparator</h1>
-                <p className="text-sm text-gray-600">Compare Claude and OpenAI research analysis</p>
-              </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">AI Research Analysis</h1>
+              <p className="text-sm text-gray-500 mt-1">Step {currentStep} of {steps.length}</p>
             </div>
-            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-              Step {currentStep} of {steps.length}
-            </Badge>
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/admin')}
+              className="text-sm"
+            >
+              ← Back
+            </Button>
           </div>
         </div>
       </div>
@@ -485,7 +480,7 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
                     <Button
                       onClick={handleNext}
                       disabled={!steps.find(s => s.id === currentStep)?.isValid || isLoading}
-                      className="bg-purple-600 hover:bg-purple-700"
+                      className="bg-[#13B87B] hover:bg-[#0FA66A] text-white"
                     >
                       {currentStep === 1 ? 'Start Research' : 'Next'}
                     </Button>

@@ -1067,13 +1067,13 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
       {canProceed && (
         <div className="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-xl p-8 mb-6">
           <div className="text-center">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+            <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="w-8 h-8 text-[#13B87B]" />
             </div>
-            <h3 className="text-2xl font-bold text-green-800 mb-2">
-              🎉 RESEARCH ANALYSIS COMPLETE!
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              Research Analysis Complete
             </h3>
-            <p className="text-green-700 text-lg mb-6">
+            <p className="text-gray-600 text-lg mb-6">
               Both AI models have finished analyzing your topic
             </p>
             

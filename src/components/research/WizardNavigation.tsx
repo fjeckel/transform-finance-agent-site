@@ -21,13 +21,13 @@ export const WizardNavigation: React.FC<WizardNavigationProps> = ({
     
     switch (step.status) {
       case 'completed':
-        return <CheckCircle {...iconProps} className="text-green-500" />;
+        return <CheckCircle {...iconProps} className="text-[#13B87B]" />;
       case 'current':
-        return <Clock {...iconProps} className="text-purple-500" />;
+        return <Circle {...iconProps} className="text-gray-900" />;
       case 'error':
         return <AlertCircle {...iconProps} className="text-red-500" />;
       default:
-        return <Circle {...iconProps} className="text-gray-400" />;
+        return <Circle {...iconProps} className="text-gray-300" />;
     }
   };
 
@@ -35,11 +35,11 @@ export const WizardNavigation: React.FC<WizardNavigationProps> = ({
     const baseClasses = "p-4 rounded-lg border transition-colors cursor-pointer";
     
     if (step.status === 'current') {
-      return `${baseClasses} bg-purple-50 border-purple-200 border-l-4 border-l-purple-500`;
+      return `${baseClasses} bg-gray-50 border-gray-300 border-l-4 border-l-gray-900`;
     }
     
     if (step.status === 'completed') {
-      return `${baseClasses} bg-green-50 border-green-200 hover:bg-green-100`;
+      return `${baseClasses} bg-white border-gray-200 hover:bg-gray-50`;
     }
     
     if (step.status === 'error') {
