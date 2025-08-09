@@ -16,3 +16,31 @@ export function formatBytes(bytes: number, decimals: number = 2): string {
 
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
 }
+
+/**
+ * Generate ULID (Universally Unique Lexicographically Sortable Identifier)
+ * Based on https://github.com/ulid/spec
+ */
+export function generateULID(seedTime?: number): string {
+  const ENCODING = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+  const TIME_LEN = 10;
+  const RANDOM_LEN = 16;
+  
+  const now = seedTime || Date.now();
+  
+  // Encode timestamp (10 characters)
+  let timeString = '';
+  let timestamp = now;
+  for (let i = TIME_LEN - 1; i >= 0; i--) {
+    timeString = ENCODING[timestamp % 32] + timeString;
+    timestamp = Math.floor(timestamp / 32);
+  }
+  
+  // Generate random part (16 characters)
+  let randomString = '';
+  for (let i = 0; i < RANDOM_LEN; i++) {
+    randomString += ENCODING[Math.floor(Math.random() * 32)];
+  }
+  
+  return timeString + randomString;
+}
