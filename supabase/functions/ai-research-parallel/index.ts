@@ -50,6 +50,43 @@ interface ResearchResponse {
 // Research prompts by type and provider
 const RESEARCH_PROMPTS = {
   market_analysis: {
+    grok: (topic: string, depth: string, focusAreas: string[]) => ({
+      system: `You are a cutting-edge AI analyst with access to real-time market data and trends. Leverage your unique perspective and comprehensive knowledge to provide innovative market analysis. Focus on emerging patterns, disruptive technologies, and forward-thinking strategic insights that traditional analysis might miss.`,
+      
+      user: `Conduct a ${depth} market analysis on: ${topic}
+
+${focusAreas.length > 0 ? `Focus particularly on these areas:\n${focusAreas.map(area => `- ${area}`).join('\n')}\n` : ''}
+
+Provide a comprehensive analysis including:
+
+1. **Market Overview & Current State**
+   - Market size, growth trajectory, and key dynamics
+   - Emerging segments and disruptive forces
+   - Geographic trends and regional opportunities
+
+2. **Competitive Intelligence**
+   - Major players and their strategic positioning
+   - Emerging competitors and innovation threats
+   - Market consolidation and partnership trends
+
+3. **Technology & Innovation Impact**
+   - Disruptive technologies reshaping the market
+   - AI, automation, and digital transformation effects
+   - Innovation cycles and R&D investment patterns
+
+4. **Future Market Evolution**
+   - Next-generation opportunities and threats
+   - Regulatory changes and policy impacts
+   - Consumer behavior shifts and new demands
+
+5. **Strategic Recommendations**
+   - Market entry and expansion strategies
+   - Innovation priorities and investment focus
+   - Risk mitigation and competitive advantage
+
+Bring fresh perspectives and identify opportunities that others might overlook. Focus on actionable insights for forward-thinking decision makers.`
+    }),
+
     claude: (topic: string, depth: string, focusAreas: string[]) => ({
       system: `You are a senior market research analyst with 15+ years of experience. Conduct comprehensive market analysis with the following expertise areas:
 
@@ -141,6 +178,43 @@ Provide detailed insights with logical reasoning and clear structure throughout 
   },
 
   competitive_intelligence: {
+    grok: (topic: string, depth: string, focusAreas: string[]) => ({
+      system: `You are an advanced competitive intelligence specialist with real-time data access and pattern recognition capabilities. Provide cutting-edge competitive analysis that identifies emerging threats, hidden opportunities, and strategic blind spots that traditional analysis often misses.`,
+      
+      user: `Conduct ${depth} competitive intelligence research on: ${topic}
+
+${focusAreas.length > 0 ? `Focus on these competitive aspects:\n${focusAreas.map(area => `- ${area}`).join('\n')}\n` : ''}
+
+Deliver comprehensive competitive intelligence including:
+
+1. **Next-Generation Competitive Landscape**
+   - Emerging disruptors and stealth competitors
+   - Cross-industry competitive threats
+   - Platform and ecosystem competition dynamics
+
+2. **Advanced Competitor Profiling**
+   - AI-driven competitive capabilities analysis
+   - Innovation pipelines and R&D investments
+   - Strategic partnerships and ecosystem positioning
+
+3. **Competitive Technology Intelligence**
+   - Technology moats and competitive advantages
+   - AI/ML competitive capabilities
+   - Digital transformation competitive positioning
+
+4. **Future Competitive Scenarios**
+   - Emerging competitive battlegrounds
+   - Disruption scenarios and defensive strategies
+   - New business model threats and opportunities
+
+5. **Strategic Intelligence Insights**
+   - Competitive gaps and whitespace opportunities
+   - Early warning signals for competitive threats
+   - Next-generation competitive advantage strategies
+
+Focus on forward-looking intelligence that anticipates competitive moves before they happen.`
+    }),
+
     claude: (topic: string, depth: string, focusAreas: string[]) => ({
       system: `You are a competitive intelligence specialist with expertise in strategic analysis, business intelligence, and competitive positioning. Provide thorough competitive assessments that help companies understand their competitive landscape and develop strategic advantages.`,
       
@@ -222,6 +296,43 @@ Provide specific, evidence-based insights that can guide strategic planning and 
   },
 
   investment_research: {
+    grok: (topic: string, depth: string, focusAreas: string[]) => ({
+      system: `You are a next-generation investment analyst with access to real-time market data, alternative data sources, and advanced analytical capabilities. Provide cutting-edge investment research that identifies emerging opportunities and risks before they become mainstream consensus.`,
+      
+      user: `Conduct ${depth} investment research analysis on: ${topic}
+
+${focusAreas.length > 0 ? `Key investment focus areas:\n${focusAreas.map(area => `- ${area}`).join('\n')}\n` : ''}
+
+Provide comprehensive investment research covering:
+
+1. **Next-Generation Investment Thesis**
+   - Disruptive value creation opportunities
+   - AI/technology-driven competitive advantages
+   - Platform economics and network effects analysis
+
+2. **Advanced Financial Intelligence**
+   - Alternative data insights and signals
+   - Real-time financial health indicators
+   - Cash flow predictability and sustainability
+
+3. **Forward-Looking Valuation Framework**
+   - Dynamic valuation models incorporating technology disruption
+   - Option value and asymmetric return potential
+   - Scenario-based valuation with AI/automation impacts
+
+4. **Emerging Risk Assessment**
+   - Technology disruption and obsolescence risks
+   - ESG and regulatory transformation risks
+   - Cyber security and operational resilience risks
+
+5. **Strategic Investment Conclusion**
+   - Investment recommendation with conviction levels
+   - Catalyst timeline and value inflection points
+   - Portfolio construction and position sizing insights
+
+Focus on uncovering investment opportunities and risks that traditional analysis might miss. Emphasize forward-looking insights and asymmetric risk-return profiles.`
+    }),
+
     claude: (topic: string, depth: string, focusAreas: string[]) => ({
       system: `You are a senior investment analyst with expertise in equity research, valuation, and investment strategy. Provide thorough investment analysis that helps investors make informed decisions based on fundamental and strategic analysis.`,
       
@@ -303,6 +414,43 @@ Provide detailed analysis with quantitative support and clear investment rationa
   },
 
   trend_analysis: {
+    grok: (topic: string, depth: string, focusAreas: string[]) => ({
+      system: `You are a cutting-edge trend analyst and futurist with access to real-time data streams, social signals, and emerging patterns. Identify trends before they become obvious, with special focus on AI, technology, and societal shifts that will shape the future.`,
+      
+      user: `Conduct ${depth} trend analysis on: ${topic}
+
+${focusAreas.length > 0 ? `Focus on these trend dimensions:\n${focusAreas.map(area => `- ${area}`).join('\n')}\n` : ''}
+
+Provide comprehensive trend analysis including:
+
+1. **Emerging Trend Detection**
+   - Early-stage trends and weak signals
+   - AI and technology trend intersections
+   - Cultural and behavioral pattern shifts
+
+2. **Trend Acceleration Factors**
+   - Technology enablers and catalysts
+   - Generational adoption patterns
+   - Platform effects and viral spread dynamics
+
+3. **Cross-Trend Synthesis**
+   - Mega-trend convergence and amplification
+   - Countertrend forces and resistance points
+   - Unexpected trend combinations and outcomes
+
+4. **Future Impact Modeling**
+   - Exponential change scenarios and inflection points
+   - Disruption timelines and adoption curves
+   - Societal and economic transformation patterns
+
+5. **Strategic Future Positioning**
+   - Next-generation opportunity identification
+   - Trend-based innovation strategies
+   - Future-proofing and adaptation frameworks
+
+Focus on trends that others are missing and provide actionable intelligence for staying ahead of change. Emphasize non-linear and exponential trend dynamics.`
+    }),
+
     claude: (topic: string, depth: string, focusAreas: string[]) => ({
       system: `You are a trend analyst and futurist with expertise in identifying, analyzing, and projecting market trends, technological developments, and societal changes. Provide insightful trend analysis that helps organizations understand and prepare for future developments.`,
       

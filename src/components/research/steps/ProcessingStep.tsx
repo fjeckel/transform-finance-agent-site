@@ -1078,23 +1078,24 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
                 Both Claude and OpenAI have finished their research
               </p>
             
-            <Button 
-              onClick={() => {
-                console.log('PROMINENT View Results button clicked - Session:', session);
-                console.log('PROMINENT View Results button clicked - Results:', session?.results);
-                onNext && onNext();
-              }} 
-              size="lg"
-              className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-            >
-              🔍 VIEW YOUR RESULTS & COMPARISON
-            </Button>
-            
-            <div className="mt-4 text-sm text-green-600">
-              Ready to compare Claude vs OpenAI analysis!
+              <Button 
+                onClick={() => {
+                  console.log('PROMINENT View Results button clicked - Session:', session);
+                  console.log('PROMINENT View Results button clicked - Results:', session?.results);
+                  onNext && onNext();
+                }} 
+                size="lg"
+                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+              >
+                🔍 VIEW YOUR RESULTS & COMPARISON
+              </Button>
+              
+              <div className="mt-4 text-sm text-green-600">
+                Ready to compare Claude vs OpenAI analysis!
+              </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Technical Details Summary (Collapsed) */}

@@ -65,30 +65,35 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
   const results = session?.results;
   const claudeResult = results?.claude;
   const openaiResult = results?.openai;
+  const grokResult = results?.grok;
   
   // Debug logging for results
   console.log('ResultsStep - Session:', session);
   console.log('ResultsStep - Results:', results);
   console.log('ResultsStep - Claude result:', claudeResult);
   console.log('ResultsStep - OpenAI result:', openaiResult);
+  console.log('ResultsStep - Grok result:', grokResult);
 
   // Check if any results need clarification
   const needsClarification = React.useMemo(() => {
     const claudeNeedsClarity = claudeResult?.classification?.type !== 'analysis';
     const openaiNeedsClarity = openaiResult?.classification?.type !== 'analysis';
-    const result = claudeNeedsClarity || openaiNeedsClarity;
+    const grokNeedsClarity = grokResult?.classification?.type !== 'analysis';
+    const result = claudeNeedsClarity || openaiNeedsClarity || grokNeedsClarity;
     
     console.log('ResultsStep - Clarification Check:', {
       claudeType: claudeResult?.classification?.type,
       openaiType: openaiResult?.classification?.type,
+      grokType: grokResult?.classification?.type,
       claudeNeedsClarity,
       openaiNeedsClarity,
+      grokNeedsClarity,
       needsClarification: result,
       sessionNeedsClarification: session?.needsClarification
     });
     
     return result;
-  }, [claudeResult, openaiResult, session?.needsClarification]);
+  }, [claudeResult, openaiResult, grokResult, session?.needsClarification]);
 
   // Extract questions from AI responses
   const clarificationQuestions = React.useMemo(() => {
@@ -102,9 +107,13 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
       questions.push(...openaiResult.classification.detectedQuestions);
     }
     
+    if (grokResult?.classification?.detectedQuestions) {
+      questions.push(...grokResult.classification.detectedQuestions);
+    }
+    
     // Remove duplicates and clean up
     return [...new Set(questions)].map(q => q.trim()).filter(q => q.length > 0);
-  }, [claudeResult, openaiResult]);
+  }, [claudeResult, openaiResult, grokResult]);
 
   // Extract AI feedback content for display
   const aiFeedback = React.useMemo(() => {

@@ -80,7 +80,7 @@ export interface ResearchConfig {
   systemPrompt?: string;
   maxTokens: number;
   temperature: number;
-  providers: ('claude' | 'openai')[];
+  providers: ('claude' | 'openai' | 'grok')[];
   parameters?: ResearchParameters;
 }
 
@@ -88,6 +88,7 @@ export interface ResearchConfig {
 export interface ResearchResults {
   claude?: AIResult;
   openai?: AIResult;
+  grok?: AIResult;
 }
 
 // Step component props (missing definition)
@@ -100,7 +101,7 @@ export interface ResearchStepProps {
 }
 
 // === AI Provider Types ===
-export type AIProviderName = 'claude' | 'openai';
+export type AIProviderName = 'claude' | 'openai' | 'grok';
 
 export interface AIProvider {
   id: string;
@@ -361,6 +362,7 @@ export interface ComparisonAnalysis {
 export interface ProviderComparison {
   claude?: number;
   openai?: number;
+  grok?: number;
   notes?: string;
 }
 
