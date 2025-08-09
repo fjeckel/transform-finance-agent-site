@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -139,11 +138,7 @@ export default function Discover() {
       <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-muted/20">
         <div className="max-w-7xl mx-auto px-6 py-16 sm:py-24">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }} 
-              animate={{ opacity: 1, y: 0 }} 
-              transition={{ duration: 0.6 }}
-            >
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-600">
               <Badge className="mb-4 bg-[#13B87B]/10 text-[#13B87B] hover:bg-[#13B87B]/20">
                 Entdecke Finance Transformation
               </Badge>
@@ -184,14 +179,10 @@ export default function Discover() {
                   <span>Neue Inhalte jede Woche</span>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Featured Content Card */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }} 
-              animate={{ opacity: 1, y: 0 }} 
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
               {featuredContent && (
                 <Card className="overflow-hidden border-2 border-[#13B87B]/20 hover:border-[#13B87B]/40 transition-colors">
                   <CardHeader className="p-0">
@@ -252,7 +243,7 @@ export default function Discover() {
                   </CardContent>
                 </Card>
               )}
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -271,11 +262,9 @@ export default function Discover() {
           
           <div className="grid md:grid-cols-3 gap-8">
             {STORY_FLOW_SECTIONS.map((section, index) => (
-              <motion.div
+              <div
                 key={section.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className={`animate-in fade-in slide-in-from-bottom-4 duration-600 ${index === 1 ? 'delay-150' : index === 2 ? 'delay-300' : ''}`}
               >
                 <Card className="text-center h-full hover:shadow-lg transition-shadow">
                   <CardHeader>
@@ -288,7 +277,7 @@ export default function Discover() {
                     <p className="text-muted-foreground">{section.description}</p>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -397,12 +386,7 @@ export default function Discover() {
       {/* CTA Section */}
       <section className="bg-gradient-to-r from-[#13B87B] to-[#0FA66A] text-white">
         <div className="max-w-7xl mx-auto px-6 py-16 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-600">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 font-cooper">
               Verpasse keine Finance Transformation
             </h2>
@@ -424,7 +408,7 @@ export default function Discover() {
             <p className="text-sm text-green-100 mt-4">
               Kostenlos. Jederzeit kündbar. Kein Spam.
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
     </div>
@@ -435,11 +419,8 @@ function ContentCard({ content, index }: { content: ContentItem; index: number }
   const navigate = useNavigate();
   
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-    >
+    <div className="opacity-0 animate-in fade-in slide-in-from-bottom-2 duration-500" 
+         style={{ animationDelay: `${index * 150}ms` }}>
       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer h-full group">
         <CardHeader className="p-0">
           {content.cover ? (
@@ -517,6 +498,6 @@ function ContentCard({ content, index }: { content: ContentItem; index: number }
           </Button>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }
