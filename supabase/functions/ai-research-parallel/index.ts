@@ -551,7 +551,7 @@ serve(async (req) => {
     }
 
     // Validate providers
-    const validProviders = ['claude', 'openai']
+    const validProviders = ['claude', 'openai', 'grok']
     const invalidProviders = providers.filter(p => !validProviders.includes(p))
     if (invalidProviders.length > 0) {
       return new Response(

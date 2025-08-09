@@ -468,7 +468,6 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
           </div>
         </div>
       </div>
-    </div>
     </ResearchErrorBoundary>
   );
 };
