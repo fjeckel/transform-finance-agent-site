@@ -22,12 +22,6 @@ import { ResearchSetupStep } from './steps/ResearchSetupStep';
 import { ProcessingStep } from './steps/ProcessingStep';
 import { ResultsStep } from './steps/ResultsStep';
 
-// Navigation component
-import { WizardNavigation } from './WizardNavigation';
-
-// Progress component
-import { ProgressIndicator } from './ProgressIndicator';
-
 // Error boundary
 import ResearchErrorBoundary from './ResearchErrorBoundary';
 
@@ -43,21 +37,9 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [session, setSession] = useState<ResearchSession | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  // Check if mobile on mount and window resize
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // State for form validation
   const [step1Topic, setStep1Topic] = useState("");
@@ -416,32 +398,27 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className={`grid ${isMobile ? 'grid-cols-1 gap-6' : 'lg:grid-cols-4 gap-8'}`}>
-          {/* Navigation Sidebar (Desktop) or Progress Bar (Mobile) */}
-          {isMobile ? (
-            <div className="lg:hidden">
-              <ProgressIndicator
-                currentStep={currentStep}
-                totalSteps={steps.length}
-                stepTitles={steps.map(s => s.title)}
-                onStepClick={handleStepNavigation}
-                canNavigate={(step) => steps.find(s => s.id === step)?.isClickable || false}
-              />
-            </div>
-          ) : (
-            <div className="lg:col-span-1">
-              <WizardNavigation
-                steps={steps}
-                currentStep={currentStep}
-                onStepClick={handleStepNavigation}
-                session={session}
-              />
-            </div>
-          )}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Simple Progress Bar */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-gray-600">
+              {steps[currentStep - 1]?.title}
+            </span>
+            <span className="text-sm text-gray-500">
+              {Math.round((currentStep / steps.length) * 100)}% Complete
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-[#13B87B] h-2 rounded-full transition-all duration-300"
+              style={{ width: `${(currentStep / steps.length) * 100}%` }}
+            />
+          </div>
+        </div>
 
-          {/* Main Content Area */}
-          <div className={`${isMobile ? 'col-span-1' : 'lg:col-span-3'}`}>
+        {/* Main Content Area */}
+        <div>
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">

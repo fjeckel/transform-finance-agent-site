@@ -980,22 +980,24 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
         </CardContent>
       </Card>
 
-      {/* Processing Animation */}
-      {(isProcessing || session?.status === 'completed') && (
-        <DualProcessingAnimation
-          claudeProgress={{
-            stage: claudeProgress.stage,
-            progress: claudeProgress.percentage,
-            message: claudeProgress.message,
-            status: claudeStatus
-          }}
-          openaiProgress={{
-            stage: openaiProgress.stage,
-            progress: openaiProgress.percentage,
-            message: openaiProgress.message,
-            status: openaiStatus
-          }}
-        />
+      {/* Simple Processing Status */}
+      {isProcessing && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <div className="w-8 h-8 border-4 border-[#13B87B] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Analyzing Your Research Topic
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Claude and OpenAI are generating comprehensive analysis
+              </p>
+              <p className="text-sm text-gray-500">
+                This typically takes 15-20 minutes • Elapsed: {formatTime(processingTime)}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Status Summary */}
@@ -1063,19 +1065,18 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
         </Alert>
       )}
 
-      {/* Prominent Success State */}
+      {/* Simple Success State */}
       {canProceed && (
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-xl p-8 mb-6">
-          <div className="text-center">
-            <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle className="w-8 h-8 text-[#13B87B]" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">
-              Research Analysis Complete
-            </h3>
-            <p className="text-gray-600 text-lg mb-6">
-              Both AI models have finished analyzing your topic
-            </p>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center py-6">
+              <CheckCircle className="w-8 h-8 text-[#13B87B] mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Analysis Complete
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Both Claude and OpenAI have finished their research
+              </p>
             
             <Button 
               onClick={() => {

@@ -233,50 +233,35 @@ Please provide a comprehensive research analysis incorporating this additional i
     return `${(ms / 1000).toFixed(1)}s`;
   };
 
-  const calculateQualityScore = (result: AIResult): number => {
-    // Mock quality calculation based on content length and metadata
-    const contentScore = Math.min(result.content.length / 2000, 1) * 40;
-    const tokenScore = Math.min(result.metadata.tokensUsed / 3000, 1) * 30;
-    const timeScore = Math.max(1 - (result.metadata.processingTime / 30000), 0) * 30;
-    
-    return Math.round(contentScore + tokenScore + timeScore);
-  };
+  // Simplified - no quality scoring needed
 
   const renderProviderResult = (result: AIResult, provider: AIProvider) => {
-    const qualityScore = calculateQualityScore(result);
     const providerInfo = {
-      claude: { name: 'Claude', color: 'text-blue-600', bgColor: 'bg-blue-50', icon: '🤖' },
-      openai: { name: 'OpenAI', color: 'text-green-600', bgColor: 'bg-green-50', icon: '⚡' }
+      claude: { name: 'Claude', icon: '🤖' },
+      openai: { name: 'OpenAI', icon: '⚡' }
     }[provider];
 
     return (
       <div className="space-y-4">
-        {/* Header */}
+        {/* Simplified Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={cn("p-2 rounded-lg", providerInfo.bgColor)}>
-              <span className="text-lg">{providerInfo.icon}</span>
-            </div>
+            <span className="text-lg">{providerInfo.icon}</span>
             <div>
               <h3 className="font-semibold text-lg">{providerInfo.name}</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 {result.metadata.model}
               </p>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs">
-              Score: {qualityScore}/100
-            </Badge>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleCopyResult(result)}
-            >
-              <Copy className="w-4 h-4" />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleCopyResult(result)}
+          >
+            <Copy className="w-4 h-4" />
+          </Button>
         </div>
 
         {/* Metadata */}
@@ -343,8 +328,6 @@ Please provide a comprehensive research analysis incorporating this additional i
       );
     }
 
-    const claudeScore = calculateQualityScore(claudeResult);
-    const openaiScore = calculateQualityScore(openaiResult);
     const hasAIComparison = session?.comparison;
 
     return (
@@ -385,41 +368,6 @@ Please provide a comprehensive research analysis incorporating this additional i
             }
           </p>
         </div>
-
-        {/* Score Comparison */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5" />
-              Performance Comparison
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🤖</span>
-                  <span className="font-medium">Claude</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Progress value={claudeScore} className="w-24" />
-                  <span className="text-sm font-medium">{claudeScore}/100</span>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">⚡</span>
-                  <span className="font-medium">OpenAI</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Progress value={openaiScore} className="w-24" />
-                  <span className="text-sm font-medium">{openaiScore}/100</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Detailed Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -511,19 +459,16 @@ Please provide a comprehensive research analysis incorporating this additional i
           </div>
         )}
 
-        {/* Recommendation */}
+        {/* Simple comparison note */}
         <Alert>
           <Scale className="h-4 w-4" />
           <AlertDescription>
             <div className="space-y-2">
               <p className="font-medium">
-                Recommendation: {claudeScore > openaiScore ? 'Claude' : 'OpenAI'} performed better
+                Compare both responses to get comprehensive insights
               </p>
               <p className="text-sm">
-                {claudeScore > openaiScore 
-                  ? "Claude provided a more comprehensive and structured response with better detail."
-                  : "OpenAI delivered more practical insights with actionable recommendations."
-                }
+                Each AI model brings unique perspectives and analysis styles to your research topic.
               </p>
             </div>
           </AlertDescription>

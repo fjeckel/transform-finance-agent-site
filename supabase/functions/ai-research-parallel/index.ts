@@ -23,7 +23,7 @@ interface ResearchRequest {
   focusAreas: string[]
   outputFormat: 'summary' | 'detailed' | 'executive' | 'technical'
   targetAudience: 'executives' | 'analysts' | 'investors' | 'general'
-  providers: string[] // 'claude', 'openai'
+  providers: string[] // 'claude', 'openai', 'grok'
 }
 
 interface ResearchResponse {
