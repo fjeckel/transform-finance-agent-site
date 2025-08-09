@@ -377,7 +377,7 @@ Please provide a comprehensive research analysis incorporating this additional i
 
         {/* Traditional Comparison Header */}
         <div className="text-center">
-          <h3 className="text-xl font-semibold mb-2">
+          <h3 className="text-xl font-semibold mb-2 font-cooper">
             {hasAIComparison ? 'Quick Metrics Comparison' : 'AI Comparison Analysis'}
           </h3>
           <p className="text-muted-foreground">
@@ -640,7 +640,7 @@ Please provide a comprehensive research analysis incorporating this additional i
         <div className="max-w-4xl mx-auto">
           {/* Simple headline */}
           <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2 font-cooper">
               Refine Your Research Topic
             </h2>
             <p className="text-gray-600">
@@ -855,7 +855,7 @@ Example: Focus on B2B SaaS companies in North America with 50-500 employees, ana
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Results & Comparison</h2>
+            <h2 className="text-2xl font-bold text-gray-900 font-cooper">Results & Comparison</h2>
             <p className="text-muted-foreground">
               Review and compare AI-generated research insights
             </p>
@@ -885,7 +885,7 @@ Example: Focus on B2B SaaS companies in North America with 50-500 employees, ana
         {/* Export Controls */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
+            <CardTitle className="flex items-center gap-2 text-lg font-cooper">
               <Download className="w-5 h-5" />
               Export Results
             </CardTitle>
@@ -934,7 +934,7 @@ Example: Focus on B2B SaaS companies in North America with 50-500 employees, ana
         {/* Final Summary */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 font-cooper">
               <CheckCircle className="w-5 h-5 text-green-600" />
               Research Complete
             </CardTitle>

@@ -307,7 +307,7 @@ Ensure all insights are data-driven and provide specific, actionable recommendat
       <>
         {/* Header */}
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2 font-cooper">
             Research Setup
           </h2>
           <p className="text-muted-foreground">
@@ -320,7 +320,7 @@ Ensure all insights are data-driven and provide specific, actionable recommendat
         {/* Topic Input */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 font-cooper">
               <Lightbulb className="w-5 h-5" />
               Research Topic
             </CardTitle>
@@ -476,7 +476,7 @@ Make the prompt comprehensive but focused, ensuring it will generate professiona
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-base">
+              <CardTitle className="flex items-center gap-2 text-base font-cooper">
                 <BookOpen className="w-4 h-4" />
                 Need Ideas?
               </CardTitle>

@@ -384,7 +384,7 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">AI Research Analysis</h1>
+              <h1 className="text-2xl font-bold text-gray-900 font-cooper">AI Research Analysis</h1>
               <p className="text-sm text-gray-500 mt-1">Step {currentStep} of {steps.length}</p>
             </div>
             <Button 
@@ -423,7 +423,7 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle className="text-xl">
+                    <CardTitle className="text-xl font-cooper">
                       {steps.find(s => s.id === currentStep)?.title}
                     </CardTitle>
                     <p className="text-sm text-gray-600 mt-1">

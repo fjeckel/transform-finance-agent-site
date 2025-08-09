@@ -784,7 +784,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
     <div className={cn("space-y-6", className)}>
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 font-cooper">
           AI Processing
         </h2>
         <p className="text-muted-foreground mb-3">
@@ -1071,7 +1071,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
           <CardContent className="pt-6">
             <div className="text-center py-6">
               <CheckCircle className="w-8 h-8 text-[#13B87B] mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 font-cooper">
                 Analysis Complete
               </h3>
               <p className="text-gray-600 mb-4">
