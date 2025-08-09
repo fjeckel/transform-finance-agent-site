@@ -53,16 +53,16 @@ Make the prompt comprehensive but focused, ensuring it will generate professiona
     systemPrompt: systemPrompt,
     maxTokens: 4000,
     temperature: 0.7,
-    providers: ['claude', 'openai'] as const
+    providers: ['claude', 'openai', 'grok'] as const
   }), [topic, optimizedPrompt, systemPrompt]);
 
   React.useEffect(() => {
     onConfigUpdate(currentConfig);
   }, [currentConfig, onConfigUpdate]);
   const [costEstimate, setCostEstimate] = React.useState<CostEstimate>({
-    minCost: 0.045,
-    maxCost: 0.065,
-    expectedCost: 0.055,
+    minCost: 0.065,
+    maxCost: 0.095,
+    expectedCost: 0.080,
     currency: 'USD',
     breakdown: {
       claude: {
@@ -73,6 +73,11 @@ Make the prompt comprehensive but focused, ensuring it will generate professiona
       openai: {
         minCost: 0.025,
         maxCost: 0.035,
+        expectedTokens: 3500
+      },
+      grok: {
+        minCost: 0.020,
+        maxCost: 0.030,
         expectedTokens: 3500
       }
     },

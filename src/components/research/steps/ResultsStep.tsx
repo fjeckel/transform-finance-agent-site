@@ -133,9 +133,16 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
       });
     }
     
+    if (grokResult?.classification?.type !== 'analysis' && grokResult?.content) {
+      feedback.push({
+        provider: 'Grok',
+        content: grokResult.content
+      });
+    }
+    
     console.log('ResultsStep - AI Feedback:', feedback);
     return feedback;
-  }, [claudeResult, openaiResult]);
+  }, [claudeResult, openaiResult, grokResult]);
 
   const handleExport = React.useCallback(async (format: ExportFormat) => {
     if (!session) return;
@@ -247,7 +254,8 @@ Please provide a comprehensive research analysis incorporating this additional i
   const renderProviderResult = (result: AIResult, provider: AIProvider) => {
     const providerInfo = {
       claude: { name: 'Claude', icon: '🤖' },
-      openai: { name: 'OpenAI', icon: '⚡' }
+      openai: { name: 'OpenAI', icon: '⚡' },
+      grok: { name: 'Grok', icon: '🚀' }
     }[provider];
 
     return (
@@ -327,11 +335,13 @@ Please provide a comprehensive research analysis incorporating this additional i
   };
 
   const renderComparison = () => {
-    if (!claudeResult || !openaiResult) {
+    const availableResults = [claudeResult, openaiResult, grokResult].filter(Boolean);
+    
+    if (availableResults.length < 2) {
       return (
         <div className="text-center py-8">
           <p className="text-muted-foreground">
-            Both AI results are needed for comparison
+            At least two AI results are needed for comparison
           </p>
         </div>
       );
@@ -486,34 +496,52 @@ Please provide a comprehensive research analysis incorporating this additional i
     );
   };
 
-  const renderMobileResults = () => (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="claude" disabled={!claudeResult}>
-          🤖 Claude
-        </TabsTrigger>
-        <TabsTrigger value="openai" disabled={!openaiResult}>
-          ⚡ OpenAI  
-        </TabsTrigger>
-        <TabsTrigger value="compare" disabled={!claudeResult || !openaiResult}>
-          <Scale className="w-4 h-4 mr-1" />
-          Compare
-        </TabsTrigger>
-      </TabsList>
+  const renderMobileResults = () => {
+    const availableResults = [claudeResult, openaiResult, grokResult].filter(Boolean);
+    const tabsCount = availableResults.length + 1; // +1 for compare tab
+    
+    return (
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className={`grid w-full grid-cols-${Math.min(tabsCount, 4)}`}>
+          {claudeResult && (
+            <TabsTrigger value="claude">
+              🤖 Claude
+            </TabsTrigger>
+          )}
+          {openaiResult && (
+            <TabsTrigger value="openai">
+              ⚡ OpenAI  
+            </TabsTrigger>
+          )}
+          {grokResult && (
+            <TabsTrigger value="grok">
+              🚀 Grok
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="compare" disabled={availableResults.length < 2}>
+            <Scale className="w-4 h-4 mr-1" />
+            Compare
+          </TabsTrigger>
+        </TabsList>
 
-      <TabsContent value="claude" className="mt-6">
-        {claudeResult && renderProviderResult(claudeResult, 'claude')}
-      </TabsContent>
+        <TabsContent value="claude" className="mt-6">
+          {claudeResult && renderProviderResult(claudeResult, 'claude')}
+        </TabsContent>
 
-      <TabsContent value="openai" className="mt-6">
-        {openaiResult && renderProviderResult(openaiResult, 'openai')}
-      </TabsContent>
+        <TabsContent value="openai" className="mt-6">
+          {openaiResult && renderProviderResult(openaiResult, 'openai')}
+        </TabsContent>
 
-      <TabsContent value="compare" className="mt-6">
-        {renderComparison()}
-      </TabsContent>
-    </Tabs>
-  );
+        <TabsContent value="grok" className="mt-6">
+          {grokResult && renderProviderResult(grokResult, 'grok')}
+        </TabsContent>
+
+        <TabsContent value="compare" className="mt-6">
+          {renderComparison()}
+        </TabsContent>
+      </Tabs>
+    );
+  };
 
   const renderDesktopResults = () => (
     <div className="space-y-6">
@@ -551,7 +579,8 @@ Please provide a comprehensive research analysis incorporating this additional i
           <CardContent className="pt-4 text-center">
             <div className="text-2xl font-bold text-orange-600">
               {((claudeResult?.content.split(' ').length || 0) + 
-                (openaiResult?.content.split(' ').length || 0)).toLocaleString()}
+                (openaiResult?.content.split(' ').length || 0) + 
+                (grokResult?.content.split(' ').length || 0)).toLocaleString()}
             </div>
             <p className="text-sm font-medium">Words Generated</p>
             <p className="text-xs text-muted-foreground">Combined output</p>
@@ -561,14 +590,23 @@ Please provide a comprehensive research analysis incorporating this additional i
 
       {/* Results Tabs */}
       <Tabs defaultValue="compare" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="claude" disabled={!claudeResult}>
-            🤖 Claude Results
-          </TabsTrigger>
-          <TabsTrigger value="openai" disabled={!openaiResult}>
-            ⚡ OpenAI Results
-          </TabsTrigger>
-          <TabsTrigger value="compare" disabled={!claudeResult || !openaiResult}>
+        <TabsList className="grid w-full grid-cols-4">
+          {claudeResult && (
+            <TabsTrigger value="claude">
+              🤖 Claude Results
+            </TabsTrigger>
+          )}
+          {openaiResult && (
+            <TabsTrigger value="openai">
+              ⚡ OpenAI Results
+            </TabsTrigger>
+          )}
+          {grokResult && (
+            <TabsTrigger value="grok">
+              🚀 Grok Results
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="compare" disabled={[claudeResult, openaiResult, grokResult].filter(Boolean).length < 2}>
             <Scale className="w-4 h-4 mr-1" />
             Compare Results
           </TabsTrigger>
@@ -580,6 +618,10 @@ Please provide a comprehensive research analysis incorporating this additional i
 
         <TabsContent value="openai" className="mt-6">
           {openaiResult && renderProviderResult(openaiResult, 'openai')}
+        </TabsContent>
+
+        <TabsContent value="grok" className="mt-6">
+          {grokResult && renderProviderResult(grokResult, 'grok')}
         </TabsContent>
 
         <TabsContent value="compare" className="mt-6">
