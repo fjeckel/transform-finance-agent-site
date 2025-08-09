@@ -14,6 +14,7 @@ import { BulkActions } from '@/components/ui/bulk-actions';
 import { EpisodeListSkeleton, StatsSkeleton } from '@/components/ui/loading-skeleton';
 import MainPageSectionsManager from '@/components/admin/MainPageSectionsManager';
 import { HeroVideoManager } from '@/components/ui/hero-video-manager';
+import ContentExtractor from '@/components/admin/ContentExtractor';
 
 interface AdminEpisode {
   id: string;
@@ -340,6 +341,7 @@ const Admin = () => {
         <Tabs defaultValue="episodes" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="episodes">Episodes</TabsTrigger>
+            <TabsTrigger value="content-extractor">AI Content Extractor</TabsTrigger>
             <TabsTrigger value="insights">Insights</TabsTrigger>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="main-page">Main Page</TabsTrigger>
@@ -458,6 +460,10 @@ const Admin = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          <TabsContent value="content-extractor">
+            <ContentExtractor />
           </TabsContent>
           
           <TabsContent value="insights">
