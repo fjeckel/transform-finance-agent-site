@@ -84,15 +84,17 @@ const ContentExtractor: React.FC = () => {
         .select('id, name, description, content_type, usage_count, success_rate')
         .order('usage_count', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // If table doesn't exist yet, just use empty array (graceful degradation)
+        console.warn('Templates table not available yet:', error);
+        setTemplates([]);
+        return;
+      }
       setTemplates(data || []);
     } catch (error) {
       console.error('Error loading templates:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load extraction templates",
-        variant: "destructive",
-      });
+      // Don't show error toast for missing table - it's expected before migration
+      setTemplates([]);
     }
   };
 
@@ -194,8 +196,8 @@ const ContentExtractor: React.FC = () => {
           source_type: sourceType,
           source_name: sourceName,
           source_content: sourceContent,
-          template_id: selectedTemplate || undefined,
-          episode_id: episodeId || undefined,
+          template_id: selectedTemplate === 'auto-detect' ? undefined : selectedTemplate,
+          episode_id: episodeId === 'new-episode' ? undefined : episodeId,
           ai_provider: aiProvider,
           processing_options: {
             parallel_processing: false,
@@ -245,7 +247,7 @@ const ContentExtractor: React.FC = () => {
   };
 
   const applyToEpisode = async () => {
-    if (!extractionResult || !episodeId) return;
+    if (!extractionResult || !episodeId || episodeId === 'new-episode') return;
 
     try {
       const { error } = await supabase
@@ -442,7 +444,7 @@ const ContentExtractor: React.FC = () => {
                     <SelectValue placeholder="Auto-detect" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Auto-detect</SelectItem>
+                    <SelectItem value="auto-detect">Auto-detect</SelectItem>
                     {templates.map((template) => (
                       <SelectItem key={template.id} value={template.id}>
                         {template.name}
@@ -461,7 +463,7 @@ const ContentExtractor: React.FC = () => {
                   <SelectValue placeholder="Select episode to update" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Create new episode</SelectItem>
+                  <SelectItem value="new-episode">Create new episode</SelectItem>
                   {episodes.map((episode) => (
                     <SelectItem key={episode.id} value={episode.id}>
                       {episode.title}
@@ -596,7 +598,7 @@ const ContentExtractor: React.FC = () => {
                 <div className="flex gap-2 pt-4">
                   <Button
                     onClick={applyToEpisode}
-                    disabled={!episodeId || extractionResult.validation_errors.length > 0}
+                    disabled={!episodeId || episodeId === 'new-episode' || extractionResult.validation_errors.length > 0}
                     className="flex items-center gap-2"
                   >
                     <CheckCircle className="w-4 h-4" />
