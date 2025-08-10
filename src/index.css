@@ -149,6 +149,16 @@
   padding: 1rem 1.5rem;
 }
 
+/* Carousel Scrollbar Hide */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Sidebar variables */
 :root {
   --sidebar-background: 0 0% 98%;

@@ -394,116 +394,71 @@ export default function Discover() {
                 </TabsTrigger>
               </TabsList>
 
-              {/* Episodes Tab */}
+              {/* Episodes Tab - Now as Carousel */}
               <TabsContent value="episodes" className="mt-8">
-                {/* Series Filter */}
                 <div className="mb-6">
-                  <div className="flex flex-col space-y-4">
-                    <h3 className="text-sm font-semibold text-foreground">Filter nach Serie:</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {seriesOptions.map((option) => (
-                        <button
-                          key={option.value}
-                          onClick={() => setSelectedSeries(option.value)}
-                          className={`px-3 py-2 text-xs sm:text-sm font-medium rounded-lg border transition-all duration-200 ${
-                            selectedSeries === option.value
-                              ? 'bg-[#13B87B] text-white border-[#13B87B]'
-                              : 'bg-background text-muted-foreground border-border hover:bg-accent hover:text-foreground'
-                          }`}
-                        >
-                          <span className="block truncate">{option.label}</span>
-                          <span className="block text-xs opacity-75">({option.count})</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Search and Sort */}
-                <div className="mb-6 space-y-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-                    <Input
-                      type="text"
-                      placeholder="Suche nach Titel, Gast oder Beschreibung..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 pr-10 h-11"
-                    />
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery('')}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <X size={18} />
-                      </button>
-                    )}
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold font-cooper">Alle Episoden</h3>
+                    <Link to="/episodes" className="text-sm text-[#13B87B] hover:text-[#0FA66A] font-medium">
+                      Alle ansehen →
+                    </Link>
                   </div>
                   
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium text-foreground mb-2">Sortierung:</label>
-                      <Select value={sortOption} onValueChange={(value) => setSortOption(value as typeof sortOption)}>
-                        <SelectTrigger className="w-full h-11">
-                          <SelectValue placeholder="Sortierung wählen" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="date_desc">Neueste nach Datum</SelectItem>
-                          <SelectItem value="date_asc">Älteste nach Datum</SelectItem>
-                          <SelectItem value="title_asc">Titel A-Z</SelectItem>
-                          <SelectItem value="title_desc">Titel Z-A</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Episodes Grid */}
-                {loading ? (
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <Card key={i} className="overflow-hidden">
-                        <div className="aspect-square bg-muted animate-pulse" />
-                        <CardContent className="p-4 space-y-3">
-                          <div className="h-4 bg-muted animate-pulse rounded" />
-                          <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
-                          <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                ) : sortedEpisodes.length === 0 ? (
-                  <div className="text-center py-12">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">Keine Episoden gefunden</h3>
-                    <p className="text-gray-600 mb-4">
-                      {searchQuery ? `Keine Episoden für "${searchQuery}" gefunden.` : 'Keine Episoden verfügbar.'}
-                    </p>
-                    {searchQuery && (
-                      <Button variant="outline" onClick={() => setSearchQuery('')}>
-                        Suche zurücksetzen
-                      </Button>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {sortedEpisodes.slice(0, displayCount).map((episode) => (
-                        <EpisodeCard key={episode.id} episode={episode} />
+                  {/* Episodes Carousel */}
+                  {loading ? (
+                    <div className="flex gap-4 overflow-x-auto pb-4">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="flex-shrink-0 w-80">
+                          <Card className="overflow-hidden">
+                            <div className="aspect-square bg-muted animate-pulse" />
+                            <CardContent className="p-4 space-y-3">
+                              <div className="h-4 bg-muted animate-pulse rounded" />
+                              <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                            </CardContent>
+                          </Card>
+                        </div>
                       ))}
                     </div>
-                    
-                    {displayCount < sortedEpisodes.length && (
-                      <div className="text-center mt-12">
-                        <Button 
-                          variant="outline" 
-                          onClick={() => setDisplayCount(prev => Math.min(prev + 9, sortedEpisodes.length))}
-                        >
-                          Weitere Episoden laden ({sortedEpisodes.length - displayCount} verbleibend)
-                        </Button>
+                  ) : sortedEpisodes.length === 0 ? (
+                    <div className="text-center py-8 bg-muted/30 rounded-lg">
+                      <p className="text-muted-foreground">Keine Episoden verfügbar</p>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+                        {sortedEpisodes.slice(0, 10).map((episode) => (
+                          <div key={episode.id} className="flex-shrink-0 w-80 snap-start">
+                            <EpisodeCard episode={episode} />
+                          </div>
+                        ))}
                       </div>
-                    )}
-                  </>
-                )}
+                    </div>
+                  )}
+                </div>
+
+                {/* YouTube Shorts Section */}
+                <div className="mt-12">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold font-cooper mb-2">WTF?! Finance Shorts</h3>
+                      <p className="text-muted-foreground text-sm">
+                        Kurze, knackige Finance-Insights in unter 60 Sekunden
+                      </p>
+                    </div>
+                    <a 
+                      href="https://www.youtube.com/@WTFFinanceTransformers" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-sm text-[#13B87B] hover:text-[#0FA66A] font-medium flex items-center gap-2"
+                    >
+                      <Globe className="h-4 w-4" />
+                      YouTube Channel
+                    </a>
+                  </div>
+
+                  {/* YouTube Videos Grid with Lazy Loading */}
+                  <YouTubeVideosSection />
+                </div>
               </TabsContent>
 
               {/* Insights Tab */}
@@ -857,6 +812,211 @@ function InsightCard({ insight }: { insight: any }) {
           <BookOpen className="mr-2 h-4 w-4" />
           Artikel lesen
         </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+// YouTube Videos Section Component with Lazy Loading
+function YouTubeVideosSection() {
+  const [videos, setVideos] = useState<YouTubeVideo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+
+  // Mock data for YouTube videos - in production, fetch from API or Supabase
+  const mockVideos: YouTubeVideo[] = [
+    {
+      id: 'video1',
+      title: 'CFO Transformation in 60 Sekunden',
+      thumbnail: 'https://img.youtube.com/vi/nBQKMPWrUgc/maxresdefault.jpg',
+      videoId: 'nBQKMPWrUgc',
+      duration: '0:58',
+      views: '1.2K',
+      publishedAt: '2 Tage',
+    },
+    {
+      id: 'video2', 
+      title: 'KI im Controlling - Game Changer?',
+      thumbnail: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+      videoId: 'dQw4w9WgXcQ',
+      duration: '0:45',
+      views: '892',
+      publishedAt: '5 Tage',
+    },
+    {
+      id: 'video3',
+      title: 'Excel vs. Modern FP&A Tools',
+      thumbnail: 'https://img.youtube.com/vi/jNQXAC9IVRw/maxresdefault.jpg',
+      videoId: 'jNQXAC9IVRw',
+      duration: '1:00',
+      views: '2.1K',
+      publishedAt: '1 Woche',
+    },
+    {
+      id: 'video4',
+      title: 'Finance Automation Basics',
+      thumbnail: 'https://img.youtube.com/vi/ZZ5LpwO-An4/maxresdefault.jpg',
+      videoId: 'ZZ5LpwO-An4',
+      duration: '0:52',
+      views: '1.5K',
+      publishedAt: '2 Wochen',
+    },
+    {
+      id: 'video5',
+      title: 'Real-Time Reporting Setup',
+      thumbnail: 'https://img.youtube.com/vi/oHg5SJYRHA0/maxresdefault.jpg',
+      videoId: 'oHg5SJYRHA0',
+      duration: '0:59',
+      views: '3.2K',
+      publishedAt: '3 Wochen',
+    },
+    {
+      id: 'video6',
+      title: 'Treasury Management Tipps',
+      thumbnail: 'https://img.youtube.com/vi/9bZkp7q19f0/maxresdefault.jpg',
+      videoId: '9bZkp7q19f0',
+      duration: '0:48',
+      views: '987',
+      publishedAt: '1 Monat',
+    },
+  ];
+
+  useEffect(() => {
+    // Simulate API loading
+    setTimeout(() => {
+      setVideos(mockVideos);
+      setLoading(false);
+    }, 1000);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Card key={i} className="overflow-hidden">
+            <div className="aspect-video bg-muted animate-pulse" />
+            <CardContent className="p-4">
+              <div className="h-4 bg-muted animate-pulse rounded mb-2" />
+              <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Video Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {videos.map((video) => (
+          <YouTubeVideoCard 
+            key={video.id} 
+            video={video} 
+            onPlay={() => setSelectedVideo(video.videoId)}
+          />
+        ))}
+      </div>
+
+      {/* Video Modal/Lightbox */}
+      {selectedVideo && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setSelectedVideo(null)}
+        >
+          <div 
+            className="relative w-full max-w-4xl aspect-video bg-black rounded-lg overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setSelectedVideo(null)}
+              className="absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-sm text-white p-2 rounded-full hover:bg-white/30 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${selectedVideo}?autoplay=1&rel=0`}
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+              loading="lazy"
+            />
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// YouTube Video Card Component with Lazy Loading
+interface YouTubeVideo {
+  id: string;
+  title: string;
+  thumbnail: string;
+  videoId: string;
+  duration: string;
+  views: string;
+  publishedAt: string;
+}
+
+function YouTubeVideoCard({ video, onPlay }: { video: YouTubeVideo; onPlay: () => void }) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <Card 
+      className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group"
+      onClick={onPlay}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="relative aspect-video bg-muted">
+        {/* Lazy loaded thumbnail */}
+        <img
+          src={video.thumbnail}
+          alt={video.title}
+          className={`w-full h-full object-cover transition-opacity duration-300 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          loading="lazy"
+          onLoad={() => setImageLoaded(true)}
+        />
+        
+        {/* Loading placeholder */}
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-muted animate-pulse" />
+        )}
+
+        {/* Play button overlay */}
+        <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-300 ${
+          isHovered ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+        }`}>
+          <div className="bg-[#13B87B] rounded-full p-4 transform transition-transform group-hover:scale-110">
+            <PlayCircle className="h-8 w-8 text-white" />
+          </div>
+        </div>
+
+        {/* Duration badge */}
+        <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+          {video.duration}
+        </div>
+
+        {/* Shorts badge */}
+        <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded font-bold">
+          SHORTS
+        </div>
+      </div>
+
+      <CardContent className="p-4">
+        <h4 className="font-bold text-sm line-clamp-2 mb-2 group-hover:text-[#13B87B] transition-colors">
+          {video.title}
+        </h4>
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>{video.views} Aufrufe</span>
+          <span>{video.publishedAt}</span>
+        </div>
       </CardContent>
     </Card>
   );
