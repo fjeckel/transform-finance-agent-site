@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,11 +8,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   PlayCircle, Search, Mic2, Rocket, Headphones, ArrowRight, 
   Mail, Star, Calendar, Filter, ChevronRight, Users2, 
-  BookOpen, TrendingUp, Target, Lightbulb, Globe
+  BookOpen, TrendingUp, Target, Lightbulb, Globe, Clock, User, X
 } from 'lucide-react';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import SEOHead from '@/components/SEOHead';
 import { useEpisodes } from '@/hooks/useEpisodes';
 import { useInsights } from '@/hooks/useInsights';
+import { usePdfs } from '@/hooks/usePdfs';
+import { SafeHtmlRenderer } from '@/lib/content-security';
+import { useGlobalSearch } from '@/hooks/useGlobalSearch';
+import { SimplePDFCard } from '@/components/purchase/SimplePurchaseButton';
 
 // Content categories/tags
 const CONTENT_TAGS = [
@@ -44,91 +55,168 @@ const STORY_FLOW_SECTIONS = [
   }
 ];
 
-interface ContentItem {
-  id: string;
-  title: string;
-  type: 'episode' | 'insight';
-  date: string;
-  author?: string;
-  guest?: string;
-  duration?: number;
-  tags: string[];
-  description: string;
-  slug: string;
-  cover?: string;
-}
-
 export default function Discover() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTags, setActiveTags] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<'all' | 'episodes' | 'insights'>('all');
+  const [selectedSeries, setSelectedSeries] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'episodes' | 'insights' | 'memos'>('all');
+  const [sortOption, setSortOption] = useState<'date_desc' | 'date_asc' | 'title_asc' | 'title_desc'>('date_desc');
+  const [displayCount, setDisplayCount] = useState<number>(9);
   
-  const { data: episodesData, isLoading: episodesLoading } = useEpisodes();
+  const { episodes, loading: episodesLoading } = useEpisodes();
   const { data: insightsData, isLoading: insightsLoading } = useInsights();
+  const { pdfs, loading: pdfsLoading } = usePdfs();
+  const { searchQuery: globalSearchQuery } = useGlobalSearch();
+  const location = useLocation();
   const navigate = useNavigate();
 
-  // Transform data into unified content format
-  const allContent = useMemo(() => {
-    const episodes: ContentItem[] = (episodesData || []).map(ep => ({
-      id: ep.id,
-      title: ep.title,
-      type: 'episode' as const,
-      date: ep.created_at,
-      guest: ep.guest_name || undefined,
-      duration: ep.duration_minutes,
-      tags: ep.tags || [],
-      description: ep.description || '',
-      slug: ep.slug,
-      cover: ep.cover_image_url
-    }));
+  // Initialize search from URL parameters or global search
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const searchParam = params.get('search');
+    if (searchParam) {
+      setSearchQuery(searchParam);
+    } else if (globalSearchQuery) {
+      setSearchQuery(globalSearchQuery);
+    }
+  }, [location.search, globalSearchQuery]);
 
-    const insights: ContentItem[] = (insightsData || []).map(insight => ({
-      id: insight.id,
-      title: insight.title,
-      type: 'insight' as const,
-      date: insight.created_at,
-      author: insight.author_name,
-      tags: insight.tags || [],
-      description: insight.excerpt || insight.content?.substring(0, 200) + '...' || '',
-      slug: insight.slug
-    }));
+  // Reset display count when search query or filters change
+  useEffect(() => {
+    setDisplayCount(9);
+  }, [searchQuery, selectedSeries, activeTab]);
 
-    return [...episodes, ...insights].sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
-  }, [episodesData, insightsData]);
-
-  // Filter content
-  const filteredContent = useMemo(() => {
-    return allContent.filter(item => {
-      // Tab filter
-      if (activeTab !== 'all' && item.type !== activeTab.slice(0, -1)) return false;
-      
-      // Search filter
-      const searchLower = searchQuery.toLowerCase();
-      const matchesSearch = !searchQuery || 
-        item.title.toLowerCase().includes(searchLower) ||
-        item.description.toLowerCase().includes(searchLower) ||
-        (item.guest && item.guest.toLowerCase().includes(searchLower)) ||
-        (item.author && item.author.toLowerCase().includes(searchLower));
-      
-      // Tags filter
-      const matchesTags = activeTags.length === 0 || 
-        activeTags.some(tag => item.tags.includes(tag));
-      
-      return matchesSearch && matchesTags;
-    });
-  }, [allContent, searchQuery, activeTags, activeTab]);
-
-  const toggleTag = (tag: string) => {
-    setActiveTags(prev => 
-      prev.includes(tag) 
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
-    );
+  // Helper functions for series handling (copied from Episodes page)
+  const getSeriesBadgeColor = (series: string) => {
+    switch (series) {
+      case 'wtf': return 'bg-purple-500 text-white';
+      case 'finance_transformers': return 'bg-[#003FA5] text-white';
+      case 'cfo_memo': return 'bg-green-500 text-white';
+      default: return 'bg-gray-500 text-white';
+    }
   };
 
-  const featuredContent = allContent[0];
+  const getSeriesDisplayName = (series: string) => {
+    switch (series) {
+      case 'wtf': return 'WTF';
+      case 'finance_transformers': return 'Finance Transformers';
+      case 'cfo_memo': return 'CFO Memo';
+      default: return series;
+    }
+  };
+
+  // Series options for filtering (adapted from Episodes page)
+  const seriesOptions = useMemo(() => {
+    const searchFiltered = searchQuery.trim() 
+      ? episodes.filter(episode => {
+          const query = searchQuery.toLowerCase();
+          try {
+            return episode.title?.toLowerCase().includes(query) ||
+              (episode.description && episode.description.toLowerCase().includes(query)) ||
+              (episode.summary && episode.summary.toLowerCase().includes(query)) ||
+              (episode.content && episode.content.toLowerCase().includes(query)) ||
+              (episode.guests && Array.isArray(episode.guests) && episode.guests.some(guest => 
+                guest && guest.name && guest.name.toLowerCase().includes(query)
+              )) ||
+              (episode.series && getSeriesDisplayName(episode.series).toLowerCase().includes(query));
+          } catch (error) {
+            console.error('Search error for episode:', episode.id, error);
+            return false;
+          }
+        })
+      : episodes;
+    
+    return [
+      { value: 'all', label: 'Alle Serien', count: searchFiltered.length },
+      { value: 'wtf', label: 'WTF', count: searchFiltered.filter(e => e.series === 'wtf').length },
+      { value: 'finance_transformers', label: 'Finance Transformers', count: searchFiltered.filter(e => e.series === 'finance_transformers').length },
+      { value: 'cfo_memo', label: 'CFO Memo', count: searchFiltered.filter(e => e.series === 'cfo_memo').length }
+    ];
+  }, [episodes, searchQuery]);
+
+  // Filter episodes by series and search
+  const filteredEpisodes = useMemo(() => {
+    let filtered = episodes;
+    
+    if (selectedSeries !== 'all') {
+      filtered = filtered.filter(episode => episode.series === selectedSeries);
+    }
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(episode => {
+        try {
+          if (episode.title?.toLowerCase().includes(query)) return true;
+          if (episode.description && episode.description.toLowerCase().includes(query)) return true;
+          if (episode.guests && Array.isArray(episode.guests) && episode.guests.some(guest => 
+            guest && guest.name && guest.name.toLowerCase().includes(query)
+          )) return true;
+          if (episode.series && getSeriesDisplayName(episode.series).toLowerCase().includes(query)) return true;
+          return false;
+        } catch (error) {
+          console.error('Filter error for episode:', episode.id, error);
+          return false;
+        }
+      });
+    }
+    
+    return filtered;
+  }, [episodes, selectedSeries, searchQuery]);
+
+  // Filter insights by search
+  const filteredInsights = useMemo(() => {
+    if (!searchQuery.trim()) return insightsData || [];
+    
+    const query = searchQuery.toLowerCase();
+    return (insightsData || []).filter(insight => {
+      try {
+        return insight.title?.toLowerCase().includes(query) ||
+          (insight.content && insight.content.toLowerCase().includes(query)) ||
+          (insight.excerpt && insight.excerpt.toLowerCase().includes(query));
+      } catch (error) {
+        console.error('Filter error for insight:', insight.id, error);
+        return false;
+      }
+    });
+  }, [insightsData, searchQuery]);
+
+  // Filter PDFs by search
+  const filteredPdfs = useMemo(() => {
+    if (!searchQuery.trim()) return pdfs || [];
+    
+    const query = searchQuery.toLowerCase();
+    return (pdfs || []).filter(pdf => {
+      try {
+        return pdf.title?.toLowerCase().includes(query) ||
+          (pdf.description && pdf.description.toLowerCase().includes(query));
+      } catch (error) {
+        console.error('Filter error for PDF:', pdf.id, error);
+        return false;
+      }
+    });
+  }, [pdfs, searchQuery]);
+
+  // Sort episodes (adapted from Episodes page)
+  const sortedEpisodes = useMemo(() => {
+    const sorted = [...filteredEpisodes];
+    sorted.sort((a, b) => {
+      switch (sortOption) {
+        case 'date_asc':
+          return new Date(a.publish_date).getTime() - new Date(b.publish_date).getTime();
+        case 'date_desc':
+          return new Date(b.publish_date).getTime() - new Date(a.publish_date).getTime();
+        case 'title_asc':
+          return a.title.localeCompare(b.title);
+        case 'title_desc':
+          return b.title.localeCompare(a.title);
+        default:
+          return 0;
+      }
+    });
+    return sorted;
+  }, [filteredEpisodes, sortOption]);
+
+  const featuredContent = episodes[0];
+  const loading = episodesLoading || insightsLoading || pdfsLoading;
 
   return (
     <div className="min-h-screen bg-background">
@@ -186,23 +274,26 @@ export default function Discover() {
               {featuredContent && (
                 <Card className="overflow-hidden border-2 border-[#13B87B]/20 hover:border-[#13B87B]/40 transition-colors">
                   <CardHeader className="p-0">
-                    {featuredContent.cover && (
-                      <img 
-                        src={featuredContent.cover} 
-                        alt={featuredContent.title}
-                        className="h-48 w-full object-cover"
-                      />
-                    )}
+                    <img 
+                      src={featuredContent.image_url || '/img/wtf-cover.png'} 
+                      alt={featuredContent.title}
+                      className="h-48 w-full object-cover"
+                    />
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-3">
-                      <Badge variant="secondary">
-                        {featuredContent.type === 'episode' ? 'Neueste Folge' : 'Neuester Insight'}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">Neueste Folge</Badge>
+                        {featuredContent.series && (
+                          <Badge className={`text-xs ${getSeriesBadgeColor(featuredContent.series)}`}>
+                            {getSeriesDisplayName(featuredContent.series)}
+                          </Badge>
+                        )}
+                      </div>
                       {featuredContent.duration && (
                         <span className="text-sm text-muted-foreground flex items-center gap-1">
-                          <PlayCircle className="h-4 w-4" />
-                          {featuredContent.duration} Min
+                          <Clock className="h-4 w-4" />
+                          {featuredContent.duration}
                         </span>
                       )}
                     </div>
@@ -211,33 +302,27 @@ export default function Discover() {
                       {featuredContent.title}
                     </h3>
                     
-                    {(featuredContent.guest || featuredContent.author) && (
+                    {featuredContent.guests && featuredContent.guests.length > 0 && (
                       <p className="text-muted-foreground mb-3">
-                        {featuredContent.guest ? `Gast: ${featuredContent.guest}` : `von ${featuredContent.author}`}
+                        Gäste: {featuredContent.guests
+                          .filter(g => g && g.name)
+                          .map(g => g.name)
+                          .join(', ')}
                       </p>
                     )}
                     
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                      {featuredContent.description}
-                    </p>
-                    
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {featuredContent.tags.slice(0, 3).map(tag => (
-                        <Badge key={tag} variant="outline" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
+                    <div className="text-sm text-muted-foreground mb-4">
+                      <SafeHtmlRenderer 
+                        content={featuredContent.description || ''} 
+                        className="line-clamp-3"
+                      />
                     </div>
                     
                     <Button 
                       className="w-full bg-[#13B87B] hover:bg-[#0FA66A] font-cooper"
-                      onClick={() => navigate(
-                        featuredContent.type === 'episode' 
-                          ? `/episode/${featuredContent.slug}` 
-                          : `/insights/${featuredContent.slug}`
-                      )}
+                      onClick={() => navigate(`/episode/${featuredContent.slug}`)}
                     >
-                      {featuredContent.type === 'episode' ? 'Jetzt anhören' : 'Jetzt lesen'}
+                      Jetzt anhören
                       <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
                   </CardContent>
@@ -286,218 +371,493 @@ export default function Discover() {
       {/* Content Browser Section */}
       <section id="content-section" className="py-16">
         <div className="max-w-7xl mx-auto px-6">
-          {/* Header & Search */}
           <div className="mb-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-              <div className="flex items-center gap-3">
-                <Filter className="h-5 w-5 text-[#13B87B]" />
-                <h2 className="text-2xl font-bold font-cooper">Durchsuche alle Inhalte</h2>
-              </div>
-              
-              <div className="relative w-full md:w-96">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Suche nach Themen, Gästen oder Inhalten..."
-                  className="pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
+            <h2 className="text-3xl font-bold mb-4 font-cooper">Durchsuche alle Inhalte</h2>
+            <p className="text-muted-foreground mb-8">
+              Entdecke alle Episoden, Insights und CFO Memos an einem Ort
+            </p>
 
-            {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)}>
-              <TabsList className="mb-6">
-                <TabsTrigger value="all">Alle Inhalte</TabsTrigger>
-                <TabsTrigger value="episodes">Podcast Folgen</TabsTrigger>
-                <TabsTrigger value="insights">Artikel & Insights</TabsTrigger>
+            {/* Tabs - same structure as Episodes page */}
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="w-full">
+              <TabsList className="grid w-full grid-cols-4 h-12 mb-8">
+                <TabsTrigger value="all" className="text-sm font-medium data-[state=active]:bg-[#13B87B] data-[state=active]:text-white">
+                  Alle Inhalte
+                </TabsTrigger>
+                <TabsTrigger value="episodes" className="text-sm font-medium data-[state=active]:bg-[#13B87B] data-[state=active]:text-white">
+                  Episoden ({episodes.length})
+                </TabsTrigger>
+                <TabsTrigger value="insights" className="text-sm font-medium data-[state=active]:bg-[#13B87B] data-[state=active]:text-white">
+                  Insights ({(insightsData || []).length})
+                </TabsTrigger>
+                <TabsTrigger value="memos" className="text-sm font-medium data-[state=active]:bg-[#13B87B] data-[state=active]:text-white">
+                  CFO Memos ({(pdfs || []).length})
+                </TabsTrigger>
               </TabsList>
-            </Tabs>
 
-            {/* Filter Tags */}
-            <div className="flex flex-wrap gap-2">
-              {CONTENT_TAGS.map(tag => (
-                <Button
-                  key={tag}
-                  size="sm"
-                  variant={activeTags.includes(tag) ? "default" : "outline"}
-                  className={`rounded-full ${activeTags.includes(tag) ? 'bg-[#13B87B] hover:bg-[#0FA66A]' : ''}`}
-                  onClick={() => toggleTag(tag)}
-                >
-                  {tag}
-                </Button>
-              ))}
-              {activeTags.length > 0 && (
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  onClick={() => setActiveTags([])}
-                  className="rounded-full"
-                >
-                  Filter zurücksetzen
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {/* Content Grid */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(episodesLoading || insightsLoading) ? (
-              // Loading skeletons
-              Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i} className="overflow-hidden">
-                  <CardHeader className="p-0">
-                    <div className="h-40 bg-muted animate-pulse" />
-                  </CardHeader>
-                  <CardContent className="p-4 space-y-3">
-                    <div className="h-4 bg-muted animate-pulse rounded" />
-                    <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
-                    <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
-                  </CardContent>
-                </Card>
-              ))
-            ) : filteredContent.length === 0 ? (
-              <div className="col-span-full text-center py-12">
-                <div className="text-muted-foreground">
-                  <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Keine Inhalte gefunden für deine Filterkriterien.</p>
-                  <Button 
-                    variant="outline" 
-                    className="mt-4"
-                    onClick={() => {
-                      setSearchQuery('');
-                      setActiveTags([]);
-                      setActiveTab('all');
-                    }}
-                  >
-                    Alle Filter zurücksetzen
-                  </Button>
+              {/* Episodes Tab */}
+              <TabsContent value="episodes" className="mt-8">
+                {/* Series Filter */}
+                <div className="mb-6">
+                  <div className="flex flex-col space-y-4">
+                    <h3 className="text-sm font-semibold text-foreground">Filter nach Serie:</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {seriesOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => setSelectedSeries(option.value)}
+                          className={`px-3 py-2 text-xs sm:text-sm font-medium rounded-lg border transition-all duration-200 ${
+                            selectedSeries === option.value
+                              ? 'bg-[#13B87B] text-white border-[#13B87B]'
+                              : 'bg-background text-muted-foreground border-border hover:bg-accent hover:text-foreground'
+                          }`}
+                        >
+                          <span className="block truncate">{option.label}</span>
+                          <span className="block text-xs opacity-75">({option.count})</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              filteredContent.map((item, index) => (
-                <ContentCard key={item.id} content={item} index={index} />
-              ))
-            )}
+
+                {/* Search and Sort */}
+                <div className="mb-6 space-y-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+                    <Input
+                      type="text"
+                      placeholder="Suche nach Titel, Gast oder Beschreibung..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 pr-10 h-11"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <X size={18} />
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-foreground mb-2">Sortierung:</label>
+                      <Select value={sortOption} onValueChange={(value) => setSortOption(value as typeof sortOption)}>
+                        <SelectTrigger className="w-full h-11">
+                          <SelectValue placeholder="Sortierung wählen" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="date_desc">Neueste nach Datum</SelectItem>
+                          <SelectItem value="date_asc">Älteste nach Datum</SelectItem>
+                          <SelectItem value="title_asc">Titel A-Z</SelectItem>
+                          <SelectItem value="title_desc">Titel Z-A</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Episodes Grid */}
+                {loading ? (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <Card key={i} className="overflow-hidden">
+                        <div className="aspect-square bg-muted animate-pulse" />
+                        <CardContent className="p-4 space-y-3">
+                          <div className="h-4 bg-muted animate-pulse rounded" />
+                          <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                          <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : sortedEpisodes.length === 0 ? (
+                  <div className="text-center py-12">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Keine Episoden gefunden</h3>
+                    <p className="text-gray-600 mb-4">
+                      {searchQuery ? `Keine Episoden für "${searchQuery}" gefunden.` : 'Keine Episoden verfügbar.'}
+                    </p>
+                    {searchQuery && (
+                      <Button variant="outline" onClick={() => setSearchQuery('')}>
+                        Suche zurücksetzen
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {sortedEpisodes.slice(0, displayCount).map((episode) => (
+                        <EpisodeCard key={episode.id} episode={episode} />
+                      ))}
+                    </div>
+                    
+                    {displayCount < sortedEpisodes.length && (
+                      <div className="text-center mt-12">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setDisplayCount(prev => Math.min(prev + 9, sortedEpisodes.length))}
+                        >
+                          Weitere Episoden laden ({sortedEpisodes.length - displayCount} verbleibend)
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </TabsContent>
+
+              {/* Insights Tab */}
+              <TabsContent value="insights" className="mt-8">
+                <div className="mb-6">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+                    <Input
+                      type="text"
+                      placeholder="Suche nach Insight-Titel oder Inhalt..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 pr-10 h-11"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <X size={18} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {loading ? (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <Card key={i} className="overflow-hidden">
+                        <CardContent className="p-4 space-y-3">
+                          <div className="h-4 bg-muted animate-pulse rounded" />
+                          <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                          <div className="h-20 bg-muted animate-pulse rounded" />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : filteredInsights.length === 0 ? (
+                  <div className="text-center py-12">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Keine Insights gefunden</h3>
+                    <p className="text-gray-600 mb-4">
+                      {searchQuery ? `Keine Insights für "${searchQuery}" gefunden.` : 'Keine Insights verfügbar.'}
+                    </p>
+                    {searchQuery && (
+                      <Button variant="outline" onClick={() => setSearchQuery('')}>
+                        Suche zurücksetzen
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredInsights.slice(0, displayCount).map((insight) => (
+                      <InsightCard key={insight.id} insight={insight} />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Memos Tab */}
+              <TabsContent value="memos" className="mt-8">
+                <div className="mb-6">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+                    <Input
+                      type="text"
+                      placeholder="Suche nach Memo-Titel oder Beschreibung..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 pr-10 h-11"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <X size={18} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {loading ? (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <Card key={i} className="overflow-hidden">
+                        <CardContent className="p-4 space-y-3">
+                          <div className="h-4 bg-muted animate-pulse rounded" />
+                          <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                          <div className="h-20 bg-muted animate-pulse rounded" />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : filteredPdfs.length === 0 ? (
+                  <div className="text-center py-12">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Keine Memos gefunden</h3>
+                    <p className="text-gray-600 mb-4">
+                      {searchQuery ? `Keine Memos für "${searchQuery}" gefunden.` : 'Keine Memos verfügbar.'}
+                    </p>
+                    {searchQuery && (
+                      <Button variant="outline" onClick={() => setSearchQuery('')}>
+                        Suche zurücksetzen
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredPdfs.slice(0, displayCount).map((pdf) => (
+                      <SimplePDFCard key={pdf.id} pdf={pdf} />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* All Content Tab */}
+              <TabsContent value="all" className="mt-8">
+                <div className="mb-6">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+                    <Input
+                      type="text"
+                      placeholder="Suche in allen Inhalten..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 pr-10 h-11"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <X size={18} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Mixed content grid combining all types */}
+                <div className="space-y-8">
+                  {/* Episodes Section */}
+                  {sortedEpisodes.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-bold mb-4 font-cooper">Episoden</h3>
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {sortedEpisodes.slice(0, 3).map((episode) => (
+                          <EpisodeCard key={episode.id} episode={episode} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Insights Section */}
+                  {filteredInsights.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-bold mb-4 font-cooper">Insights</h3>
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredInsights.slice(0, 3).map((insight) => (
+                          <InsightCard key={insight.id} insight={insight} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* PDFs Section */}
+                  {filteredPdfs.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-bold mb-4 font-cooper">CFO Memos</h3>
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredPdfs.slice(0, 3).map((pdf) => (
+                          <SimplePDFCard key={pdf.id} pdf={pdf} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Newsletter CTA Section with Beehiiv */}
       <section className="bg-gradient-to-r from-[#13B87B] to-[#0FA66A] text-white">
-        <div className="max-w-7xl mx-auto px-6 py-16 text-center">
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-600">
+        <div className="max-w-4xl mx-auto px-6 py-16">
+          <div className="text-center mb-8">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 font-cooper">
               Verpasse keine Finance Transformation
             </h2>
             <p className="text-xl text-green-50 mb-8 max-w-2xl mx-auto">
               Erhalte neue Folgen, exklusive Insights und praktische Playbooks direkt in dein Postfach.
             </p>
-            
-            <div className="max-w-md mx-auto flex gap-3">
-              <Input 
-                placeholder="deine@email.com" 
-                className="bg-white text-gray-900 border-0 flex-1"
-              />
-              <Button variant="secondary" className="bg-white text-[#13B87B] hover:bg-gray-100 font-bold px-8">
-                <Mail className="mr-2 h-4 w-4" />
-                Abonnieren
-              </Button>
-            </div>
-            
-            <p className="text-sm text-green-100 mt-4">
-              Kostenlos. Jederzeit kündbar. Kein Spam.
-            </p>
           </div>
+
+          {/* Beehiiv Embed Container */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 max-w-4xl mx-auto">
+            <div 
+              dangerouslySetInnerHTML={{
+                __html: `
+                  <script async src="https://subscribe-forms.beehiiv.com/embed.js"></script>
+                  <iframe 
+                    src="https://subscribe-forms.beehiiv.com/a9e32608-ec31-4e7b-8bd1-e4d4cd9f1ae2" 
+                    class="beehiiv-embed" 
+                    data-test-id="beehiiv-embed" 
+                    frameborder="0" 
+                    scrolling="no" 
+                    style="width: 100%; height: 415px; margin: 0; border-radius: 8px; background-color: transparent; box-shadow: none; max-width: 100%;"
+                    title="Newsletter Anmeldung"
+                  ></iframe>
+                `
+              }}
+            />
+          </div>
+
+          <p className="text-sm text-green-100 mt-6 text-center">
+            Kostenlos. Jederzeit kündbar. Kein Spam. Über 1.000 Finance-Profis sind bereits dabei.
+          </p>
         </div>
       </section>
     </div>
   );
 }
 
-function ContentCard({ content, index }: { content: ContentItem; index: number }) {
+// Episode Card Component (adapted from Episodes page)
+function EpisodeCard({ episode }: { episode: any }) {
   const navigate = useNavigate();
   
+  const getSeriesBadgeColor = (series: string) => {
+    switch (series) {
+      case 'wtf': return 'bg-purple-500 text-white';
+      case 'finance_transformers': return 'bg-[#003FA5] text-white';
+      case 'cfo_memo': return 'bg-green-500 text-white';
+      default: return 'bg-gray-500 text-white';
+    }
+  };
+
+  const getSeriesDisplayName = (series: string) => {
+    switch (series) {
+      case 'wtf': return 'WTF';
+      case 'finance_transformers': return 'Finance Transformers';
+      case 'cfo_memo': return 'CFO Memo';
+      default: return series;
+    }
+  };
+  
   return (
-    <div className="opacity-0 animate-in fade-in slide-in-from-bottom-2 duration-500" 
-         style={{ animationDelay: `${index * 150}ms` }}>
-      <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer h-full group">
-        <CardHeader className="p-0">
-          {content.cover ? (
-            <img 
-              src={content.cover} 
-              alt={content.title}
-              className="h-40 w-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="h-40 bg-gradient-to-br from-[#13B87B]/20 to-[#13B87B]/5 flex items-center justify-center">
-              {content.type === 'episode' ? (
-                <Headphones className="h-8 w-8 text-[#13B87B]" />
-              ) : (
-                <BookOpen className="h-8 w-8 text-[#13B87B]" />
-              )}
+    <Link to={`/episode/${episode.slug}`} className="block">
+      <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer h-full">
+        <div className="aspect-square overflow-hidden">
+          <img
+            src={episode.image_url || '/img/wtf-cover.png'}
+            alt={episode.title}
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          />
+        </div>
+      
+        <CardHeader className="pb-3">
+          <div className="mb-2 flex items-center space-x-2">
+            <span className="inline-block bg-gray-700 text-white px-2 py-1 rounded-full text-xs font-bold">
+              S{episode.season}E{episode.episode_number}
+            </span>
+            {episode.series && (
+              <Badge className={`text-xs ${getSeriesBadgeColor(episode.series)}`}>
+                {getSeriesDisplayName(episode.series)}
+              </Badge>
+            )}
+          </div>
+          
+          <CardTitle className="text-lg leading-tight mb-2">
+            {episode.title}
+          </CardTitle>
+          
+          <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+            {episode.duration && (
+              <div className="flex items-center">
+                <Clock size={14} className="mr-1" />
+                <span>{episode.duration}</span>
+              </div>
+            )}
+            {episode.publish_date && (
+              <div className="flex items-center">
+                <Calendar size={14} className="mr-1" />
+                <span>{new Date(episode.publish_date).toLocaleDateString('de-DE')}</span>
+              </div>
+            )}
+          </div>
+
+          {episode.guests && episode.guests.length > 0 && (
+            <div className="flex items-center text-sm text-gray-600 mb-3">
+              <User size={14} className="mr-1" />
+              <span>{episode.guests
+                .filter((g: any) => g && g.name)
+                .map((g: any) => g.name)
+                .join(', ')}</span>
             </div>
           )}
         </CardHeader>
         
-        <CardContent className="p-4 flex flex-col flex-1">
-          <div className="flex items-center justify-between mb-3">
-            <Badge variant={content.type === 'episode' ? 'default' : 'secondary'}>
-              {content.type === 'episode' ? 'Podcast' : 'Artikel'}
-            </Badge>
-            {content.duration && (
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <PlayCircle className="h-3 w-3" />
-                {content.duration} Min
-              </span>
-            )}
+        <CardContent className="pt-0">
+          <div className="text-gray-700 text-sm mb-4 line-clamp-3">
+            <SafeHtmlRenderer 
+              content={episode.description || ''}
+              className="text-gray-700 text-sm"
+            />
           </div>
           
-          <h3 className="font-bold text-sm leading-tight mb-2 line-clamp-2 group-hover:text-[#13B87B] transition-colors">
-            {content.title}
-          </h3>
-          
-          {(content.guest || content.author) && (
-            <p className="text-xs text-muted-foreground mb-2">
-              {content.guest ? `Gast: ${content.guest}` : `von ${content.author}`}
-            </p>
-          )}
-          
-          <p className="text-xs text-muted-foreground mb-4 line-clamp-3 flex-1">
-            {content.description}
-          </p>
-          
-          <div className="flex flex-wrap gap-1 mb-4">
-            {content.tags.slice(0, 2).map(tag => (
-              <Badge key={tag} variant="outline" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-          
-          <Button 
-            size="sm" 
-            className="w-full bg-[#13B87B] hover:bg-[#0FA66A] text-white"
-            onClick={() => navigate(
-              content.type === 'episode' 
-                ? `/episode/${content.slug}` 
-                : `/insights/${content.slug}`
-            )}
-          >
-            {content.type === 'episode' ? (
-              <>
-                <PlayCircle className="mr-2 h-4 w-4" />
-                Anhören
-              </>
-            ) : (
-              <>
-                <BookOpen className="mr-2 h-4 w-4" />
-                Lesen
-              </>
-            )}
+          <Button className="w-full bg-[#13B87B] hover:bg-[#0F9A6A] text-white">
+            <PlayCircle size={16} className="mr-2" />
+            Zur Episode
           </Button>
         </CardContent>
       </Card>
-    </div>
+    </Link>
+  );
+}
+
+// Insight Card Component
+function InsightCard({ insight }: { insight: any }) {
+  const navigate = useNavigate();
+  
+  return (
+    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer h-full"
+          onClick={() => navigate(`/insights/${insight.slug}`)}>
+      <CardHeader>
+        <div className="flex items-center justify-between mb-2">
+          <Badge variant="secondary">Insight</Badge>
+          <span className="text-xs text-muted-foreground">
+            {new Date(insight.created_at).toLocaleDateString('de-DE')}
+          </span>
+        </div>
+        
+        <CardTitle className="text-lg leading-tight mb-2">
+          {insight.title}
+        </CardTitle>
+        
+        {insight.author_name && (
+          <p className="text-sm text-muted-foreground mb-3">
+            von {insight.author_name}
+          </p>
+        )}
+      </CardHeader>
+      
+      <CardContent>
+        <div className="text-sm text-muted-foreground mb-4 line-clamp-4">
+          <SafeHtmlRenderer 
+            content={insight.excerpt || insight.content?.substring(0, 200) + '...' || ''}
+            className="text-sm"
+          />
+        </div>
+        
+        <Button size="sm" className="w-full bg-[#13B87B] hover:bg-[#0FA66A] text-white">
+          <BookOpen className="mr-2 h-4 w-4" />
+          Artikel lesen
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
