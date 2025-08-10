@@ -34,6 +34,7 @@ const ResearchSetupStep: React.FC<ResearchSetupStepProps> = ({
   const [hasError, setHasError] = React.useState(false);
   const [isOptimizing, setIsOptimizing] = React.useState(false);
   const [showAdvanced, setShowAdvanced] = React.useState(false);
+  const [showSamples, setShowSamples] = React.useState(false);
   const [systemPrompt, setSystemPrompt] = React.useState(`You are an expert research prompt optimizer. Your task is to transform user research topics into comprehensive, structured research prompts that will generate high-quality analytical content.
 
 When given a research topic, enhance it by:
@@ -52,16 +53,16 @@ Make the prompt comprehensive but focused, ensuring it will generate professiona
     systemPrompt: systemPrompt,
     maxTokens: 4000,
     temperature: 0.7,
-    providers: ['claude', 'openai'] as const
+    providers: ['claude', 'openai', 'grok'] as const
   }), [topic, optimizedPrompt, systemPrompt]);
 
   React.useEffect(() => {
     onConfigUpdate(currentConfig);
   }, [currentConfig, onConfigUpdate]);
   const [costEstimate, setCostEstimate] = React.useState<CostEstimate>({
-    minCost: 0.045,
-    maxCost: 0.065,
-    expectedCost: 0.055,
+    minCost: 0.065,
+    maxCost: 0.095,
+    expectedCost: 0.080,
     currency: 'USD',
     breakdown: {
       claude: {
@@ -72,6 +73,11 @@ Make the prompt comprehensive but focused, ensuring it will generate professiona
       openai: {
         minCost: 0.025,
         maxCost: 0.035,
+        expectedTokens: 3500
+      },
+      grok: {
+        minCost: 0.020,
+        maxCost: 0.030,
         expectedTokens: 3500
       }
     },
@@ -301,7 +307,7 @@ Ensure all insights are data-driven and provide specific, actionable recommendat
       <>
         {/* Header */}
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2 font-cooper">
             Research Setup
           </h2>
           <p className="text-muted-foreground">
@@ -314,7 +320,7 @@ Ensure all insights are data-driven and provide specific, actionable recommendat
         {/* Topic Input */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 font-cooper">
               <Lightbulb className="w-5 h-5" />
               Research Topic
             </CardTitle>
@@ -466,88 +472,61 @@ Make the prompt comprehensive but focused, ensuring it will generate professiona
           </CardContent>
         </Card>
 
-        {/* Sample Topics */}
+        {/* Sample Topics - Collapsed by Default */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5" />
-              Sample Topics
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-base font-cooper">
+                <BookOpen className="w-4 h-4" />
+                Need Ideas?
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSamples(!showSamples)}
+                className="text-sm"
+              >
+                {showSamples ? 'Hide Examples' : 'Show Examples'}
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="finance" className="w-full">
-              <TabsList className="grid grid-cols-4 lg:grid-cols-6 mb-4">
-                <TabsTrigger value="finance" className="text-xs">Finance</TabsTrigger>
-                <TabsTrigger value="technology" className="text-xs">Tech</TabsTrigger>
-                <TabsTrigger value="business" className="text-xs">Business</TabsTrigger>
-                <TabsTrigger value="marketing" className="text-xs">Marketing</TabsTrigger>
-                <TabsTrigger value="healthcare" className="text-xs lg:block hidden">Health</TabsTrigger>
-                <TabsTrigger value="general" className="text-xs lg:block hidden">General</TabsTrigger>
-              </TabsList>
-
-              {Object.entries(categoryIcons).map(([category, icon]) => (
-                <TabsContent key={category} value={category} className="space-y-3">
-                  {getCategoryTopics(category as TopicCategory).map((sampleTopic) => (
-                    <Card 
-                      key={sampleTopic.id} 
-                      className="cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={() => handleSampleTopicSelect(sampleTopic)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <h4 className="font-medium text-sm">{sampleTopic.title}</h4>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs">
-                              {sampleTopic.complexity}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              ~${sampleTopic.estimatedCost.toFixed(3)}
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {sampleTopic.description}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </TabsContent>
-              ))}
-            </Tabs>
-          </CardContent>
+          {showSamples && (
+            <CardContent>
+              <div className="space-y-3">
+                {sampleTopics.slice(0, 3).map((sampleTopic) => (
+                  <div
+                    key={sampleTopic.id} 
+                    className="p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => {
+                      handleSampleTopicSelect(sampleTopic);
+                      setShowSamples(false);
+                    }}
+                  >
+                    <div className="flex items-start justify-between mb-1">
+                      <h4 className="font-medium text-sm">{sampleTopic.title}</h4>
+                      <span className="text-xs text-gray-500">
+                        ${sampleTopic.estimatedCost.toFixed(3)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      {sampleTopic.description}
+                    </p>
+                  </div>
+                ))}
+                <p className="text-xs text-gray-500 text-center pt-2">
+                  Click any example to use as your starting point
+                </p>
+              </div>
+            </CardContent>
+          )}
         </Card>
 
-        {/* Cost Estimate and Info */}
+        {/* Simple Cost Display */}
         {isValidTopic && (
-          <div className="space-y-3">
-            <Alert>
-              <DollarSign className="h-4 w-4" />
-              <AlertDescription>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">
-                    Estimated cost: <strong>${costEstimate.total.toFixed(3)} USD</strong>
-                  </span>
-                  <div className="text-xs text-muted-foreground">
-                    Claude: ${costEstimate.claude.toFixed(3)} • 
-                    OpenAI: ${costEstimate.openai.toFixed(3)}
-                  </div>
-                </div>
-              </AlertDescription>
-            </Alert>
-            
-            {/* Info about clarifications */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <div className="flex items-start gap-2">
-                <MessageCircle className="w-4 h-4 text-blue-600 mt-0.5" />
-                <div>
-                  <p className="text-sm text-blue-800 font-medium">Smart Enhancement Available</p>
-                  <p className="text-xs text-blue-700 mt-1">
-                    If your topic is broad, AI models may ask for clarifications to provide more targeted insights.
-                    This helps deliver analysis that's specifically relevant to your needs.
-                  </p>
-                </div>
-              </div>
-            </div>
+          <div className="text-center p-4 bg-gray-50 rounded-lg">
+            <p className="text-sm text-gray-600">
+              Estimated cost: <span className="font-semibold text-gray-900">${costEstimate.total.toFixed(3)}</span>
+            </p>
           </div>
         )}
 

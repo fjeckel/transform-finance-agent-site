@@ -65,30 +65,35 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
   const results = session?.results;
   const claudeResult = results?.claude;
   const openaiResult = results?.openai;
+  const grokResult = results?.grok;
   
   // Debug logging for results
   console.log('ResultsStep - Session:', session);
   console.log('ResultsStep - Results:', results);
   console.log('ResultsStep - Claude result:', claudeResult);
   console.log('ResultsStep - OpenAI result:', openaiResult);
+  console.log('ResultsStep - Grok result:', grokResult);
 
   // Check if any results need clarification
   const needsClarification = React.useMemo(() => {
     const claudeNeedsClarity = claudeResult?.classification?.type !== 'analysis';
     const openaiNeedsClarity = openaiResult?.classification?.type !== 'analysis';
-    const result = claudeNeedsClarity || openaiNeedsClarity;
+    const grokNeedsClarity = grokResult?.classification?.type !== 'analysis';
+    const result = claudeNeedsClarity || openaiNeedsClarity || grokNeedsClarity;
     
     console.log('ResultsStep - Clarification Check:', {
       claudeType: claudeResult?.classification?.type,
       openaiType: openaiResult?.classification?.type,
+      grokType: grokResult?.classification?.type,
       claudeNeedsClarity,
       openaiNeedsClarity,
+      grokNeedsClarity,
       needsClarification: result,
       sessionNeedsClarification: session?.needsClarification
     });
     
     return result;
-  }, [claudeResult, openaiResult, session?.needsClarification]);
+  }, [claudeResult, openaiResult, grokResult, session?.needsClarification]);
 
   // Extract questions from AI responses
   const clarificationQuestions = React.useMemo(() => {
@@ -102,9 +107,13 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
       questions.push(...openaiResult.classification.detectedQuestions);
     }
     
+    if (grokResult?.classification?.detectedQuestions) {
+      questions.push(...grokResult.classification.detectedQuestions);
+    }
+    
     // Remove duplicates and clean up
     return [...new Set(questions)].map(q => q.trim()).filter(q => q.length > 0);
-  }, [claudeResult, openaiResult]);
+  }, [claudeResult, openaiResult, grokResult]);
 
   // Extract AI feedback content for display
   const aiFeedback = React.useMemo(() => {
@@ -124,9 +133,16 @@ const ResultsStep: React.FC<ResultsStepProps> = ({
       });
     }
     
+    if (grokResult?.classification?.type !== 'analysis' && grokResult?.content) {
+      feedback.push({
+        provider: 'Grok',
+        content: grokResult.content
+      });
+    }
+    
     console.log('ResultsStep - AI Feedback:', feedback);
     return feedback;
-  }, [claudeResult, openaiResult]);
+  }, [claudeResult, openaiResult, grokResult]);
 
   const handleExport = React.useCallback(async (format: ExportFormat) => {
     if (!session) return;
@@ -233,50 +249,36 @@ Please provide a comprehensive research analysis incorporating this additional i
     return `${(ms / 1000).toFixed(1)}s`;
   };
 
-  const calculateQualityScore = (result: AIResult): number => {
-    // Mock quality calculation based on content length and metadata
-    const contentScore = Math.min(result.content.length / 2000, 1) * 40;
-    const tokenScore = Math.min(result.metadata.tokensUsed / 3000, 1) * 30;
-    const timeScore = Math.max(1 - (result.metadata.processingTime / 30000), 0) * 30;
-    
-    return Math.round(contentScore + tokenScore + timeScore);
-  };
+  // Simplified - no quality scoring needed
 
   const renderProviderResult = (result: AIResult, provider: AIProvider) => {
-    const qualityScore = calculateQualityScore(result);
     const providerInfo = {
-      claude: { name: 'Claude', color: 'text-blue-600', bgColor: 'bg-blue-50', icon: '🤖' },
-      openai: { name: 'OpenAI', color: 'text-green-600', bgColor: 'bg-green-50', icon: '⚡' }
+      claude: { name: 'Claude', icon: '🤖' },
+      openai: { name: 'OpenAI', icon: '⚡' },
+      grok: { name: 'Grok', icon: '🚀' }
     }[provider];
 
     return (
       <div className="space-y-4">
-        {/* Header */}
+        {/* Simplified Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={cn("p-2 rounded-lg", providerInfo.bgColor)}>
-              <span className="text-lg">{providerInfo.icon}</span>
-            </div>
+            <span className="text-lg">{providerInfo.icon}</span>
             <div>
               <h3 className="font-semibold text-lg">{providerInfo.name}</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 {result.metadata.model}
               </p>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs">
-              Score: {qualityScore}/100
-            </Badge>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleCopyResult(result)}
-            >
-              <Copy className="w-4 h-4" />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleCopyResult(result)}
+          >
+            <Copy className="w-4 h-4" />
+          </Button>
         </div>
 
         {/* Metadata */}
@@ -333,38 +335,38 @@ Please provide a comprehensive research analysis incorporating this additional i
   };
 
   const renderComparison = () => {
-    if (!claudeResult || !openaiResult) {
+    const availableResults = [claudeResult, openaiResult, grokResult].filter(Boolean);
+    
+    if (availableResults.length < 2) {
       return (
         <div className="text-center py-8">
           <p className="text-muted-foreground">
-            Both AI results are needed for comparison
+            At least two AI results are needed for comparison
           </p>
         </div>
       );
     }
 
-    const claudeScore = calculateQualityScore(claudeResult);
-    const openaiScore = calculateQualityScore(openaiResult);
     const hasAIComparison = session?.comparison;
 
     return (
       <div className="space-y-6">
         {/* AI-Powered Comparison Analysis (if available) */}
         {hasAIComparison && (
-          <Card className="border-purple-200 bg-purple-50">
+          <Card className="border-gray-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-purple-900">
+              <CardTitle className="flex items-center gap-2 text-gray-900">
                 <Scale className="w-5 h-5" />
-                🤖 AI-Powered Professional Analysis
+                AI Comparison Analysis
               </CardTitle>
-              <p className="text-purple-700 text-sm">
+              <p className="text-gray-600 text-sm">
                 Generated by Claude • {session.comparison.metadata.tokensUsed.toLocaleString()} tokens • ${session.comparison.metadata.cost.toFixed(4)}
               </p>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[500px] w-full">
-                <div className="prose prose-sm max-w-none prose-purple">
-                  <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-purple-800 bg-white p-4 rounded border">
+                <div className="prose prose-sm max-w-none">
+                  <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-700 bg-gray-50 p-4 rounded">
                     {session.comparison.content}
                   </pre>
                 </div>
@@ -375,7 +377,7 @@ Please provide a comprehensive research analysis incorporating this additional i
 
         {/* Traditional Comparison Header */}
         <div className="text-center">
-          <h3 className="text-xl font-semibold mb-2">
+          <h3 className="text-xl font-semibold mb-2 font-cooper">
             {hasAIComparison ? 'Quick Metrics Comparison' : 'AI Comparison Analysis'}
           </h3>
           <p className="text-muted-foreground">
@@ -385,41 +387,6 @@ Please provide a comprehensive research analysis incorporating this additional i
             }
           </p>
         </div>
-
-        {/* Score Comparison */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5" />
-              Performance Comparison
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🤖</span>
-                  <span className="font-medium">Claude</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Progress value={claudeScore} className="w-24" />
-                  <span className="text-sm font-medium">{claudeScore}/100</span>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">⚡</span>
-                  <span className="font-medium">OpenAI</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Progress value={openaiScore} className="w-24" />
-                  <span className="text-sm font-medium">{openaiScore}/100</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Detailed Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -511,19 +478,16 @@ Please provide a comprehensive research analysis incorporating this additional i
           </div>
         )}
 
-        {/* Recommendation */}
+        {/* Simple comparison note */}
         <Alert>
           <Scale className="h-4 w-4" />
           <AlertDescription>
             <div className="space-y-2">
               <p className="font-medium">
-                Recommendation: {claudeScore > openaiScore ? 'Claude' : 'OpenAI'} performed better
+                Compare both responses to get comprehensive insights
               </p>
               <p className="text-sm">
-                {claudeScore > openaiScore 
-                  ? "Claude provided a more comprehensive and structured response with better detail."
-                  : "OpenAI delivered more practical insights with actionable recommendations."
-                }
+                Each AI model brings unique perspectives and analysis styles to your research topic.
               </p>
             </div>
           </AlertDescription>
@@ -532,34 +496,52 @@ Please provide a comprehensive research analysis incorporating this additional i
     );
   };
 
-  const renderMobileResults = () => (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="claude" disabled={!claudeResult}>
-          🤖 Claude
-        </TabsTrigger>
-        <TabsTrigger value="openai" disabled={!openaiResult}>
-          ⚡ OpenAI  
-        </TabsTrigger>
-        <TabsTrigger value="compare" disabled={!claudeResult || !openaiResult}>
-          <Scale className="w-4 h-4 mr-1" />
-          Compare
-        </TabsTrigger>
-      </TabsList>
+  const renderMobileResults = () => {
+    const availableResults = [claudeResult, openaiResult, grokResult].filter(Boolean);
+    const tabsCount = availableResults.length + 1; // +1 for compare tab
+    
+    return (
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className={`grid w-full grid-cols-${Math.min(tabsCount, 4)}`}>
+          {claudeResult && (
+            <TabsTrigger value="claude">
+              🤖 Claude
+            </TabsTrigger>
+          )}
+          {openaiResult && (
+            <TabsTrigger value="openai">
+              ⚡ OpenAI  
+            </TabsTrigger>
+          )}
+          {grokResult && (
+            <TabsTrigger value="grok">
+              🚀 Grok
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="compare" disabled={availableResults.length < 2}>
+            <Scale className="w-4 h-4 mr-1" />
+            Compare
+          </TabsTrigger>
+        </TabsList>
 
-      <TabsContent value="claude" className="mt-6">
-        {claudeResult && renderProviderResult(claudeResult, 'claude')}
-      </TabsContent>
+        <TabsContent value="claude" className="mt-6">
+          {claudeResult && renderProviderResult(claudeResult, 'claude')}
+        </TabsContent>
 
-      <TabsContent value="openai" className="mt-6">
-        {openaiResult && renderProviderResult(openaiResult, 'openai')}
-      </TabsContent>
+        <TabsContent value="openai" className="mt-6">
+          {openaiResult && renderProviderResult(openaiResult, 'openai')}
+        </TabsContent>
 
-      <TabsContent value="compare" className="mt-6">
-        {renderComparison()}
-      </TabsContent>
-    </Tabs>
-  );
+        <TabsContent value="grok" className="mt-6">
+          {grokResult && renderProviderResult(grokResult, 'grok')}
+        </TabsContent>
+
+        <TabsContent value="compare" className="mt-6">
+          {renderComparison()}
+        </TabsContent>
+      </Tabs>
+    );
+  };
 
   const renderDesktopResults = () => (
     <div className="space-y-6">
@@ -597,7 +579,8 @@ Please provide a comprehensive research analysis incorporating this additional i
           <CardContent className="pt-4 text-center">
             <div className="text-2xl font-bold text-orange-600">
               {((claudeResult?.content.split(' ').length || 0) + 
-                (openaiResult?.content.split(' ').length || 0)).toLocaleString()}
+                (openaiResult?.content.split(' ').length || 0) + 
+                (grokResult?.content.split(' ').length || 0)).toLocaleString()}
             </div>
             <p className="text-sm font-medium">Words Generated</p>
             <p className="text-xs text-muted-foreground">Combined output</p>
@@ -607,14 +590,23 @@ Please provide a comprehensive research analysis incorporating this additional i
 
       {/* Results Tabs */}
       <Tabs defaultValue="compare" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="claude" disabled={!claudeResult}>
-            🤖 Claude Results
-          </TabsTrigger>
-          <TabsTrigger value="openai" disabled={!openaiResult}>
-            ⚡ OpenAI Results
-          </TabsTrigger>
-          <TabsTrigger value="compare" disabled={!claudeResult || !openaiResult}>
+        <TabsList className="grid w-full grid-cols-4">
+          {claudeResult && (
+            <TabsTrigger value="claude">
+              🤖 Claude Results
+            </TabsTrigger>
+          )}
+          {openaiResult && (
+            <TabsTrigger value="openai">
+              ⚡ OpenAI Results
+            </TabsTrigger>
+          )}
+          {grokResult && (
+            <TabsTrigger value="grok">
+              🚀 Grok Results
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="compare" disabled={[claudeResult, openaiResult, grokResult].filter(Boolean).length < 2}>
             <Scale className="w-4 h-4 mr-1" />
             Compare Results
           </TabsTrigger>
@@ -626,6 +618,10 @@ Please provide a comprehensive research analysis incorporating this additional i
 
         <TabsContent value="openai" className="mt-6">
           {openaiResult && renderProviderResult(openaiResult, 'openai')}
+        </TabsContent>
+
+        <TabsContent value="grok" className="mt-6">
+          {grokResult && renderProviderResult(grokResult, 'grok')}
         </TabsContent>
 
         <TabsContent value="compare" className="mt-6">
@@ -640,18 +636,15 @@ Please provide a comprehensive research analysis incorporating this additional i
     if (!needsClarification) return null;
     
     return (
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 mb-8">
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
         <div className="max-w-4xl mx-auto">
-          {/* Prominent headline */}
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 text-white rounded-full mb-4">
-              <Lightbulb className="w-8 h-8" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Get More Targeted Results
+          {/* Simple headline */}
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2 font-cooper">
+              Refine Your Research Topic
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Your topic has great potential! Adding specific details will unlock deeper, more actionable insights from both AI models.
+            <p className="text-gray-600">
+              The AI models need more specific details to provide targeted analysis.
             </p>
           </div>
 
@@ -862,7 +855,7 @@ Example: Focus on B2B SaaS companies in North America with 50-500 employees, ana
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Results & Comparison</h2>
+            <h2 className="text-2xl font-bold text-gray-900 font-cooper">Results & Comparison</h2>
             <p className="text-muted-foreground">
               Review and compare AI-generated research insights
             </p>
@@ -892,7 +885,7 @@ Example: Focus on B2B SaaS companies in North America with 50-500 employees, ana
         {/* Export Controls */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
+            <CardTitle className="flex items-center gap-2 text-lg font-cooper">
               <Download className="w-5 h-5" />
               Export Results
             </CardTitle>
@@ -941,7 +934,7 @@ Example: Focus on B2B SaaS companies in North America with 50-500 employees, ana
         {/* Final Summary */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 font-cooper">
               <CheckCircle className="w-5 h-5 text-green-600" />
               Research Complete
             </CardTitle>

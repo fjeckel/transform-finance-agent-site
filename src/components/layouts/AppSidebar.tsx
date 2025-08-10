@@ -9,7 +9,8 @@ import {
   Settings, 
   LogIn,
   ChevronRight,
-  MoreHorizontal
+  MoreHorizontal,
+  Search
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -50,6 +51,12 @@ export function AppSidebar() {
       icon: Home,
       url: '/overview',
       isActive: location.pathname === '/overview',
+    },
+    {
+      title: 'Discover',
+      icon: Search,
+      url: '/discover',
+      isActive: location.pathname === '/discover',
     },
     {
       title: t('navigation.content'),
