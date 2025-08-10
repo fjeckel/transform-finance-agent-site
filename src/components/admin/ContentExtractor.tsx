@@ -20,10 +20,13 @@ import {
   Sparkles,
   DollarSign,
   FileUp,
-  Globe
+  Globe,
+  Languages
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import MultiLanguageSelector from './MultiLanguageSelector';
+import LanguagePreview from './LanguagePreview';
 
 interface ExtractionResult {
   extraction_id: string;
@@ -40,6 +43,27 @@ interface ExtractionResult {
   processing_time: number;
   cost_usd: number;
   validation_errors: string[];
+  source_language?: string;
+}
+
+interface TranslationResult {
+  language_code: string;
+  translated_fields: Record<string, any>;
+  confidence_scores: Record<string, number>;
+  translation_status: string;
+  quality_score: number;
+  processing_time_ms: number;
+  translation_cost_usd: number;
+  validation_errors: string[];
+  created_at: string;
+}
+
+interface Language {
+  code: string;
+  name: string;
+  native_name: string;
+  flag_emoji: string;
+  is_default: boolean;
 }
 
 interface ExtractionTemplate {
@@ -68,13 +92,22 @@ const ContentExtractor: React.FC = () => {
   const [templates, setTemplates] = useState<ExtractionTemplate[]>([]);
   const [episodes, setEpisodes] = useState<Array<{id: string, title: string}>>([]);
   
+  // Multilingual state
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['en']);
+  const [sourceLanguage, setSourceLanguage] = useState<string>('auto');
+  const [languages, setLanguages] = useState<Language[]>([]);
+  const [translationResults, setTranslationResults] = useState<Record<string, TranslationResult>>({});
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [multilingualEnabled, setMultilingualEnabled] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  // Load templates and episodes on component mount
+  // Load templates, episodes, and languages on component mount
   React.useEffect(() => {
     loadTemplates();
     loadEpisodes();
+    loadLanguages();
   }, []);
 
   const loadTemplates = async () => {
@@ -110,6 +143,26 @@ const ContentExtractor: React.FC = () => {
       setEpisodes(data || []);
     } catch (error) {
       console.error('Error loading episodes:', error);
+    }
+  };
+
+  const loadLanguages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('languages')
+        .select('code, name, native_name, flag_emoji, is_default')
+        .eq('is_active', true)
+        .order('sort_order');
+
+      if (error) {
+        console.warn('Languages table not available yet:', error);
+        setLanguages([]);
+        return;
+      }
+      setLanguages(data || []);
+    } catch (error) {
+      console.error('Error loading languages:', error);
+      setLanguages([]);
     }
   };
 
@@ -230,6 +283,16 @@ const ContentExtractor: React.FC = () => {
         description: `Quality Score: ${(result.quality_score * 100).toFixed(1)}% | Cost: $${result.cost_usd.toFixed(4)}`,
       });
 
+      // Auto-translate if multilingual is enabled
+      if (multilingualEnabled && selectedLanguages.length > 0) {
+        const targetLanguages = selectedLanguages.filter(lang => 
+          lang !== (result.source_language || sourceLanguage)
+        );
+        if (targetLanguages.length > 0) {
+          setTimeout(() => translateContent(result.extraction_id, targetLanguages), 1000);
+        }
+      }
+
     } catch (error) {
       console.error('Extraction error:', error);
       toast({
@@ -263,6 +326,27 @@ const ContentExtractor: React.FC = () => {
 
       if (error) throw error;
 
+      // Apply translations to episodes_translations table
+      if (Object.keys(translationResults).length > 0) {
+        for (const [languageCode, translation] of Object.entries(translationResults)) {
+          if (translation.translation_status === 'completed') {
+            await supabase
+              .from('episodes_translations')
+              .upsert({
+                episode_id: episodeId,
+                language_code: languageCode,
+                title: translation.translated_fields.title,
+                description: translation.translated_fields.description,
+                content: translation.translated_fields.content,
+                summary: translation.translated_fields.summary,
+                translation_status: 'completed',
+                translation_method: 'ai',
+                translation_quality_score: translation.quality_score
+              });
+          }
+        }
+      }
+
       // Mark extraction as approved
       await supabase
         .from('content_extractions')
@@ -274,7 +358,9 @@ const ContentExtractor: React.FC = () => {
 
       toast({
         title: "Episode Updated",
-        description: "The extracted content has been applied to the episode successfully.",
+        description: multilingualEnabled 
+          ? `Episode updated with content in ${Object.keys(translationResults).length + 1} languages.`
+          : "The extracted content has been applied to the episode successfully.",
       });
 
     } catch (error) {
@@ -285,6 +371,126 @@ const ContentExtractor: React.FC = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const translateContent = async (extractionId: string, targetLanguages: string[]) => {
+    if (!extractionId || targetLanguages.length === 0) return;
+
+    try {
+      setIsTranslating(true);
+      setProcessingStage('Translating content...');
+      setProcessingProgress(0);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Authentication required');
+      }
+
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/translate-extraction-content`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          extraction_id: extractionId,
+          target_languages: targetLanguages,
+          source_language: sourceLanguage,
+          ai_provider: 'openai',
+          processing_options: {
+            parallel_processing: true,
+            quality_validation: true,
+            auto_approve: false
+          }
+        })
+      });
+
+      setProcessingProgress(80);
+      setProcessingStage('Processing translations...');
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Translation API error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Translation failed');
+      }
+
+      setProcessingProgress(100);
+      setTranslationResults(result.translations || {});
+
+      toast({
+        title: "Content Translated Successfully!",
+        description: `Translated to ${targetLanguages.length} languages | Total Cost: $${result.total_cost.toFixed(4)}`,
+      });
+
+    } catch (error) {
+      console.error('Translation error:', error);
+      toast({
+        title: "Translation Failed",
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        variant: "destructive",
+      });
+    } finally {
+      setIsTranslating(false);
+      setTimeout(() => {
+        setProcessingProgress(0);
+        setProcessingStage('');
+      }, 2000);
+    }
+  };
+
+  const handleFieldEdit = (languageCode: string, field: string, value: string) => {
+    setTranslationResults(prev => ({
+      ...prev,
+      [languageCode]: {
+        ...prev[languageCode],
+        translated_fields: {
+          ...prev[languageCode]?.translated_fields,
+          [field]: value
+        }
+      }
+    }));
+  };
+
+  const handleTranslationSave = async (languageCode: string) => {
+    const translation = translationResults[languageCode];
+    if (!translation || !extractionResult) return;
+
+    try {
+      const { error } = await supabase
+        .from('extraction_translations')
+        .update({
+          translated_fields: translation.translated_fields,
+          translation_status: 'review_needed'
+        })
+        .eq('extraction_id', extractionResult.extraction_id)
+        .eq('language_code', languageCode);
+
+      if (error) throw error;
+
+      toast({
+        title: "Translation Updated",
+        description: `Changes saved for ${languages.find(l => l.code === languageCode)?.native_name}`,
+      });
+    } catch (error) {
+      console.error('Error saving translation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save translation changes",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getContentLength = () => {
+    if (activeTab === 'text') return textContent.length;
+    if (activeTab === 'file' && selectedFile) return selectedFile.size;
+    if (activeTab === 'url') return urlInput.length;
+    return 0;
   };
 
   const getQualityBadgeColor = (score: number) => {
@@ -319,6 +525,17 @@ const ContentExtractor: React.FC = () => {
           </Badge>
         </div>
       </div>
+
+      {/* Multilingual Language Selection */}
+      {multilingualEnabled && (
+        <MultiLanguageSelector
+          selectedLanguages={selectedLanguages}
+          onLanguagesChange={setSelectedLanguages}
+          sourceLanguage={sourceLanguage}
+          onSourceLanguageChange={setSourceLanguage}
+          contentLength={getContentLength()}
+        />
+      )}
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Input Section */}
@@ -461,6 +678,25 @@ const ContentExtractor: React.FC = () => {
               </div>
             </div>
 
+            {/* Multilingual Toggle */}
+            <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <Languages className="w-5 h-5 text-blue-600" />
+                <div>
+                  <div className="text-sm font-medium">Multilingual Extraction</div>
+                  <div className="text-xs text-gray-600">Extract and translate content into multiple languages</div>
+                </div>
+              </div>
+              <Button
+                variant={multilingualEnabled ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMultilingualEnabled(!multilingualEnabled)}
+                className={multilingualEnabled ? 'bg-blue-600 hover:bg-blue-700' : ''}
+              >
+                {multilingualEnabled ? 'Enabled' : 'Enable'}
+              </Button>
+            </div>
+
             {/* Target Episode */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Target Episode (Optional)</label>
@@ -504,13 +740,18 @@ const ContentExtractor: React.FC = () => {
             </Button>
 
             {/* Processing Progress */}
-            {isProcessing && (
+            {(isProcessing || isTranslating) && (
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>{processingStage}</span>
                   <span>{processingProgress}%</span>
                 </div>
                 <Progress value={processingProgress} />
+                {isTranslating && (
+                  <div className="text-xs text-blue-600 text-center">
+                    🌐 Translating content to {selectedLanguages.length} languages...
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
@@ -522,6 +763,11 @@ const ContentExtractor: React.FC = () => {
             <CardTitle className="flex items-center gap-2">
               <Eye className="w-5 h-5" />
               Extraction Results
+              {multilingualEnabled && Object.keys(translationResults).length > 0 && (
+                <Badge variant="secondary" className="ml-2">
+                  🌐 {Object.keys(translationResults).length + 1} languages
+                </Badge>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -632,6 +878,20 @@ const ContentExtractor: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Multilingual Preview */}
+      {multilingualEnabled && extractionResult && (
+        <LanguagePreview
+          extractionResult={extractionResult}
+          translationResults={translationResults}
+          languages={languages}
+          selectedLanguages={selectedLanguages}
+          sourceLanguage={extractionResult.source_language || sourceLanguage}
+          isTranslating={isTranslating}
+          onFieldEdit={handleFieldEdit}
+          onTranslationSave={handleTranslationSave}
+        />
+      )}
     </div>
   );
 };

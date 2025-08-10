@@ -21,6 +21,7 @@ import SEOHead from '@/components/SEOHead';
 import { useEpisodes } from '@/hooks/useEpisodes';
 import { useInsights } from '@/hooks/useInsights';
 import { usePdfs } from '@/hooks/usePdfs';
+import { useYouTubeVideos, type YouTubeVideo } from '@/hooks/useYouTubeVideos';
 import { SafeHtmlRenderer } from '@/lib/content-security';
 import { useGlobalSearch } from '@/hooks/useGlobalSearch';
 import { SimplePDFCard } from '@/components/purchase/SimplePurchaseButton';
@@ -819,75 +820,8 @@ function InsightCard({ insight }: { insight: any }) {
 
 // YouTube Videos Section Component with Lazy Loading
 function YouTubeVideosSection() {
-  const [videos, setVideos] = useState<YouTubeVideo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { videos, loading, error, refreshVideos } = useYouTubeVideos(true, 6); // Only shorts, limit to 6
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
-
-  // Mock data for YouTube videos - in production, fetch from API or Supabase
-  const mockVideos: YouTubeVideo[] = [
-    {
-      id: 'video1',
-      title: 'CFO Transformation in 60 Sekunden',
-      thumbnail: 'https://img.youtube.com/vi/nBQKMPWrUgc/maxresdefault.jpg',
-      videoId: 'nBQKMPWrUgc',
-      duration: '0:58',
-      views: '1.2K',
-      publishedAt: '2 Tage',
-    },
-    {
-      id: 'video2', 
-      title: 'KI im Controlling - Game Changer?',
-      thumbnail: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
-      videoId: 'dQw4w9WgXcQ',
-      duration: '0:45',
-      views: '892',
-      publishedAt: '5 Tage',
-    },
-    {
-      id: 'video3',
-      title: 'Excel vs. Modern FP&A Tools',
-      thumbnail: 'https://img.youtube.com/vi/jNQXAC9IVRw/maxresdefault.jpg',
-      videoId: 'jNQXAC9IVRw',
-      duration: '1:00',
-      views: '2.1K',
-      publishedAt: '1 Woche',
-    },
-    {
-      id: 'video4',
-      title: 'Finance Automation Basics',
-      thumbnail: 'https://img.youtube.com/vi/ZZ5LpwO-An4/maxresdefault.jpg',
-      videoId: 'ZZ5LpwO-An4',
-      duration: '0:52',
-      views: '1.5K',
-      publishedAt: '2 Wochen',
-    },
-    {
-      id: 'video5',
-      title: 'Real-Time Reporting Setup',
-      thumbnail: 'https://img.youtube.com/vi/oHg5SJYRHA0/maxresdefault.jpg',
-      videoId: 'oHg5SJYRHA0',
-      duration: '0:59',
-      views: '3.2K',
-      publishedAt: '3 Wochen',
-    },
-    {
-      id: 'video6',
-      title: 'Treasury Management Tipps',
-      thumbnail: 'https://img.youtube.com/vi/9bZkp7q19f0/maxresdefault.jpg',
-      videoId: '9bZkp7q19f0',
-      duration: '0:48',
-      views: '987',
-      publishedAt: '1 Monat',
-    },
-  ];
-
-  useEffect(() => {
-    // Simulate API loading
-    setTimeout(() => {
-      setVideos(mockVideos);
-      setLoading(false);
-    }, 1000);
-  }, []);
 
   if (loading) {
     return (
@@ -901,6 +835,23 @@ function YouTubeVideosSection() {
             </CardContent>
           </Card>
         ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center">
+        <div className="text-muted-foreground mb-4">
+          YouTube Videos konnten nicht geladen werden
+        </div>
+        <Button 
+          onClick={refreshVideos}
+          variant="outline" 
+          size="sm"
+        >
+          Erneut versuchen
+        </Button>
       </div>
     );
   }
@@ -951,15 +902,6 @@ function YouTubeVideosSection() {
 }
 
 // YouTube Video Card Component with Lazy Loading
-interface YouTubeVideo {
-  id: string;
-  title: string;
-  thumbnail: string;
-  videoId: string;
-  duration: string;
-  views: string;
-  publishedAt: string;
-}
 
 function YouTubeVideoCard({ video, onPlay }: { video: YouTubeVideo; onPlay: () => void }) {
   const [imageLoaded, setImageLoaded] = useState(false);
