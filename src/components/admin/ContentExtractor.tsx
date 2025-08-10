@@ -444,12 +444,18 @@ const ContentExtractor: React.FC = () => {
                     <SelectValue placeholder="Auto-detect" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="auto-detect">Auto-detect</SelectItem>
-                    {templates.map((template) => (
-                      <SelectItem key={template.id} value={template.id}>
-                        {template.name}
+                    <SelectItem value="auto-detect">Auto-detect (Default Podcast Template)</SelectItem>
+                    {templates.length === 0 ? (
+                      <SelectItem value="no-templates" disabled>
+                        No custom templates available
                       </SelectItem>
-                    ))}
+                    ) : (
+                      templates.map((template) => (
+                        <SelectItem key={template.id} value={template.id}>
+                          {template.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -595,19 +601,28 @@ const ContentExtractor: React.FC = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    onClick={applyToEpisode}
-                    disabled={!episodeId || episodeId === 'new-episode' || extractionResult.validation_errors.length > 0}
-                    className="flex items-center gap-2"
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    Apply to Episode
-                  </Button>
+                <div className="space-y-3 pt-4">
+                  {!episodeId || episodeId === 'new-episode' ? (
+                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="text-sm text-blue-800">
+                        💡 <strong>Tip:</strong> Select an existing episode above to apply the extracted content directly to it.
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={applyToEpisode}
+                      disabled={extractionResult.validation_errors.length > 0}
+                      className="flex items-center gap-2 w-full"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      Apply to Selected Episode
+                    </Button>
+                  )}
+                  
                   <Button
                     variant="outline"
                     onClick={() => setExtractionResult(null)}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 w-full"
                   >
                     Clear Results
                   </Button>

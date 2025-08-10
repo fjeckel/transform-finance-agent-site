@@ -1,440 +1,495 @@
+// AIProviderService - Unified AI provider integration for Claude, OpenAI, and Grok
+// Handles message generation, cost calculation, and response processing
+
+import { supabase } from '@/integrations/supabase/client';
 import { AIProvider } from '@/types/research';
-import { MessageContent } from '@/types/conversation';
+import { ConversationMessage, MessageContent } from '@/types/conversation';
+import { ErrorHandler } from './errorHandler';
 
-/**
- * AI Provider Service for integrating with Claude, OpenAI, and Grok
- * 
- * Provides unified interface for:
- * - Token counting
- * - Cost calculation
- * - API calls with retry logic
- * - Response formatting
- */
+interface AIProviderConfig {
+  provider: AIProvider;
+  model: string;
+  maxTokens: number;
+  temperature: number;
+  systemPrompt?: string;
+}
 
-export interface AIResponse {
-  content: MessageContent;
+interface AIResponse {
+  content: string;
+  model: string;
   usage: {
     promptTokens: number;
     completionTokens: number;
     totalTokens: number;
   };
   cost: number;
-  processingTimeMs: number;
-  modelName: string;
-  provider: AIProvider;
+  processingTime: number;
   metadata?: Record<string, any>;
 }
 
-export interface AIRequestOptions {
-  provider: AIProvider;
-  messages: Array<{
-    role: 'user' | 'assistant' | 'system';
-    content: string;
-  }>;
-  model?: string;
-  temperature?: number;
-  maxTokens?: number;
-  systemPrompt?: string;
-  researchContext?: any;
-  retryCount?: number;
+interface AIProviderPricing {
+  inputTokenPrice: number;  // per 1000 tokens
+  outputTokenPrice: number; // per 1000 tokens
 }
 
-/**
- * Token counting and cost calculation utilities
- */
-export class TokenCounter {
-  /**
-   * Estimate tokens for text (rough approximation)
-   */
-  static estimateTokens(text: string): number {
-    // Rough estimation: ~4 characters per token for English text
-    return Math.ceil(text.length / 4);
+// Pricing data for different AI providers (as of 2024)
+const AI_PROVIDER_PRICING: Record<string, AIProviderPricing> = {
+  // Claude models
+  'claude-3-5-sonnet-20241022': { inputTokenPrice: 0.003, outputTokenPrice: 0.015 },
+  'claude-3-5-haiku-20241022': { inputTokenPrice: 0.0008, outputTokenPrice: 0.004 },
+  'claude-3-opus-20240229': { inputTokenPrice: 0.015, outputTokenPrice: 0.075 },
+  
+  // OpenAI models
+  'gpt-4o': { inputTokenPrice: 0.0025, outputTokenPrice: 0.01 },
+  'gpt-4o-mini': { inputTokenPrice: 0.00015, outputTokenPrice: 0.0006 },
+  'gpt-4-turbo': { inputTokenPrice: 0.01, outputTokenPrice: 0.03 },
+  'gpt-4': { inputTokenPrice: 0.03, outputTokenPrice: 0.06 },
+  'gpt-3.5-turbo': { inputTokenPrice: 0.0005, outputTokenPrice: 0.0015 },
+  
+  // Grok models
+  'grok-beta': { inputTokenPrice: 0.005, outputTokenPrice: 0.015 },
+  'grok-vision-beta': { inputTokenPrice: 0.01, outputTokenPrice: 0.03 }
+};
+
+// Recommended models for different use cases
+const MODEL_RECOMMENDATIONS = {
+  research: {
+    claude: 'claude-3-5-sonnet-20241022',
+    openai: 'gpt-4o',
+    grok: 'grok-beta'
+  },
+  chat: {
+    claude: 'claude-3-5-haiku-20241022',
+    openai: 'gpt-4o-mini',
+    grok: 'grok-beta'
+  },
+  analysis: {
+    claude: 'claude-3-5-sonnet-20241022',
+    openai: 'gpt-4o',
+    grok: 'grok-beta'
   }
+};
 
-  /**
-   * Calculate cost based on provider and usage
-   */
-  static calculateCost(provider: AIProvider, promptTokens: number, completionTokens: number, model?: string): number {
-    const costs = this.getProviderCosts();
-    const providerCost = costs[provider];
-    
-    if (!providerCost) return 0;
-
-    // Use model-specific pricing if available
-    const modelCost = model && providerCost.models?.[model] ? providerCost.models[model] : providerCost.default;
-    
-    const promptCost = (promptTokens / 1000) * modelCost.input;
-    const completionCost = (completionTokens / 1000) * modelCost.output;
-    
-    return promptCost + completionCost;
-  }
-
-  private static getProviderCosts() {
-    return {
-      claude: {
-        default: {
-          input: 0.0015,  // $1.50 per 1K input tokens (Claude-3.5-Sonnet)
-          output: 0.0075  // $7.50 per 1K output tokens
-        },
-        models: {
-          'claude-3-5-sonnet-20241022': {
-            input: 0.003,   // $3.00 per 1K tokens
-            output: 0.015   // $15.00 per 1K tokens
-          },
-          'claude-3-haiku-20240307': {
-            input: 0.00025, // $0.25 per 1K tokens
-            output: 0.00125 // $1.25 per 1K tokens
-          }
-        }
-      },
-      openai: {
-        default: {
-          input: 0.0015,  // GPT-4 Turbo
-          output: 0.002
-        },
-        models: {
-          'gpt-4o': {
-            input: 0.005,   // $5.00 per 1K input tokens
-            output: 0.015   // $15.00 per 1K output tokens
-          },
-          'gpt-4o-mini': {
-            input: 0.00015, // $0.15 per 1K input tokens
-            output: 0.0006  // $0.60 per 1K output tokens
-          },
-          'gpt-4-turbo': {
-            input: 0.01,    // $10.00 per 1K input tokens
-            output: 0.03    // $30.00 per 1K output tokens
-          }
-        }
-      },
-      grok: {
-        default: {
-          input: 0.0005,  // Estimated - Grok pricing not public yet
-          output: 0.0015
-        },
-        models: {
-          'grok-beta': {
-            input: 0.0005,
-            output: 0.0015
-          }
-        }
-      }
-    };
-  }
-}
-
-/**
- * Main AI Provider Service
- */
 export class AIProviderService {
-  private static instance: AIProviderService;
-  private retryDelays = [1000, 2000, 4000, 8000]; // Exponential backoff
-
-  static getInstance(): AIProviderService {
-    if (!AIProviderService.instance) {
-      AIProviderService.instance = new AIProviderService();
-    }
-    return AIProviderService.instance;
-  }
+  private errorHandler = new ErrorHandler('AIProviderService');
 
   /**
-   * Send message to AI provider with unified response
+   * Generate AI response using specified provider
    */
-  async sendMessage(options: AIRequestOptions): Promise<AIResponse> {
+  async generateResponse(
+    config: AIProviderConfig,
+    messages: Array<{ role: string; content: string }>,
+    context?: {
+      conversationId: string;
+      researchStep?: string;
+      wizardStep?: number;
+    }
+  ): Promise<AIResponse> {
     const startTime = Date.now();
     
     try {
       let response: AIResponse;
-      
-      switch (options.provider) {
+
+      switch (config.provider) {
         case 'claude':
-          response = await this.sendToClaude(options);
+          response = await this.callClaude(config, messages, context);
           break;
         case 'openai':
-          response = await this.sendToOpenAI(options);
+          response = await this.callOpenAI(config, messages, context);
           break;
         case 'grok':
-          response = await this.sendToGrok(options);
+          response = await this.callGrok(config, messages, context);
           break;
         default:
-          throw new Error(`Unsupported AI provider: ${options.provider}`);
+          throw this.errorHandler.createError(
+            'AI_PROVIDER_ERROR',
+            `Unsupported AI provider: ${config.provider}`
+          );
       }
 
-      response.processingTimeMs = Date.now() - startTime;
+      response.processingTime = Date.now() - startTime;
       return response;
-      
+
     } catch (error) {
-      const processingTimeMs = Date.now() - startTime;
-      
-      // Retry logic for transient errors
-      if (this.shouldRetry(error) && (options.retryCount || 0) < this.retryDelays.length) {
-        const retryCount = (options.retryCount || 0) + 1;
-        const delay = this.retryDelays[retryCount - 1];
-        
-        console.warn(`AI request failed, retrying in ${delay}ms (attempt ${retryCount}):`, error);
-        
-        await this.delay(delay);
-        return this.sendMessage({ ...options, retryCount });
-      }
-      
-      throw new Error(`AI request failed after ${options.retryCount || 0} retries: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw this.errorHandler.handleError(error, {
+        operation: 'generateResponse',
+        provider: config.provider
+      });
     }
   }
 
   /**
-   * Send message to Claude via Supabase Edge Function
+   * Get recommended model for provider and use case
    */
-  private async sendToClaude(options: AIRequestOptions): Promise<AIResponse> {
-    const { supabase } = await import('@/integrations/supabase/client');
-    
-    const payload = {
-      messages: options.messages,
-      model: options.model || 'claude-3-5-sonnet-20241022',
-      temperature: options.temperature || 0.7,
-      max_tokens: options.maxTokens || 4096,
-      system: options.systemPrompt,
-      research_context: options.researchContext
-    };
-
-    const { data, error } = await supabase.functions.invoke('ai-research-claude', {
-      body: payload
-    });
-
-    if (error) throw error;
-    if (!data?.success) throw new Error(data?.error || 'Claude API request failed');
-
-    const result = data.result;
-    
-    return {
-      content: {
-        text: result.content,
-        metadata: result.metadata
-      },
-      usage: {
-        promptTokens: result.usage?.input_tokens || 0,
-        completionTokens: result.usage?.output_tokens || 0,
-        totalTokens: (result.usage?.input_tokens || 0) + (result.usage?.output_tokens || 0)
-      },
-      cost: TokenCounter.calculateCost(
-        'claude', 
-        result.usage?.input_tokens || 0, 
-        result.usage?.output_tokens || 0,
-        payload.model
-      ),
-      processingTimeMs: 0, // Will be set by caller
-      modelName: payload.model,
-      provider: 'claude',
-      metadata: {
-        stop_reason: result.stop_reason,
-        stop_sequence: result.stop_sequence
-      }
-    };
+  getRecommendedModel(
+    provider: AIProvider, 
+    useCase: 'research' | 'chat' | 'analysis' = 'research'
+  ): string {
+    return MODEL_RECOMMENDATIONS[useCase][provider];
   }
 
   /**
-   * Send message to OpenAI via Supabase Edge Function
+   * Calculate cost for token usage
    */
-  private async sendToOpenAI(options: AIRequestOptions): Promise<AIResponse> {
-    const { supabase } = await import('@/integrations/supabase/client');
-    
-    const payload = {
-      messages: options.messages,
-      model: options.model || 'gpt-4o-mini',
-      temperature: options.temperature || 0.7,
-      max_tokens: options.maxTokens || 4096,
-      research_context: options.researchContext
-    };
-
-    // Add system message if provided
-    if (options.systemPrompt) {
-      payload.messages = [
-        { role: 'system', content: options.systemPrompt },
-        ...options.messages
-      ];
+  calculateCost(model: string, promptTokens: number, completionTokens: number): number {
+    const pricing = AI_PROVIDER_PRICING[model];
+    if (!pricing) {
+      console.warn(`No pricing data for model: ${model}`);
+      return 0;
     }
 
-    const { data, error } = await supabase.functions.invoke('ai-research-openai', {
-      body: payload
-    });
-
-    if (error) throw error;
-    if (!data?.success) throw new Error(data?.error || 'OpenAI API request failed');
-
-    const result = data.result;
-    const choice = result.choices?.[0];
+    const inputCost = (promptTokens / 1000) * pricing.inputTokenPrice;
+    const outputCost = (completionTokens / 1000) * pricing.outputTokenPrice;
     
-    if (!choice) throw new Error('No response from OpenAI');
-    
-    return {
-      content: {
-        text: choice.message.content,
-        metadata: {
-          finish_reason: choice.finish_reason,
-          index: choice.index
-        }
-      },
-      usage: {
-        promptTokens: result.usage?.prompt_tokens || 0,
-        completionTokens: result.usage?.completion_tokens || 0,
-        totalTokens: result.usage?.total_tokens || 0
-      },
-      cost: TokenCounter.calculateCost(
-        'openai', 
-        result.usage?.prompt_tokens || 0, 
-        result.usage?.completion_tokens || 0,
-        payload.model
-      ),
-      processingTimeMs: 0, // Will be set by caller
-      modelName: payload.model,
-      provider: 'openai',
-      metadata: {
-        model: result.model,
-        created: result.created,
-        system_fingerprint: result.system_fingerprint
-      }
-    };
-  }
-
-  /**
-   * Send message to Grok (x.ai) via Supabase Edge Function
-   */
-  private async sendToGrok(options: AIRequestOptions): Promise<AIResponse> {
-    const { supabase } = await import('@/integrations/supabase/client');
-    
-    const payload = {
-      messages: options.messages,
-      model: options.model || 'grok-beta',
-      temperature: options.temperature || 0.7,
-      max_tokens: options.maxTokens || 4096,
-      research_context: options.researchContext
-    };
-
-    // Add system message if provided
-    if (options.systemPrompt) {
-      payload.messages = [
-        { role: 'system', content: options.systemPrompt },
-        ...options.messages
-      ];
-    }
-
-    const { data, error } = await supabase.functions.invoke('ai-research-grok', {
-      body: payload
-    });
-
-    if (error) throw error;
-    if (!data?.success) throw new Error(data?.error || 'Grok API request failed');
-
-    const result = data.result;
-    const choice = result.choices?.[0];
-    
-    if (!choice) throw new Error('No response from Grok');
-    
-    return {
-      content: {
-        text: choice.message.content,
-        metadata: {
-          finish_reason: choice.finish_reason,
-          index: choice.index
-        }
-      },
-      usage: {
-        promptTokens: result.usage?.prompt_tokens || 0,
-        completionTokens: result.usage?.completion_tokens || 0,
-        totalTokens: result.usage?.total_tokens || 0
-      },
-      cost: TokenCounter.calculateCost(
-        'grok', 
-        result.usage?.prompt_tokens || 0, 
-        result.usage?.completion_tokens || 0,
-        payload.model
-      ),
-      processingTimeMs: 0, // Will be set by caller
-      modelName: payload.model,
-      provider: 'grok',
-      metadata: {
-        model: result.model,
-        created: result.created
-      }
-    };
-  }
-
-  /**
-   * Check if error should trigger a retry
-   */
-  private shouldRetry(error: any): boolean {
-    if (typeof error === 'string') {
-      return error.includes('rate limit') || 
-             error.includes('timeout') || 
-             error.includes('network') ||
-             error.includes('503') ||
-             error.includes('502');
-    }
-    
-    if (error instanceof Error) {
-      return error.message.includes('rate limit') ||
-             error.message.includes('timeout') ||
-             error.message.includes('network') ||
-             error.message.includes('503') ||
-             error.message.includes('502');
-    }
-    
-    return false;
-  }
-
-  /**
-   * Delay helper for retry logic
-   */
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return Math.round((inputCost + outputCost) * 10000) / 10000; // Round to 4 decimal places
   }
 
   /**
    * Get available models for a provider
    */
   getAvailableModels(provider: AIProvider): string[] {
-    const models = {
-      claude: [
-        'claude-3-5-sonnet-20241022',
-        'claude-3-haiku-20240307',
-        'claude-3-opus-20240229'
-      ],
-      openai: [
-        'gpt-4o',
-        'gpt-4o-mini',
-        'gpt-4-turbo',
-        'gpt-3.5-turbo'
-      ],
-      grok: [
-        'grok-beta',
-        'grok-2-1212'
-      ]
-    };
+    const models = Object.keys(AI_PROVIDER_PRICING);
     
-    return models[provider] || [];
+    switch (provider) {
+      case 'claude':
+        return models.filter(m => m.startsWith('claude-'));
+      case 'openai':
+        return models.filter(m => m.startsWith('gpt-'));
+      case 'grok':
+        return models.filter(m => m.startsWith('grok-'));
+      default:
+        return [];
+    }
   }
 
   /**
-   * Get recommended model for a provider based on use case
+   * Validate provider configuration
    */
-  getRecommendedModel(provider: AIProvider, useCase: 'speed' | 'quality' | 'cost' = 'quality'): string {
-    const recommendations = {
-      claude: {
-        speed: 'claude-3-haiku-20240307',
-        quality: 'claude-3-5-sonnet-20241022',
-        cost: 'claude-3-haiku-20240307'
-      },
-      openai: {
-        speed: 'gpt-4o-mini',
-        quality: 'gpt-4o',
-        cost: 'gpt-4o-mini'
-      },
-      grok: {
-        speed: 'grok-beta',
-        quality: 'grok-2-1212',
-        cost: 'grok-beta'
-      }
-    };
+  validateConfig(config: AIProviderConfig): boolean {
+    const availableModels = this.getAvailableModels(config.provider);
     
-    return recommendations[provider]?.[useCase] || this.getAvailableModels(provider)[0];
+    if (!availableModels.includes(config.model)) {
+      throw this.errorHandler.createError(
+        'VALIDATION_ERROR',
+        `Model ${config.model} not available for provider ${config.provider}`
+      );
+    }
+
+    if (config.maxTokens < 1 || config.maxTokens > 8192) {
+      throw this.errorHandler.createError(
+        'VALIDATION_ERROR',
+        'maxTokens must be between 1 and 8192'
+      );
+    }
+
+    if (config.temperature < 0 || config.temperature > 2) {
+      throw this.errorHandler.createError(
+        'VALIDATION_ERROR',
+        'temperature must be between 0 and 2'
+      );
+    }
+
+    return true;
+  }
+
+  /**
+   * Format messages for different providers
+   */
+  formatMessagesForProvider(
+    provider: AIProvider,
+    messages: Array<{ role: string; content: string }>,
+    systemPrompt?: string
+  ): any[] {
+    switch (provider) {
+      case 'claude':
+        return this.formatForClaude(messages, systemPrompt);
+      case 'openai':
+        return this.formatForOpenAI(messages, systemPrompt);
+      case 'grok':
+        return this.formatForGrok(messages, systemPrompt);
+      default:
+        return messages;
+    }
+  }
+
+  // Private provider-specific methods
+
+  private async callClaude(
+    config: AIProviderConfig,
+    messages: Array<{ role: string; content: string }>,
+    context?: any
+  ): Promise<AIResponse> {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      throw this.errorHandler.createError(
+        'AUTHENTICATION_ERROR',
+        'Authentication required for Claude API'
+      );
+    }
+
+    const formattedMessages = this.formatForClaude(messages, config.systemPrompt);
+    
+    const response = await fetch(`${supabase.supabaseUrl}/functions/v1/ai-research-claude`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: config.model || 'claude-3-5-sonnet-20241022',
+        messages: formattedMessages,
+        max_tokens: config.maxTokens,
+        temperature: config.temperature,
+        system: config.systemPrompt,
+        metadata: context
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Claude API error: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Claude API call failed');
+    }
+
+    const usage = result.usage || {};
+    const cost = this.calculateCost(
+      config.model || 'claude-3-5-sonnet-20241022',
+      usage.input_tokens || 0,
+      usage.output_tokens || 0
+    );
+
+    return {
+      content: result.content || '',
+      model: config.model || 'claude-3-5-sonnet-20241022',
+      usage: {
+        promptTokens: usage.input_tokens || 0,
+        completionTokens: usage.output_tokens || 0,
+        totalTokens: (usage.input_tokens || 0) + (usage.output_tokens || 0)
+      },
+      cost,
+      processingTime: 0,
+      metadata: result.metadata || {}
+    };
+  }
+
+  private async callOpenAI(
+    config: AIProviderConfig,
+    messages: Array<{ role: string; content: string }>,
+    context?: any
+  ): Promise<AIResponse> {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      throw this.errorHandler.createError(
+        'AUTHENTICATION_ERROR',
+        'Authentication required for OpenAI API'
+      );
+    }
+
+    const formattedMessages = this.formatForOpenAI(messages, config.systemPrompt);
+    
+    const response = await fetch(`${supabase.supabaseUrl}/functions/v1/ai-research-openai`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: config.model || 'gpt-4o',
+        messages: formattedMessages,
+        max_tokens: config.maxTokens,
+        temperature: config.temperature,
+        metadata: context
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'OpenAI API call failed');
+    }
+
+    const usage = result.usage || {};
+    const cost = this.calculateCost(
+      config.model || 'gpt-4o',
+      usage.prompt_tokens || 0,
+      usage.completion_tokens || 0
+    );
+
+    return {
+      content: result.content || '',
+      model: config.model || 'gpt-4o',
+      usage: {
+        promptTokens: usage.prompt_tokens || 0,
+        completionTokens: usage.completion_tokens || 0,
+        totalTokens: usage.total_tokens || 0
+      },
+      cost,
+      processingTime: 0,
+      metadata: result.metadata || {}
+    };
+  }
+
+  private async callGrok(
+    config: AIProviderConfig,
+    messages: Array<{ role: string; content: string }>,
+    context?: any
+  ): Promise<AIResponse> {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      throw this.errorHandler.createError(
+        'AUTHENTICATION_ERROR',
+        'Authentication required for Grok API'
+      );
+    }
+
+    const formattedMessages = this.formatForGrok(messages, config.systemPrompt);
+    
+    const response = await fetch(`${supabase.supabaseUrl}/functions/v1/ai-research-grok`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: config.model || 'grok-beta',
+        messages: formattedMessages,
+        max_tokens: config.maxTokens,
+        temperature: config.temperature,
+        metadata: context
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Grok API error: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Grok API call failed');
+    }
+
+    const usage = result.usage || {};
+    const cost = this.calculateCost(
+      config.model || 'grok-beta',
+      usage.prompt_tokens || 0,
+      usage.completion_tokens || 0
+    );
+
+    return {
+      content: result.content || '',
+      model: config.model || 'grok-beta',
+      usage: {
+        promptTokens: usage.prompt_tokens || 0,
+        completionTokens: usage.completion_tokens || 0,
+        totalTokens: usage.total_tokens || 0
+      },
+      cost,
+      processingTime: 0,
+      metadata: result.metadata || {}
+    };
+  }
+
+  // Message formatting methods
+
+  private formatForClaude(
+    messages: Array<{ role: string; content: string }>,
+    systemPrompt?: string
+  ): any[] {
+    // Claude expects alternating user/assistant messages
+    const formatted = messages.map(msg => ({
+      role: msg.role === 'system' ? 'user' : msg.role,
+      content: msg.content
+    }));
+
+    // Add system prompt as first message if provided
+    if (systemPrompt) {
+      formatted.unshift({
+        role: 'user',
+        content: `System: ${systemPrompt}\n\nPlease acknowledge this system prompt and proceed with the conversation.`
+      });
+    }
+
+    return formatted;
+  }
+
+  private formatForOpenAI(
+    messages: Array<{ role: string; content: string }>,
+    systemPrompt?: string
+  ): any[] {
+    const formatted = [...messages];
+
+    // Add system message at the beginning if provided
+    if (systemPrompt) {
+      formatted.unshift({
+        role: 'system',
+        content: systemPrompt
+      });
+    }
+
+    return formatted;
+  }
+
+  private formatForGrok(
+    messages: Array<{ role: string; content: string }>,
+    systemPrompt?: string
+  ): any[] {
+    // Grok follows OpenAI format
+    return this.formatForOpenAI(messages, systemPrompt);
+  }
+
+  /**
+   * Get provider status and health
+   */
+  async getProviderStatus(provider: AIProvider): Promise<{
+    status: 'operational' | 'degraded' | 'offline';
+    latency?: number;
+    lastChecked: Date;
+  }> {
+    try {
+      const startTime = Date.now();
+      
+      // Simple health check with minimal tokens
+      const config: AIProviderConfig = {
+        provider,
+        model: this.getRecommendedModel(provider, 'chat'),
+        maxTokens: 10,
+        temperature: 0
+      };
+
+      await this.generateResponse(config, [
+        { role: 'user', content: 'Hi' }
+      ]);
+
+      return {
+        status: 'operational',
+        latency: Date.now() - startTime,
+        lastChecked: new Date()
+      };
+
+    } catch (error) {
+      console.warn(`Provider ${provider} health check failed:`, error);
+      return {
+        status: 'offline',
+        lastChecked: new Date()
+      };
+    }
   }
 }
+
+// Export singleton instance
+export const aiProviderService = new AIProviderService();
