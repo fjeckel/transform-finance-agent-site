@@ -1,0 +1,22 @@
+name: YouTube Video Sync
+
+# Run every 6 hours to fetch latest videos from WTF channel
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:  # Allow manual trigger
+  
+jobs:
+  sync-youtube-videos:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Call YouTube Sync Function
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/youtube-video-sync"
+        
+      - name: Log completion
+        run: echo "YouTube video sync completed at $(date)"
