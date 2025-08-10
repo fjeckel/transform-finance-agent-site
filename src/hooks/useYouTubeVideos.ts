@@ -45,7 +45,7 @@ export const useYouTubeVideos = (shortsOnly: boolean = false, limit: number = 20
 
       const { data, error: functionError } = await supabase.functions.invoke('youtube-videos', {
         method: 'GET',
-        body: null,
+        body: JSON.stringify(Object.fromEntries(params)),
       });
 
       if (functionError) {
