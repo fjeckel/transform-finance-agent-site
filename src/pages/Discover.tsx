@@ -251,7 +251,13 @@ export default function Discover() {
                   <BookOpen className="mr-2 h-5 w-5" />
                   Jetzt entdecken
                 </Button>
-                <Button variant="outline" size="lg" className="font-cooper">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="font-cooper"
+                  onClick={() => featuredContent?.slug && navigate(`/episode/${featuredContent.slug}`)}
+                  disabled={!featuredContent?.slug}
+                >
                   <Headphones className="mr-2 h-5 w-5" />
                   Neueste Folge hören
                 </Button>
