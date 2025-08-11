@@ -107,6 +107,8 @@ Deno.serve(async (req) => {
   }
 
   try {
+    console.log('YouTube edge function called with URL:', req.url);
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -114,12 +116,16 @@ Deno.serve(async (req) => {
 
     const youtubeApiKey = Deno.env.get('YOUTUBE_API_KEY')
     if (!youtubeApiKey) {
+      console.error('YouTube API key not found in environment variables');
       throw new Error('YouTube API key not found in environment variables')
     }
 
     const url = new URL(req.url)
     const action = url.searchParams.get('action') || 'fetch'
     const limit = parseInt(url.searchParams.get('limit') || '20')
+    const shortsOnly = url.searchParams.get('shorts_only') === 'true'
+
+    console.log('Parsed parameters:', { action, limit, shortsOnly });
 
     if (action === 'fetch') {
       console.log('Fetching latest videos from YouTube API...')
@@ -225,8 +231,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'list') {
-      // Get videos from database
-      const shortsOnly = url.searchParams.get('shorts_only') === 'true'
+      console.log('Listing videos from database...');
       
       let query = supabaseClient
         .from('youtube_videos')
@@ -235,14 +240,18 @@ Deno.serve(async (req) => {
         .limit(limit)
 
       if (shortsOnly) {
+        console.log('Filtering for shorts only');
         query = query.eq('is_short', true)
       }
 
       const { data: videos, error } = await query
 
       if (error) {
+        console.error('Database query error:', error);
         throw new Error(`Database query error: ${error.message}`)
       }
+
+      console.log(`Found ${videos?.length || 0} videos in database`);
 
       // Format for frontend
       const formattedVideos = videos?.map(video => ({
@@ -258,8 +267,11 @@ Deno.serve(async (req) => {
         description: video.description
       })) || []
 
+      const response = { videos: formattedVideos, count: formattedVideos.length };
+      console.log('Returning response:', JSON.stringify(response, null, 2));
+      
       return new Response(
-        JSON.stringify({ videos: formattedVideos, count: formattedVideos.length }),
+        JSON.stringify(response),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -271,10 +283,13 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('YouTube API Error:', error)
+    console.error('Error stack:', error.stack)
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: 'Check function logs for more information'
+        details: 'Check function logs for more information',
+        timestamp: new Date().toISOString(),
+        url: req.url
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )

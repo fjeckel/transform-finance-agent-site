@@ -43,9 +43,15 @@ export const useYouTubeVideos = (shortsOnly: boolean = false, limit: number = 20
         params.append('shorts_only', 'true');
       }
 
+      console.log('Calling youtube-videos edge function with params:', params.toString());
+
       const { data, error: functionError } = await supabase.functions.invoke('youtube-videos', {
-        method: 'GET',
-        body: JSON.stringify(Object.fromEntries(params)),
+        body: { 
+          action: 'list',
+          limit: limit,
+          shorts_only: shortsOnly 
+        },
+        method: 'POST',
       });
 
       if (functionError) {
@@ -109,18 +115,29 @@ export const useYouTubeVideos = (shortsOnly: boolean = false, limit: number = 20
   };
 
   const fetchFreshVideos = async () => {
+    console.log('Fetching fresh videos from YouTube API...');
+    const params = new URLSearchParams({
+      action: 'fetch',
+      limit: limit.toString()
+    });
+
     const { data, error: fetchError } = await supabase.functions.invoke('youtube-videos', {
-      method: 'GET',
-      body: null,
+      body: { 
+        action: 'fetch',
+        limit: limit 
+      },
+      method: 'POST',
     });
 
     if (fetchError) {
+      console.error('fetchFreshVideos error:', fetchError);
       throw fetchError;
     }
 
     if (data?.videos) {
       setVideos(data.videos);
     } else {
+      console.log('No videos returned from fresh fetch, using mock data');
       // Ultimate fallback to mock data
       setVideos(getMockVideos());
     }
@@ -132,9 +149,19 @@ export const useYouTubeVideos = (shortsOnly: boolean = false, limit: number = 20
       setError(null);
 
       // Call the fetch action to update videos from YouTube API
+      const refreshParams = new URLSearchParams({
+        action: 'fetch',
+        limit: limit.toString()
+      });
+
+      console.log('Refreshing videos with params:', refreshParams.toString());
+
       const { data, error: refreshError } = await supabase.functions.invoke('youtube-videos', {
-        method: 'GET',
-        body: JSON.stringify({ action: 'fetch', limit }),
+        body: { 
+          action: 'fetch',
+          limit: limit 
+        },
+        method: 'POST',
       });
 
       if (refreshError) {

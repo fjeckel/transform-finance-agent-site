@@ -823,6 +823,14 @@ function YouTubeVideosSection() {
   const { videos, loading, error, refreshVideos } = useYouTubeVideos(true, 6); // Only shorts, limit to 6
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 
+  // Debug logging
+  console.log('YouTubeVideosSection render:', {
+    videosCount: videos.length,
+    loading,
+    error,
+    videos: videos.map(v => ({ id: v.id, title: v.title }))
+  });
+
   if (loading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
