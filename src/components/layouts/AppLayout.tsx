@@ -4,6 +4,7 @@ import { AppSidebar } from './AppSidebar';
 import { TopHeader } from './TopHeader';
 import { BottomNavigation } from '@/components/ui/bottom-navigation';
 import { MobileSearch } from '@/components/ui/mobile-search';
+import Footer from '@/components/Footer';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -21,6 +22,7 @@ export function AppLayout({ children, showSidebar = true }: AppLayoutProps) {
           <TopHeader />
           <main className="flex-1 overflow-auto">
             {children}
+            <Footer />
           </main>
         </SidebarInset>
       </div>
