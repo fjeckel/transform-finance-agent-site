@@ -22,7 +22,6 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
 // Lazy load non-critical pages
-const Overview = lazy(() => import("./pages/Overview"));
 const Discover = lazy(() => import("./pages/Discover"));
 const DynamicEpisode = lazy(() => import("./components/DynamicEpisode"));
 const Episodes = lazy(() => import("./pages/Episodes"));
@@ -109,8 +108,8 @@ const App = () => {
               <Suspense fallback={<PageLoadingSkeleton />}>
                 <Routes>
                   {/* Routes with sidebar layout */}
-                  <Route path="/" element={<AppLayout><Index /></AppLayout>} />
-                  <Route path="/overview" element={<AppLayout><Overview /></AppLayout>} />
+                  <Route path="/" element={<AppLayout><Discover /></AppLayout>} />
+                  <Route path="/about" element={<AppLayout><Index /></AppLayout>} />
                   <Route path="/discover" element={<AppLayout><Discover /></AppLayout>} />
                   <Route path="/episode/:slug" element={<AppLayout><DynamicEpisode /></AppLayout>} />
                   <Route path="/episodes" element={<AppLayout><Episodes /></AppLayout>} />

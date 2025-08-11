@@ -47,16 +47,10 @@ export function AppSidebar() {
 
   const mainNavItems = [
     {
-      title: t('navigation.overview'),
+      title: 'Über Uns',
       icon: Home,
-      url: '/overview',
-      isActive: location.pathname === '/overview',
-    },
-    {
-      title: 'Discover',
-      icon: Search,
-      url: '/discover',
-      isActive: location.pathname === '/discover',
+      url: '/about',
+      isActive: location.pathname === '/about',
     },
     {
       title: t('navigation.content'),
@@ -64,13 +58,25 @@ export function AppSidebar() {
       url: '/episodes',
       isActive: location.pathname.startsWith('/episodes') || 
                 location.pathname.startsWith('/episode') || 
-                location.pathname.startsWith('/report'),
-    },
-    {
-      title: t('navigation.insights'),
-      icon: Lightbulb,
-      url: '/insights',
-      isActive: location.pathname.startsWith('/insights'),
+                location.pathname.startsWith('/report') ||
+                location.pathname.startsWith('/insights'),
+      items: [
+        {
+          title: 'Alle Episoden',
+          url: '/episodes',
+          isActive: location.pathname.startsWith('/episodes') || location.pathname.startsWith('/episode'),
+        },
+        {
+          title: 'CFO Memos',
+          url: '/episodes?filter=cfo_memo',
+          isActive: location.pathname === '/episodes' && new URLSearchParams(window.location.search).get('filter') === 'cfo_memo',
+        },
+        {
+          title: 'Insights',
+          url: '/insights',
+          isActive: location.pathname.startsWith('/insights'),
+        },
+      ],
     },
   ];
 
@@ -143,8 +149,23 @@ export function AppSidebar() {
                     <Link to={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
+                      {item.items && <ChevronRight className="ml-auto" />}
                     </Link>
                   </SidebarMenuButton>
+                  {item.items && (
+                    <SidebarMenuSub>
+                      {item.items.map((subItem) => (
+                        <SidebarMenuSubItem key={subItem.url}>
+                          <SidebarMenuSubButton
+                            asChild
+                            isActive={subItem.isActive}
+                          >
+                            <Link to={subItem.url}>{subItem.title}</Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

@@ -71,16 +71,16 @@ export const BottomNavigation: React.FC<{ onSearchOpen?: () => void }> = ({ onSe
       isActive: location.pathname === '/',
     },
     {
-      href: '/overview',
+      href: '/about',
       icon: Info,
-      label: 'Überblick',
-      isActive: location.pathname === '/overview',
+      label: 'Über Uns',
+      isActive: location.pathname === '/about',
     },
     {
       href: '/episodes',
       icon: Headphones,
       label: 'Inhalte',
-      isActive: isEpisodesTab || isEpisodePage || isMemosTab,
+      isActive: isEpisodesTab || isEpisodePage || isMemosTab || location.pathname.startsWith('/insights'),
     },
     {
       icon: Search,

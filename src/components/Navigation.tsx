@@ -29,22 +29,16 @@ const Navigation = () => {
 
   const navItems = [
     { 
-      label: t('navigation.overview'), 
-      href: '/overview', 
+      label: 'Über Uns', 
+      href: '/about', 
       type: 'route', 
-      isActive: location.pathname === '/overview'
+      isActive: location.pathname === '/about'
     },
     { 
       label: t('navigation.content'), 
       href: '/episodes', 
       type: 'route', 
-      isActive: location.pathname.startsWith('/episodes') || location.pathname.startsWith('/episode') || location.pathname.startsWith('/report')
-    },
-    { 
-      label: t('navigation.insights'), 
-      href: '/insights', 
-      type: 'route', 
-      isActive: location.pathname.startsWith('/insights')
+      isActive: location.pathname.startsWith('/episodes') || location.pathname.startsWith('/episode') || location.pathname.startsWith('/report') || location.pathname.startsWith('/insights')
     },
   ];
 
