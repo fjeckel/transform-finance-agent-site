@@ -846,9 +846,9 @@ function YouTubeVideosSection() {
       <div className="overflow-x-auto pb-4">
         <div className="flex gap-4 min-w-max">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="w-80 flex-shrink-0">
+            <div key={i} className="w-60 flex-shrink-0">
               <Card className="overflow-hidden">
-                <div className="aspect-video bg-muted animate-pulse" />
+                <div className="aspect-[9/16] bg-muted animate-pulse" />
                 <CardContent className="p-4">
                   <div className="h-4 bg-muted animate-pulse rounded mb-2" />
                   <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
@@ -884,7 +884,7 @@ function YouTubeVideosSection() {
       <div className="overflow-x-auto pb-4">
         <div className="flex gap-4 min-w-max">
           {videos.map((video) => (
-            <div key={video.id} className="w-80 flex-shrink-0">
+            <div key={video.id} className="w-60 flex-shrink-0">
               <YouTubeVideoCard 
                 video={video} 
                 isPlaying={playingVideo === video.videoId}
@@ -918,7 +918,7 @@ function YouTubeVideoCard({ video, isPlaying, onPlay }: {
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group">
-      <div className="relative aspect-video bg-muted">
+      <div className="relative aspect-[9/16] bg-muted">
         {isPlaying ? (
           // Show embedded YouTube player
           <iframe
