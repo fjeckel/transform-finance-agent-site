@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Clock, BookOpen, FileText, Users, Wrench, TrendingUp, Star, Search, X, Filter } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,8 +13,10 @@ import { useInsights, useInsightCategories, useFeaturedInsights, InsightType, Di
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGlobalSearch } from '@/hooks/useGlobalSearch';
 import { highlightSearchTerms } from '@/utils/searchHighlight';
+import { TranslationStatusIndicator } from '@/components/ui/translation-status';
 
 const Insights = () => {
+  const { t } = useTranslation(['insights', 'common', 'translation']);
   const navigate = useNavigate();
   const location = useLocation();
   const { searchQuery: globalSearchQuery } = useGlobalSearch();
@@ -26,6 +29,55 @@ const Insights = () => {
   const { data: insights = [], isLoading: insightsLoading } = useInsights();
   const { data: categories = [] } = useInsightCategories();
   const { data: featuredInsights = [] } = useFeaturedInsights(3);
+
+  // Function to generate sample translation status for insights
+  const generateTranslationStatus = (insightId: number) => {
+    // In production, this would come from an API based on the insight ID
+    const statuses = [
+      { status: 'approved' as const, quality: 0.95, cost: 0.8 },
+      { status: 'completed' as const, quality: 0.9, cost: 0.6 },
+      { status: 'pending' as const, quality: 0.0, cost: 0.4 },
+      { status: 'translating' as const, quality: 0.0, cost: 0.3 }
+    ];
+    
+    return [
+      {
+        language: 'de',
+        languageName: 'Deutsch',
+        flag: '🇩🇪',
+        status: 'approved' as const,
+        completedFields: 6,
+        totalFields: 6,
+        quality: 0.95,
+        cost: 0.75,
+        lastUpdated: new Date().toISOString()
+      },
+      {
+        language: 'en',
+        languageName: 'English',
+        flag: '🇺🇸',
+        status: 'completed' as const,
+        completedFields: 6,
+        totalFields: 6,
+        quality: 1.0,
+        cost: 0.0,
+        lastUpdated: new Date().toISOString()
+      },
+      {
+        language: 'fr',
+        languageName: 'Français',
+        flag: '🇫🇷',
+        status: statuses[insightId % statuses.length].status,
+        completedFields: statuses[insightId % statuses.length].status === 'approved' ? 6 : 
+                        statuses[insightId % statuses.length].status === 'completed' ? 6 :
+                        statuses[insightId % statuses.length].status === 'pending' ? 2 : 4,
+        totalFields: 6,
+        quality: statuses[insightId % statuses.length].quality,
+        cost: statuses[insightId % statuses.length].cost,
+        lastUpdated: new Date().toISOString()
+      }
+    ];
+  };
 
   // Initialize search from URL parameters or global search
   useEffect(() => {
@@ -85,11 +137,11 @@ const Insights = () => {
 
   const getTypeLabel = (type: InsightType) => {
     switch (type) {
-      case 'book_summary': return 'Buchzusammenfassung';
-      case 'blog_article': return 'Artikel';
-      case 'guide': return 'Leitfaden';
-      case 'case_study': return 'Fallstudie';
-      default: return 'Artikel';
+      case 'book_summary': return t('insights:types.bookSummary');
+      case 'blog_article': return t('insights:types.blogArticle');
+      case 'guide': return t('insights:types.guide');
+      case 'case_study': return t('insights:types.caseStudy');
+      default: return t('insights:types.blogArticle');
     }
   };
 
@@ -104,10 +156,10 @@ const Insights = () => {
 
   const getDifficultyLabel = (level?: DifficultyLevel) => {
     switch (level) {
-      case 'beginner': return 'Einsteiger';
-      case 'intermediate': return 'Fortgeschritten';
-      case 'advanced': return 'Experte';
-      default: return 'Alle Level';
+      case 'beginner': return t('insights:difficulty.beginner');
+      case 'intermediate': return t('insights:difficulty.intermediate');
+      case 'advanced': return t('insights:difficulty.advanced');
+      default: return t('insights:difficulty.allLevels');
     }
   };
 
@@ -115,15 +167,15 @@ const Insights = () => {
     return (
       <div className="min-h-screen bg-background">
         <SEOHead 
-          title="Insights - Finance Transformers"
-          description="Buchzusammenfassungen, Artikel und Leitfäden zur Finanztransformation"
+          title={t('insights:title') + ' - Finance Transformers'}
+          description={t('insights:subtitle')}
         />
         
         <div className="bg-background border-b border-border sticky top-0 z-10">
           <div className="max-w-6xl mx-auto px-4 py-4">
             <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-[#13B87B] transition-colors">
               <ArrowLeft size={20} className="mr-2" />
-              Zurück zur Startseite
+              {t('common:buttons.back')} zur Startseite
             </Link>
           </div>
         </div>
@@ -144,8 +196,8 @@ const Insights = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
-        title="Insights - Finance Transformers"
-        description="Entdecke Buchzusammenfassungen, tiefgehende Artikel und praktische Leitfäden zur Finanztransformation. Wissen, das dich weiterbringt."
+        title={t('insights:title') + ' - Finance Transformers'}
+        description={t('insights:subtitle')}
       />
       
       {/* Header */}
@@ -153,7 +205,7 @@ const Insights = () => {
         <div className="max-w-6xl mx-auto px-4 py-4">
           <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-[#13B87B] transition-colors">
             <ArrowLeft size={20} className="mr-2" />
-            Zurück zur Startseite
+            {t('common:buttons.back')} zur Startseite
           </Link>
         </div>
       </div>
@@ -162,11 +214,10 @@ const Insights = () => {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-6 font-cooper">
-            Finance Insights
+            {t('insights:title')}
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-8">
-            Vertiefte Einblicke, Buchzusammenfassungen und praktische Leitfäden für deine 
-            Finance Transformation. Wissen, das dich wirklich weiterbringt.
+            {t('insights:subtitle')}
           </p>
         </div>
 
@@ -175,7 +226,7 @@ const Insights = () => {
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-foreground mb-6 font-cooper flex items-center">
               <Star className="mr-2 text-yellow-500" size={24} />
-              Empfohlene Insights
+              {t('insights:recommendedInsights')}
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredInsights.map((insight) => {
@@ -194,7 +245,7 @@ const Insights = () => {
                       <div className="absolute top-4 left-4">
                         <Badge className="bg-yellow-500 text-white">
                           <Star size={12} className="mr-1" />
-                          Featured
+                          {t('common:status.featured', 'Featured')}
                         </Badge>
                       </div>
                     </div>
@@ -206,7 +257,7 @@ const Insights = () => {
                           <>
                             <span className="text-muted-foreground">•</span>
                             <Clock size={12} className="text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">{insight.reading_time_minutes} Min</span>
+                            <span className="text-sm text-muted-foreground">{insight.reading_time_minutes} {t('common:time.minutes')}</span>
                           </>
                         )}
                       </div>
@@ -220,7 +271,7 @@ const Insights = () => {
                       )}
                       <Button asChild className="w-full">
                         <Link to={`/insights/${insight.slug}`}>
-                          Weiterlesen
+                          {t('common:buttons.readMore')}
                         </Link>
                       </Button>
                     </CardContent>
@@ -239,7 +290,7 @@ const Insights = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
               <Input
                 type="text"
-                placeholder="Insights durchsuchen..."
+                placeholder={t('insights:searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-10 h-11"
@@ -259,23 +310,23 @@ const Insights = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Select value={selectedType} onValueChange={(value) => setSelectedType(value as InsightType | 'all')}>
               <SelectTrigger>
-                <SelectValue placeholder="Inhaltstyp" />
+                <SelectValue placeholder={t('insights:contentType')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Alle Typen</SelectItem>
-                <SelectItem value="book_summary">Buchzusammenfassungen</SelectItem>
-                <SelectItem value="blog_article">Artikel</SelectItem>
-                <SelectItem value="guide">Leitfäden</SelectItem>
-                <SelectItem value="case_study">Fallstudien</SelectItem>
+                <SelectItem value="all">{t('insights:allTypes')}</SelectItem>
+                <SelectItem value="book_summary">{t('insights:types.bookSummary')}</SelectItem>
+                <SelectItem value="blog_article">{t('insights:types.blogArticle')}</SelectItem>
+                <SelectItem value="guide">{t('insights:types.guide')}</SelectItem>
+                <SelectItem value="case_study">{t('insights:types.caseStudy')}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger>
-                <SelectValue placeholder="Kategorie" />
+                <SelectValue placeholder={t('common:general.category')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Alle Kategorien</SelectItem>
+                <SelectItem value="all">{t('insights:allCategories')}</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.name}
@@ -286,13 +337,13 @@ const Insights = () => {
 
             <Select value={selectedDifficulty} onValueChange={(value) => setSelectedDifficulty(value as DifficultyLevel | 'all')}>
               <SelectTrigger>
-                <SelectValue placeholder="Schwierigkeit" />
+                <SelectValue placeholder={t('common:general.difficulty', 'Schwierigkeit')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Alle Level</SelectItem>
-                <SelectItem value="beginner">Einsteiger</SelectItem>
-                <SelectItem value="intermediate">Fortgeschritten</SelectItem>
-                <SelectItem value="advanced">Experte</SelectItem>
+                <SelectItem value="all">{t('insights:allLevels')}</SelectItem>
+                <SelectItem value="beginner">{t('insights:difficulty.beginner')}</SelectItem>
+                <SelectItem value="intermediate">{t('insights:difficulty.intermediate')}</SelectItem>
+                <SelectItem value="advanced">{t('insights:difficulty.advanced')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -300,7 +351,7 @@ const Insights = () => {
           {/* Results Count */}
           <div className="flex justify-between items-center">
             <p className="text-sm text-muted-foreground">
-              {filteredInsights.length} {filteredInsights.length === 1 ? 'Insight' : 'Insights'} gefunden
+              {filteredInsights.length} {filteredInsights.length === 1 ? 'Insight' : 'Insights'} {t('common:general.found', 'gefunden')}
             </p>
             {(searchQuery || selectedType !== 'all' || selectedCategory !== 'all' || selectedDifficulty !== 'all') && (
               <Button
@@ -313,7 +364,7 @@ const Insights = () => {
                   setSelectedDifficulty('all');
                 }}
               >
-                Filter zurücksetzen
+                {t('insights:resetFilters')}
               </Button>
             )}
           </div>
@@ -345,7 +396,7 @@ const Insights = () => {
                     <div className="absolute top-4 left-4">
                       <Badge variant="secondary">
                         <BookOpen size={12} className="mr-1" />
-                        Buch
+                        {t('insights:bookTitle')}
                       </Badge>
                     </div>
                   )}
@@ -369,7 +420,7 @@ const Insights = () => {
                   
                   {insight.book_author && (
                     <p className="text-sm text-muted-foreground mb-2">
-                      von {insight.book_author}
+                      {t('common:general.by', 'von')} {insight.book_author}
                     </p>
                   )}
 
@@ -379,19 +430,29 @@ const Insights = () => {
                     </p>
                   )}
 
+                  {/* Translation Status Indicator */}
+                  <div className="mb-4">
+                    <TranslationStatusIndicator
+                      contentId={insight.id.toString()}
+                      contentType="insight"
+                      translations={generateTranslationStatus(insight.id)}
+                      compact={true}
+                    />
+                  </div>
+
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       {insight.reading_time_minutes && (
                         <div className="flex items-center gap-1">
                           <Clock size={12} />
-                          {insight.reading_time_minutes} Min
+                          {insight.reading_time_minutes} {t('common:time.minutes')}
                         </div>
                       )}
-                      <div>{insight.view_count || 0} Aufrufe</div>
+                      <div>{insight.view_count || 0} {t('common:general.views', 'Aufrufe')}</div>
                     </div>
                     <Button asChild size="sm">
                       <Link to={`/insights/${insight.slug}`}>
-                        Lesen
+                        {t('common:buttons.read', 'Lesen')}
                       </Link>
                     </Button>
                   </div>
@@ -409,7 +470,7 @@ const Insights = () => {
               size="lg"
               onClick={() => setDisplayCount(prev => Math.min(prev + 9, filteredInsights.length))}
             >
-              Weitere Insights laden ({filteredInsights.length - displayCount} verbleibend)
+              {t('common:buttons.loadMore')} Insights ({filteredInsights.length - displayCount} {t('common:general.remaining', 'verbleibend')})
             </Button>
           </div>
         )}
@@ -420,9 +481,9 @@ const Insights = () => {
             <div className="mb-4">
               <Search size={48} className="mx-auto text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">Keine Insights gefunden</h3>
+            <h3 className="text-lg font-semibold mb-2">{t('insights:noInsights')}</h3>
             <p className="text-muted-foreground mb-4">
-              Versuche andere Suchbegriffe oder ändere deine Filter.
+              {t('insights:tryOtherTerms')}
             </p>
             <Button
               variant="outline"
@@ -433,7 +494,7 @@ const Insights = () => {
                 setSelectedDifficulty('all');
               }}
             >
-              Filter zurücksetzen
+              {t('insights:resetFilters')}
             </Button>
           </div>
         )}

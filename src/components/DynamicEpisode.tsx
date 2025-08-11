@@ -10,8 +10,11 @@ import { toast } from '@/hooks/use-toast';
 import SEOHead from '@/components/SEOHead';
 import ImageWithFallback from '@/components/ui/image-with-fallback';
 import { SafeHtmlRenderer } from '@/lib/content-security';
+import { useTranslation } from 'react-i18next';
+import { TranslationStatusIndicator } from '@/components/ui/translation-status';
 
 const DynamicEpisode = () => {
+  const { t } = useTranslation(['episodes', 'common', 'translation']);
   const { slug } = useParams<{ slug: string }>();
   const { data: episode, isLoading, error } = useEpisodeBySlug(slug || '');
   const [isPlaying, setIsPlaying] = useState(false);
@@ -22,11 +25,11 @@ const DynamicEpisode = () => {
     if (!episode?.transcript) return;
     try {
       await navigator.clipboard.writeText(episode.transcript);
-      toast({ title: 'Transkript kopiert' });
+      toast({ title: t('common:messages.copiedToClipboard') });
     } catch (err) {
       toast({
-        title: 'Kopieren fehlgeschlagen',
-        description: 'Bitte versuchen Sie es erneut.',
+        title: t('episodes:errors.copyFailed'),
+        description: t('episodes:errors.tryAgain'),
         variant: 'destructive'
       });
     }
@@ -40,9 +43,9 @@ const DynamicEpisode = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Episode nicht gefunden</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('episodes:episodeNotFound')}</h1>
           <Link to="/" className="text-[#13B87B] hover:underline">
-            Zurück zur Startseite
+            {t('navigation:links.goHome')}
           </Link>
         </div>
       </div>
@@ -61,6 +64,43 @@ const DynamicEpisode = () => {
       day: 'numeric'
     });
   };
+
+  // Sample translation status data - in production, this would come from an API
+  const translationStatus = [
+    {
+      language: 'de',
+      languageName: 'Deutsch',
+      flag: '🇩🇪',
+      status: 'approved' as const,
+      completedFields: 8,
+      totalFields: 8,
+      quality: 0.95,
+      cost: 0.85,
+      lastUpdated: new Date().toISOString()
+    },
+    {
+      language: 'en',
+      languageName: 'English',
+      flag: '🇺🇸',
+      status: 'completed' as const,
+      completedFields: 8,
+      totalFields: 8,
+      quality: 1.0,
+      cost: 0.0,
+      lastUpdated: new Date().toISOString()
+    },
+    {
+      language: 'fr',
+      languageName: 'Français',
+      flag: '🇫🇷',
+      status: 'pending' as const,
+      completedFields: 3,
+      totalFields: 8,
+      quality: 0.8,
+      cost: 0.45,
+      lastUpdated: new Date().toISOString()
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -82,7 +122,7 @@ const DynamicEpisode = () => {
         <div className="max-w-4xl mx-auto px-4 py-4">
           <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-[#13B87B] transition-colors">
             <ArrowLeft size={20} className="mr-2" />
-            Zurück zur Startseite
+            {t('navigation:links.goHome')}
           </Link>
         </div>
       </div>
@@ -120,6 +160,16 @@ const DynamicEpisode = () => {
                 </div>
               )}
               
+              {/* Translation Status Indicator */}
+              <div className="mb-6">
+                <TranslationStatusIndicator
+                  contentId={episode.id.toString()}
+                  contentType="episode"
+                  translations={translationStatus}
+                  compact={true}
+                />
+              </div>
+              
               <div className="flex items-center space-x-6 mb-6 text-muted-foreground">
                 {episode.duration && (
                   <div className="flex items-center">
@@ -141,7 +191,7 @@ const DynamicEpisode = () => {
                     className="bg-[#13B87B] hover:bg-[#0F9A6A] text-white px-6 py-3"
                   >
                     {isPlaying ? <Pause size={20} className="mr-2" /> : <Play size={20} className="mr-2" />}
-                    {isPlaying ? 'Pause' : 'Abspielen'}
+                    {isPlaying ? t('common:buttons.pause') : t('common:buttons.play')}
                   </Button>
                 ) : (
                   // Show platform links when no audio file
@@ -159,7 +209,7 @@ const DynamicEpisode = () => {
                             className={index === 0 ? "bg-[#13B87B] hover:bg-[#0F9A6A] text-white" : ""}
                           >
                             <ExternalLink size={16} className="mr-2" />
-                            Auf {platform.platform_name} hören
+                            {t('episodes:listenOn', { platform: platform.platform_name })}
                           </Button>
                         </a>
                       ))}
@@ -170,18 +220,18 @@ const DynamicEpisode = () => {
                 {episode.audio_url && (
                   <Button variant="outline" className="px-4 py-3">
                     <Download size={16} className="mr-2" />
-                    Download
+                    {t('common:buttons.download')}
                   </Button>
                 )}
                 
                 <Button variant="outline" className="px-4 py-3">
                   <Share2 size={16} className="mr-2" />
-                  Teilen
+                  {t('common:buttons.share')}
                 </Button>
                 
                 <Button variant="outline" className="px-4 py-3">
                   <Heart size={16} className="mr-2" />
-                  Merken
+                  {t('episodes:favorite')}
                 </Button>
               </div>
             </div>
@@ -194,13 +244,13 @@ const DynamicEpisode = () => {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <div className="w-6 h-6 bg-[#1DB954] rounded mr-3"></div>
-                Audio Player
+                {t('episodes:audioPlayer')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <audio controls className="w-full">
                 <source src={episode.audio_url} type="audio/mpeg" />
-                Ihr Browser unterstützt das Audio-Element nicht.
+                {t('episodes:audioNotSupported')}
               </audio>
             </CardContent>
           </Card>
@@ -212,7 +262,7 @@ const DynamicEpisode = () => {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <div className="w-6 h-6 bg-[#13B87B] rounded mr-3"></div>
-                Episode Zusammenfassung
+                {t('episodes:episodeSummary')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -231,7 +281,7 @@ const DynamicEpisode = () => {
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>
-                {episode.audio_url ? 'Auf anderen Plattformen anhören' : 'Weitere Plattformen'}
+                {episode.audio_url ? t('episodes:listenOnOtherPlatforms') : t('episodes:morePlatforms')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -259,7 +309,7 @@ const DynamicEpisode = () => {
         {guests.length > 0 && (
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle>Gäste dieser Episode</CardTitle>
+              <CardTitle>{t('episodes:episodeGuests')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -290,9 +340,9 @@ const DynamicEpisode = () => {
               <Collapsible open={showNotesSection} onOpenChange={setShowNotesSection}>
                 <CollapsibleTrigger className="w-full">
                   <CardTitle className="flex items-center justify-between">
-                    Show Notes
+                    {t('episodes:showNotes')}
                     <span className="text-sm font-normal">
-                      {showNotesSection ? 'Ausblenden' : 'Anzeigen'}
+                      {showNotesSection ? t('common:buttons.hide') : t('common:buttons.show')}
                     </span>
                   </CardTitle>
                 </CollapsibleTrigger>
@@ -320,11 +370,22 @@ const DynamicEpisode = () => {
           </Card>
         )}
 
+        {/* Translation Status Details */}
+        <div className="mb-8">
+          <TranslationStatusIndicator
+            contentId={episode.id.toString()}
+            contentType="episode"
+            translations={translationStatus}
+            showCosts={true}
+            compact={false}
+          />
+        </div>
+
         {/* Content/Description */}
         {episode.content && (
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle>Episode Inhalt</CardTitle>
+              <CardTitle>{t('episodes:episodeContent')}</CardTitle>
             </CardHeader>
             <CardContent>
               <SafeHtmlRenderer 
@@ -343,9 +404,9 @@ const DynamicEpisode = () => {
                 <Collapsible open={showTranscript} onOpenChange={setShowTranscript} className="flex-1">
                   <CollapsibleTrigger className="w-full">
                     <CardTitle className="flex items-center justify-between">
-                      Vollständiges Transkript
+                      {t('episodes:fullTranscript')}
                       <span className="text-sm font-normal">
-                        {showTranscript ? 'Ausblenden' : 'Anzeigen'}
+                        {showTranscript ? t('common:buttons.hide') : t('common:buttons.show')}
                       </span>
                     </CardTitle>
                   </CollapsibleTrigger>
@@ -367,7 +428,7 @@ const DynamicEpisode = () => {
                   className="ml-2 mt-1"
                 >
                   <Copy size={14} className="mr-1" />
-                  Kopieren
+                  {t('common:buttons.copy')}
                 </Button>
               </div>
             </CardHeader>

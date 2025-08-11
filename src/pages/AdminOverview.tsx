@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Eye, Edit, Save, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const AdminOverview = () => {
+  const { t } = useTranslation(['admin', 'common']);
   const { data: sections, isLoading, refetch } = useOverviewPageSections();
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>({});
@@ -44,8 +46,8 @@ const AdminOverview = () => {
       if (error) throw error;
 
       toast({
-        title: "Erfolg",
-        description: "Sektion wurde erfolgreich aktualisiert.",
+        title: t('common:status.success'),
+        description: t('admin:messages.sectionUpdated', 'Sektion wurde erfolgreich aktualisiert.'),
       });
 
       setEditingSection(null);
@@ -53,8 +55,8 @@ const AdminOverview = () => {
     } catch (error) {
       console.error('Error updating section:', error);
       toast({
-        title: "Fehler",
-        description: "Fehler beim Aktualisieren der Sektion.",
+        title: t('common:status.error'),
+        description: t('admin:messages.updateError', 'Fehler beim Aktualisieren der Sektion.'),
         variant: "destructive",
       });
     }
@@ -89,13 +91,13 @@ const AdminOverview = () => {
           <div className="flex items-center justify-between">
             <Link to="/admin" className="inline-flex items-center text-muted-foreground hover:text-[#13B87B] transition-colors">
               <ArrowLeft size={20} className="mr-2" />
-              Zurück zum Admin Panel
+              {t('common:buttons.back')} zum {t('admin:title')}
             </Link>
             <div className="flex items-center gap-2">
               <Link to="/overview" target="_blank">
                 <Button variant="outline" size="sm">
                   <Eye size={16} className="mr-2" />
-                  Live Vorschau
+                  {t('admin:actions.livePreview', 'Live Vorschau')}
                 </Button>
               </Link>
             </div>
@@ -107,10 +109,10 @@ const AdminOverview = () => {
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2 font-cooper">
-            Overview Page Management
+            {t('admin:pages.overviewManagement', 'Overview Page Management')}
           </h1>
           <p className="text-muted-foreground">
-            Verwalte den Inhalt der Overview-Seite. Alle Änderungen werden sofort live übernommen.
+            {t('admin:pages.overviewDescription', 'Verwalte den Inhalt der Overview-Seite. Alle Änderungen werden sofort live übernommen.')}
           </p>
         </div>
 
@@ -128,7 +130,7 @@ const AdminOverview = () => {
                       </Badge>
                     </CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Section Key: {section.section_key} | Order: {section.sort_order}
+                      {t('admin:fields.sectionKey', 'Section Key')}: {section.section_key} | {t('admin:fields.order', 'Order')}: {section.sort_order}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -139,7 +141,7 @@ const AdminOverview = () => {
                           onClick={() => handleSave(section.id)}
                         >
                           <Save size={16} className="mr-2" />
-                          Speichern
+                          {t('common:buttons.save')}
                         </Button>
                         <Button
                           size="sm"
@@ -147,7 +149,7 @@ const AdminOverview = () => {
                           onClick={handleCancel}
                         >
                           <X size={16} className="mr-2" />
-                          Abbrechen
+                          {t('common:buttons.cancel')}
                         </Button>
                       </>
                     ) : (
@@ -157,7 +159,7 @@ const AdminOverview = () => {
                         onClick={() => handleEdit(section)}
                       >
                         <Edit size={16} className="mr-2" />
-                        Bearbeiten
+                        {t('common:buttons.edit')}
                       </Button>
                     )}
                   </div>
@@ -167,49 +169,49 @@ const AdminOverview = () => {
                 {editingSection === section.id ? (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Titel</label>
+                      <label className="block text-sm font-medium mb-2">{t('common:general.title')}</label>
                       <Input
                         value={formData.title}
                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                        placeholder="Sektion Titel"
+                        placeholder={t('admin:placeholders.sectionTitle', 'Sektion Titel')}
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium mb-2">Untertitel</label>
+                      <label className="block text-sm font-medium mb-2">{t('admin:fields.subtitle', 'Untertitel')}</label>
                       <Input
                         value={formData.subtitle}
                         onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                        placeholder="Sektion Untertitel (optional)"
+                        placeholder={t('admin:placeholders.sectionSubtitle', 'Sektion Untertitel (optional)')}
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium mb-2">Beschreibung</label>
+                      <label className="block text-sm font-medium mb-2">{t('common:general.description')}</label>
                       <Textarea
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="Sektion Beschreibung"
+                        placeholder={t('admin:placeholders.sectionDescription', 'Sektion Beschreibung')}
                         rows={3}
                       />
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium mb-2">Hintergrundfarbe</label>
+                        <label className="block text-sm font-medium mb-2">{t('admin:fields.backgroundColor', 'Hintergrundfarbe')}</label>
                         <Input
                           value={formData.background_color}
                           onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
-                          placeholder="z.B. #ffffff oder linear-gradient(...)"
+                          placeholder={t('admin:placeholders.backgroundColor', 'z.B. #ffffff oder linear-gradient(...)')}
                         />
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium mb-2">Textfarbe</label>
+                        <label className="block text-sm font-medium mb-2">{t('admin:fields.textColor', 'Textfarbe')}</label>
                         <Input
                           value={formData.text_color}
                           onChange={(e) => setFormData({ ...formData, text_color: e.target.value })}
-                          placeholder="z.B. #000000 oder white"
+                          placeholder={t('admin:placeholders.textColor', 'z.B. #000000 oder white')}
                         />
                       </div>
                     </div>
@@ -217,33 +219,33 @@ const AdminOverview = () => {
                 ) : (
                   <div className="space-y-3">
                     <div>
-                      <h4 className="font-medium text-sm text-muted-foreground">Titel</h4>
+                      <h4 className="font-medium text-sm text-muted-foreground">{t('common:general.title')}</h4>
                       <p className="text-foreground">{section.title}</p>
                     </div>
                     
                     {section.subtitle && (
                       <div>
-                        <h4 className="font-medium text-sm text-muted-foreground">Untertitel</h4>
+                        <h4 className="font-medium text-sm text-muted-foreground">{t('admin:fields.subtitle', 'Untertitel')}</h4>
                         <p className="text-foreground">{section.subtitle}</p>
                       </div>
                     )}
                     
                     {section.description && (
                       <div>
-                        <h4 className="font-medium text-sm text-muted-foreground">Beschreibung</h4>
+                        <h4 className="font-medium text-sm text-muted-foreground">{t('common:general.description')}</h4>
                         <p className="text-foreground">{section.description}</p>
                       </div>
                     )}
                     
                     <div className="grid grid-cols-2 gap-4 pt-2">
                       <div>
-                        <h4 className="font-medium text-sm text-muted-foreground">Hintergrund</h4>
+                        <h4 className="font-medium text-sm text-muted-foreground">{t('admin:fields.background', 'Hintergrund')}</h4>
                         <p className="text-xs font-mono bg-accent p-2 rounded truncate">
                           {section.background_color}
                         </p>
                       </div>
                       <div>
-                        <h4 className="font-medium text-sm text-muted-foreground">Textfarbe</h4>
+                        <h4 className="font-medium text-sm text-muted-foreground">{t('admin:fields.textColor', 'Textfarbe')}</h4>
                         <p className="text-xs font-mono bg-accent p-2 rounded">
                           {section.text_color}
                         </p>
@@ -252,7 +254,7 @@ const AdminOverview = () => {
 
                     {section.content && section.content.length > 0 && (
                       <div>
-                        <h4 className="font-medium text-sm text-muted-foreground mb-2">Content Items</h4>
+                        <h4 className="font-medium text-sm text-muted-foreground mb-2">{t('admin:fields.contentItems', 'Content Items')}</h4>
                         <div className="grid grid-cols-1 gap-2">
                           {section.content.slice(0, 5).map((content) => (
                             <div key={content.id} className="text-xs bg-accent/30 p-2 rounded">
@@ -262,7 +264,7 @@ const AdminOverview = () => {
                           ))}
                           {section.content.length > 5 && (
                             <p className="text-xs text-muted-foreground">
-                              ...und {section.content.length - 5} weitere Content Items
+                              ...{t('common:general.and', 'und')} {section.content.length - 5} {t('admin:fields.moreContentItems', 'weitere Content Items')}
                             </p>
                           )}
                         </div>
@@ -276,12 +278,12 @@ const AdminOverview = () => {
         </div>
 
         <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
-          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">💡 Hinweise</h3>
+          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">💡 {t('admin:hints.title', 'Hinweise')}</h3>
           <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-            <li>• Detaillierte Content-Bearbeitung (wie Badges, Links) erfolgt direkt in der Datenbank oder über separate Tools</li>
-            <li>• Hintergrundfarben unterstützen CSS-Gradient-Syntax für schöne Verläufe</li>
-            <li>• Änderungen werden sofort live übernommen - keine Freigabe erforderlich</li>
-            <li>• Die Reihenfolge der Sektionen wird über das sort_order Feld gesteuert</li>
+            <li>• {t('admin:hints.detailedEditing', 'Detaillierte Content-Bearbeitung (wie Badges, Links) erfolgt direkt in der Datenbank oder über separate Tools')}</li>
+            <li>• {t('admin:hints.backgroundColors', 'Hintergrundfarben unterstützen CSS-Gradient-Syntax für schöne Verläufe')}</li>
+            <li>• {t('admin:hints.liveChanges', 'Änderungen werden sofort live übernommen - keine Freigabe erforderlich')}</li>
+            <li>• {t('admin:hints.sectionOrder', 'Die Reihenfolge der Sektionen wird über das sort_order Feld gesteuert')}</li>
           </ul>
         </div>
       </div>

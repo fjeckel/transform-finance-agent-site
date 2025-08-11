@@ -1,12 +1,14 @@
 import React from 'react';
 import { ExternalLink } from 'lucide-react';
 import { MainPageSection } from '@/hooks/useMainPageSections';
+import { useTranslation } from 'react-i18next';
 
 interface DynamicWTFSectionProps {
   section: MainPageSection;
 }
 
 const DynamicWTFSection: React.FC<DynamicWTFSectionProps> = ({ section }) => {
+  const { t } = useTranslation(['wtf', 'common']);
   const coverImage = section.content?.find(c => c.content_key === 'cover_image')?.content_value;
   const podcastLinks = section.links?.filter(link => link.link_type === 'podcast') || [];
 
@@ -23,7 +25,7 @@ const DynamicWTFSection: React.FC<DynamicWTFSectionProps> = ({ section }) => {
             </p>
             
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-foreground">Jetzt anhören auf:</h3>
+              <h3 className="text-xl font-semibold text-foreground">{t('wtf:sectionContent.dynamicListenLabel')}</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {podcastLinks.map((link) => (
                   <a

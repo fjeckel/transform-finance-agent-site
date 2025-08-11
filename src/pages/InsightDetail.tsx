@@ -11,6 +11,7 @@ import { RecommendedContent } from '@/components/RecommendedContent';
 import { Skeleton } from '@/components/ui/skeleton';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '@/integrations/supabase/client';
+import { TranslationStatusIndicator } from '@/components/ui/translation-status';
 
 const InsightDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -83,6 +84,45 @@ const InsightDetail = () => {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  // Sample translation status data - in production, this would come from an API
+  const getTranslationStatus = (insightId: number) => {
+    return [
+      {
+        language: 'de',
+        languageName: 'Deutsch',
+        flag: '🇩🇪',
+        status: 'approved' as const,
+        completedFields: 6,
+        totalFields: 6,
+        quality: 0.95,
+        cost: 0.85,
+        lastUpdated: new Date().toISOString()
+      },
+      {
+        language: 'en',
+        languageName: 'English',
+        flag: '🇺🇸',
+        status: 'completed' as const,
+        completedFields: 6,
+        totalFields: 6,
+        quality: 1.0,
+        cost: 0.0,
+        lastUpdated: new Date().toISOString()
+      },
+      {
+        language: 'fr',
+        languageName: 'Français',
+        flag: '🇫🇷',
+        status: 'translating' as const,
+        completedFields: 4,
+        totalFields: 6,
+        quality: 0.85,
+        cost: 0.65,
+        lastUpdated: new Date().toISOString()
+      }
+    ];
   };
 
   if (isLoading) {
@@ -238,6 +278,16 @@ const InsightDetail = () => {
             )}
           </div>
 
+          {/* Translation Status Indicator - Compact */}
+          <div className="mb-6">
+            <TranslationStatusIndicator
+              contentId={insight.id.toString()}
+              contentType="insight"
+              translations={getTranslationStatus(insight.id)}
+              compact={true}
+            />
+          </div>
+
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-3 mb-8">
             <Button 
@@ -358,6 +408,17 @@ const InsightDetail = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Translation Status Details */}
+        <div className="mb-8">
+          <TranslationStatusIndicator
+            contentId={insight.id.toString()}
+            contentType="insight"
+            translations={getTranslationStatus(insight.id)}
+            showCosts={true}
+            compact={false}
+          />
+        </div>
 
         {/* Tags */}
         {insight.tags && insight.tags.length > 0 && (

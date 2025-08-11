@@ -16,7 +16,7 @@ const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAdmin, signOut } = useAuth();
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(['common', 'navigation']);
   const { performSearch } = useGlobalSearch();
 
   useEffect(() => {
@@ -29,19 +29,19 @@ const Navigation = () => {
 
   const navItems = [
     { 
-      label: 'Home', 
+      label: t('navigation:menu.home'), 
       href: '/', 
       type: 'route', 
       isActive: location.pathname === '/'
     },
     { 
-      label: 'Über Uns', 
+      label: t('navigation:menu.aboutUs'), 
       href: '/about', 
       type: 'route', 
       isActive: location.pathname === '/about'
     },
     { 
-      label: t('navigation.content'), 
+      label: t('navigation:menu.content'), 
       href: '/episodes', 
       type: 'route', 
       isActive: location.pathname.startsWith('/episodes') || location.pathname.startsWith('/episode') || location.pathname.startsWith('/report') || location.pathname.startsWith('/insights')
@@ -171,7 +171,7 @@ const Navigation = () => {
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="p-2 text-foreground hover:text-[#13B87B] transition-colors"
-                aria-label={isOpen ? 'Menü schließen' : 'Menü öffnen'}
+                aria-label={isOpen ? t('navigation:accessibility.closeMenu') : t('navigation:accessibility.openMenu')}
                 aria-expanded={isOpen}
                 aria-controls="mobile-menu"
               >

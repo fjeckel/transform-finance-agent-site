@@ -20,8 +20,10 @@ import { Input } from '@/components/ui/input';
 import RssSubscribeButton from '@/components/RssSubscribeButton';
 import { SafeHtmlRenderer } from '@/lib/content-security';
 import { useGlobalSearch } from '@/hooks/useGlobalSearch';
+import { useTranslation } from 'react-i18next';
 
 const Episodes = () => {
+  const { t } = useTranslation(['episodes', 'common', 'navigation']);
   const { episodes, loading: episodesLoading, error: episodesError } = useEpisodes();
   const { pdfs, loading: pdfsLoading, error: pdfsError, incrementDownloadCount } = usePdfs();
   const location = useLocation();
@@ -71,10 +73,10 @@ const Episodes = () => {
       : episodes;
     
     return [
-      { value: 'all', label: 'Alle Serien', count: searchFiltered.length },
-      { value: 'wtf', label: 'WTF', count: searchFiltered.filter(e => e.series === 'wtf').length },
-      { value: 'finance_transformers', label: 'Finance Transformers', count: searchFiltered.filter(e => e.series === 'finance_transformers').length },
-      { value: 'cfo_memo', label: 'CFO Memo', count: searchFiltered.filter(e => e.series === 'cfo_memo').length }
+      { value: 'all', label: t('episodes:allSeries'), count: searchFiltered.length },
+      { value: 'wtf', label: t('episodes:series.wtf'), count: searchFiltered.filter(e => e.series === 'wtf').length },
+      { value: 'finance_transformers', label: t('episodes:series.financeTransformers'), count: searchFiltered.filter(e => e.series === 'finance_transformers').length },
+      { value: 'cfo_memo', label: t('episodes:series.cfoMemo'), count: searchFiltered.filter(e => e.series === 'cfo_memo').length }
     ];
   }, [episodes, searchQuery]);
 
@@ -169,7 +171,7 @@ const Episodes = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#13B87B] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading content...</p>
+          <p className="mt-4 text-gray-600">{t('common:status.loading')}</p>
         </div>
       </div>
     );
@@ -179,7 +181,7 @@ const Episodes = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Error Loading Content</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('episodes:errorLoadingContent')}</h2>
           <p className="text-gray-600">{error}</p>
         </div>
       </div>
@@ -193,7 +195,7 @@ const Episodes = () => {
         <div className="max-w-6xl mx-auto px-4 py-4">
           <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-[#13B87B] transition-colors">
             <ArrowLeft size={20} className="mr-2" />
-            Zurück zur Startseite
+            {t('navigation:links.goHome')}
           </Link>
         </div>
       </div>
@@ -204,10 +206,10 @@ const Episodes = () => {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1">
               <h1 className="text-4xl font-bold text-foreground mb-4 font-cooper">
-                Alle Inhalte
+                {t('episodes:title')}
               </h1>
               <p className="text-lg text-muted-foreground">
-                Entdecke alle Episoden unserer Podcast-Serien und unsere CFO Memos
+                {t('episodes:subtitle')}
               </p>
             </div>
             <RssSubscribeButton />
@@ -220,13 +222,13 @@ const Episodes = () => {
             <TabsList className="grid w-full grid-cols-2 h-12">
               <TabsTrigger value="episodes" className="text-sm font-medium data-[state=active]:bg-[#13B87B] data-[state=active]:text-white">
                 <div className="flex flex-col items-center">
-                  <span>Alle Episoden</span>
+                  <span>{t('episodes:allEpisodes')}</span>
                   <span className="text-xs opacity-75">({episodes.length})</span>
                 </div>
               </TabsTrigger>
               <TabsTrigger value="memos" className="text-sm font-medium data-[state=active]:bg-[#13B87B] data-[state=active]:text-white">
                 <div className="flex flex-col items-center">
-                  <span>CFO Memos</span>
+                  <span>{t('episodes:cfoMemos')}</span>
                   <span className="text-xs opacity-75">({pdfs.length})</span>
                 </div>
               </TabsTrigger>
@@ -236,7 +238,7 @@ const Episodes = () => {
               {/* Series Filter for Episodes - Mobile Responsive */}
               <div className="mb-6">
                 <div className="flex flex-col space-y-4">
-                  <h3 className="text-sm font-semibold text-foreground">Filter nach Serie:</h3>
+                  <h3 className="text-sm font-semibold text-foreground">{t('episodes:filterBySeries')}</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {seriesOptions.map((option) => (
                       <button
@@ -263,7 +265,7 @@ const Episodes = () => {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
                   <Input
                     type="text"
-                    placeholder="Suche nach Titel, Gast oder Beschreibung..."
+                    placeholder={t('episodes:searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 pr-10 h-11"
@@ -282,18 +284,18 @@ const Episodes = () => {
                 {/* Sort Controls */}
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1">
-                    <label className="block text-sm font-medium text-foreground mb-2">Sortierung:</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">{t('episodes:sortBy')}</label>
                     <Select value={sortOption} onValueChange={(value) => setSortOption(value as typeof sortOption)}>
                       <SelectTrigger className="w-full h-11">
-                        <SelectValue placeholder="Sortierung wählen" />
+                        <SelectValue placeholder={t('episodes:selectSortOption')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="episode_desc">Neueste Episode zuerst</SelectItem>
-                        <SelectItem value="episode_asc">Älteste Episode zuerst</SelectItem>
-                        <SelectItem value="date_desc">Neueste nach Datum</SelectItem>
-                        <SelectItem value="date_asc">Älteste nach Datum</SelectItem>
-                        <SelectItem value="title_asc">Titel A-Z</SelectItem>
-                        <SelectItem value="title_desc">Titel Z-A</SelectItem>
+                        <SelectItem value="episode_desc">{t('episodes:sortOptions.episodeDesc')}</SelectItem>
+                        <SelectItem value="episode_asc">{t('episodes:sortOptions.episodeAsc')}</SelectItem>
+                        <SelectItem value="date_desc">{t('episodes:sortOptions.dateDesc')}</SelectItem>
+                        <SelectItem value="date_asc">{t('episodes:sortOptions.dateAsc')}</SelectItem>
+                        <SelectItem value="title_asc">{t('episodes:sortOptions.titleAsc')}</SelectItem>
+                        <SelectItem value="title_desc">{t('episodes:sortOptions.titleDesc')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -304,7 +306,7 @@ const Episodes = () => {
                       {(() => {
                         const count = sortedEpisodes.slice(0, displayCount).length;
                         const total = sortedEpisodes.length;
-                        return `${count} von ${total} Episoden`;
+                        return t('episodes:episodeCount', { count, total });
                       })()}
                     </div>
                   </div>
@@ -313,19 +315,19 @@ const Episodes = () => {
 
               {searchQuery && filteredEpisodes.length > 0 && (
                 <p className="text-sm text-gray-600 mb-4">
-                  {filteredEpisodes.length} {filteredEpisodes.length === 1 ? 'Ergebnis' : 'Ergebnisse'} für "{searchQuery}"
+                  {t('episodes:searchResults', { count: filteredEpisodes.length, query: searchQuery })}
                 </p>
               )}
 
               {filteredEpisodes.length === 0 ? (
                 <div className="text-center py-12">
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                    {searchQuery ? 'Keine Ergebnisse gefunden' : 'Keine Episoden verfügbar'}
+                    {searchQuery ? t('common:messages.noResults') : t('episodes:noEpisodes')}
                   </h2>
                   <p className="text-gray-600">
                     {searchQuery 
-                      ? `Keine Episoden für "${searchQuery}" gefunden. Versuchen Sie es mit anderen Suchbegriffen.`
-                      : 'Es sind noch keine Episoden veröffentlicht. Schauen Sie bald wieder vorbei!'}
+                      ? t('episodes:noEpisodesFound', { query: searchQuery })
+                      : t('episodes:noEpisodesAvailable')}
                   </p>
                   {searchQuery && (
                     <Button 
@@ -333,7 +335,7 @@ const Episodes = () => {
                       className="mt-4"
                       onClick={() => setSearchQuery('')}
                     >
-                      Suche zurücksetzen
+{t('episodes:resetSearch')}
                     </Button>
                   )}
                 </div>
@@ -408,12 +410,12 @@ const Episodes = () => {
                               {episode.audio_url ? (
                                 <>
                                   <Play size={16} className="mr-2" />
-                                  Zur Episode
+                                  {t('episodes:toEpisode')}
                                 </>
                               ) : (
                                 <>
                                   <ExternalLink size={16} className="mr-2" />
-                                  Zur Episode
+                                  {t('episodes:toEpisode')}
                                 </>
                               )}
                             </Button>
@@ -453,8 +455,8 @@ const Episodes = () => {
                         onClick={() => setDisplayCount(prev => Math.min(prev + 9, sortedEpisodes.length))}
                       >
                         <div className="flex flex-col items-center">
-                          <span className="font-medium">Weitere Episoden laden</span>
-                          <span className="text-xs opacity-75">({sortedEpisodes.length - displayCount} verbleibend)</span>
+                          <span className="font-medium">{t('episodes:loadMoreEpisodes')}</span>
+                          <span className="text-xs opacity-75">{t('episodes:remainingCount', { count: sortedEpisodes.length - displayCount })}</span>
                         </div>
                       </Button>
                     </div>
@@ -470,7 +472,7 @@ const Episodes = () => {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
                   <Input
                     type="text"
-                    placeholder="Suche nach Memo-Titel oder Beschreibung..."
+                    placeholder={t('episodes:searchMemosPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 pr-10 h-11"
@@ -497,7 +499,7 @@ const Episodes = () => {
                                    pdf.description?.toLowerCase().includes(searchTerm);
                           }).length
                         : pdfs.length;
-                      return `${Math.min(filteredCount, pdfsDisplayCount)} von ${filteredCount} Memos`;
+                      return t('episodes:memoCount', { count: Math.min(filteredCount, pdfsDisplayCount), total: filteredCount });
                     })()}
                   </div>
                   {searchQuery && (
@@ -507,7 +509,7 @@ const Episodes = () => {
                       onClick={() => setSearchQuery('')}
                       className="text-xs"
                     >
-                      Filter zurücksetzen
+                      {t('episodes:resetFilters')}
                     </Button>
                   )}
                 </div>
@@ -530,12 +532,12 @@ const Episodes = () => {
                 return filteredPdfs.length === 0 ? (
                 <div className="text-center py-12">
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                    {searchQuery ? 'Keine Memos gefunden' : 'Keine Memos verfügbar'}
+                    {searchQuery ? t('episodes:noMemosFound') : t('episodes:noMemosAvailable')}
                   </h2>
                   <p className="text-gray-600">
                     {searchQuery 
-                      ? `Keine Memos für "${searchQuery}" gefunden. Versuchen Sie es mit anderen Suchbegriffen.`
-                      : 'Es sind noch keine Memos veröffentlicht. Schauen Sie bald wieder vorbei!'}
+                      ? t('episodes:noMemosFoundDesc', { query: searchQuery })
+                      : t('episodes:noMemosAvailableDesc')}
                   </p>
                   {searchQuery && (
                     <Button 
@@ -543,7 +545,7 @@ const Episodes = () => {
                       className="mt-4"
                       onClick={() => setSearchQuery('')}
                     >
-                      Suche zurücksetzen
+{t('episodes:resetSearch')}
                     </Button>
                   )}
                 </div>
@@ -551,7 +553,7 @@ const Episodes = () => {
                 <>
                   {searchQuery && (
                     <p className="text-sm text-gray-600 mb-4">
-                      {filteredPdfs.length} {filteredPdfs.length === 1 ? 'Ergebnis' : 'Ergebnisse'} für "{searchQuery}"
+                      {t('episodes:searchResults', { count: filteredPdfs.length, query: searchQuery })}
                     </p>
                   )}
                   {/* PDFs Grid */}
@@ -572,8 +574,8 @@ const Episodes = () => {
                         onClick={() => setPdfsDisplayCount(prev => Math.min(prev + 9, filteredPdfs.length))}
                       >
                         <div className="flex flex-col items-center">
-                          <span className="font-medium">Weitere Memos laden</span>
-                          <span className="text-xs opacity-75">({filteredPdfs.length - pdfsDisplayCount} verbleibend)</span>
+                          <span className="font-medium">{t('episodes:loadMoreMemos')}</span>
+                          <span className="text-xs opacity-75">{t('episodes:remainingCount', { count: filteredPdfs.length - pdfsDisplayCount })}</span>
                         </div>
                       </Button>
                     </div>

@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { CheckCircle, Mail, TrendingUp, Shield, Zap } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 const CFOMemoSection = () => {
+  const { t } = useTranslation(['cfoMemo', 'forms', 'common']);
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
       toast({
-        title: "Ungültige E-Mail",
-        description: "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+        title: t('cfoMemo:toasts.invalidEmail.title'),
+        description: t('cfoMemo:toasts.invalidEmail.description'),
         variant: "destructive"
       });
       return;
@@ -19,14 +21,14 @@ const CFOMemoSection = () => {
       // Simulate API call - replace with actual Mailchimp integration
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
-        title: "Willkommen beim CFO Memo!",
-        description: "Sie erhalten Ihr erstes Memo innerhalb von 24 Stunden."
+        title: t('cfoMemo:toasts.subscriptionSuccess.title'),
+        description: t('cfoMemo:toasts.subscriptionSuccess.description')
       });
       setEmail('');
     } catch (error) {
       toast({
-        title: "Anmeldung fehlgeschlagen",
-        description: "Bitte versuchen Sie es später erneut oder kontaktieren Sie den Support.",
+        title: t('cfoMemo:toasts.subscriptionError.title'),
+        description: t('cfoMemo:toasts.subscriptionError.description'),
         variant: "destructive"
       });
     } finally {
@@ -35,26 +37,25 @@ const CFOMemoSection = () => {
   };
   const benefits = [{
     icon: <TrendingUp className="w-6 h-6" />,
-    title: "Strategische Einblicke",
-    description: "Wöchentliche Analyse von Finanztrends, die für Ihr Ergebnis wichtig sind"
+    title: t('cfoMemo:benefits.strategicInsights.title'),
+    description: t('cfoMemo:benefits.strategicInsights.description')
   }, {
     icon: <Shield className="w-6 h-6" />,
-    title: "Risiko-Intelligence",
-    description: "Frühwarnungen zu Marktveränderungen und regulatorischen Änderungen"
+    title: t('cfoMemo:benefits.riskIntelligence.title'),
+    description: t('cfoMemo:benefits.riskIntelligence.description')
   }, {
     icon: <Zap className="w-6 h-6" />,
-    title: "Transformations-Tools",
-    description: "Praktische Frameworks zur Modernisierung Ihrer Finanzfunktion"
+    title: t('cfoMemo:benefits.transformationTools.title'),
+    description: t('cfoMemo:benefits.transformationTools.description')
   }];
   return <section id="cfo-memo" className="py-20 bg-gradient-to-br from-[#13B87B] to-[#0FA66A]">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 uppercase tracking-tight font-cooper">
-            Das <span className="text-[#FBF4EB]">CFO Memo</span>
+            {t('cfoMemo:subscription.titlePrefix')} <span className="text-[#FBF4EB]">{t('cfoMemo:subscription.highlightText')}</span>
           </h2>
           <p className="text-xl text-green-100 max-w-3xl mx-auto">
-            Durchschneiden Sie das Rauschen. Erhalten Sie die Einblicke, die wirklich zählen. 
-            Wöchentliche Intelligence für Finanzführungskräfte, die sich nicht abhängen lassen.
+            {t('cfoMemo:subscription.mainDescription')}
           </p>
         </div>
 
@@ -75,24 +76,24 @@ const CFOMemoSection = () => {
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
               <h3 className="text-2xl font-bold text-white mb-4 flex items-center">
                 <Mail className="w-6 h-6 mr-2" />
-                Schließen Sie sich 100+ Finanzführungskräften an
+                {t('cfoMemo:subscription.joinTitle')}
               </h3>
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Geben Sie Ihre E-Mail-Adresse ein" className="w-full px-4 py-3 rounded-lg bg-white/90 text-gray-900 placeholder-gray-600 focus:outline-none focus:ring-4 focus:ring-white/30 font-medium" required />
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t('cfoMemo:subscription.emailPlaceholder')} className="w-full px-4 py-3 rounded-lg bg-white/90 text-gray-900 placeholder-gray-600 focus:outline-none focus:ring-4 focus:ring-white/30 font-medium" required />
                 </div>
                 
                 <button type="submit" disabled={isSubmitting} className="w-full bg-[#D0840E] text-white py-3 px-6 rounded-lg font-bold text-lg hover:bg-[#B8720C] transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2">
                   {isSubmitting ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <>
                       <CheckCircle className="w-5 h-5" />
-                      <span>DAS CFO MEMO ERHALTEN</span>
+                      <span>{t('cfoMemo:subscription.subscribeButton')}</span>
                     </>}
                 </button>
               </form>
               
               <p className="text-green-100 text-sm mt-3 text-center">
-                Kein Spam. Jederzeit abbestellbar. Wöchentliche Zustellung jeden Dienstag.
+                {t('cfoMemo:subscription.disclaimer')}
               </p>
             </div>
           </div>
@@ -103,19 +104,19 @@ const CFOMemoSection = () => {
                 <div className="w-16 h-16 bg-[#13B87B] rounded-full flex items-center justify-center mx-auto mb-6">
                   <Mail className="w-8 h-8 text-white" />
                 </div>
-                <h4 className="text-2xl font-bold text-gray-900 mb-4">Was erwartet euch diese Woche?</h4>
+                <h4 className="text-2xl font-bold text-gray-900 mb-4">{t('cfoMemo:subscription.previewTitle')}</h4>
                 <div className="text-left space-y-3 text-gray-700">
                   <div className="flex items-start space-x-2">
                     <div className="w-2 h-2 bg-[#13B87B] rounded-full mt-2 flex-shrink-0"></div>
-                    <span>KI-gestützte Finanzplanung: Hype vs. Realität</span>
+                    <span>{t('cfoMemo:subscription.previewItems.aiPlanning')}</span>
                   </div>
                   <div className="flex items-start space-x-2">
                     <div className="w-2 h-2 bg-[#D0840E] rounded-full mt-2 flex-shrink-0"></div>
-                    <span>Q1 2025 Risikobewertungs-Framework</span>
+                    <span>{t('cfoMemo:subscription.previewItems.riskFramework')}</span>
                   </div>
                   <div className="flex items-start space-x-2">
                     <div className="w-2 h-2 bg-[#003FA5] rounded-full mt-2 flex-shrink-0"></div>
-                    <span>Case Study: Digitale Finance-Transformation</span>
+                    <span>{t('cfoMemo:subscription.previewItems.caseStudy')}</span>
                   </div>
                 </div>
               </div>

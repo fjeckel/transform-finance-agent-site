@@ -1,21 +1,23 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Linkedin, Youtube } from 'lucide-react';
 
 const SocialHandlesSection = () => {
+  const { t } = useTranslation(['social', 'common']);
   const socialLinks = [
     {
       name: 'LinkedIn',
       icon: <Linkedin className="w-8 h-8" />,
       url: 'https://www.linkedin.com/company/86932507/admin/dashboard/',
       color: 'bg-[#0077B5] hover:bg-[#005885]',
-      description: 'Professionelle Einblicke und Branchendiskussionen'
+      description: t('social:platforms.linkedinDescription', 'Professionelle Einblicke und Branchendiskussionen')
     },
     {
       name: 'YouTube',
       icon: <Youtube className="w-8 h-8" />,
       url: 'https://www.youtube.com/channel/UC2sXuBElJDyzxKv3J8kmyng',
       color: 'bg-[#FF0000] hover:bg-[#CC0000]',
-      description: 'Video-Content und Podcast-Episoden'
+      description: t('social:platforms.youtubeDescription', 'Video-Content und Podcast-Episoden')
     },
   ];
 
@@ -24,11 +26,10 @@ const SocialHandlesSection = () => {
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 uppercase tracking-tight font-cooper">
-            Folgen Sie der <span className="text-[#13B87B]">Transformation</span>
+            {t('social:followTransformation.title', 'Folgen Sie der')} <span className="text-[#13B87B]">{t('social:followTransformation.transformation', 'Transformation')}</span>
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Werden Sie Teil unserer Community auf verschiedenen Plattformen für tägliche Einblicke, 
-            Behind-the-Scenes-Content und Echtzeitdiskussionen über die Zukunft des Finanzwesens.
+            {t('social:followTransformation.description', 'Werden Sie Teil unserer Community auf verschiedenen Plattformen für tägliche Einblicke, Behind-the-Scenes-Content und Echtzeitdiskussionen über die Zukunft des Finanzwesens.')}
           </p>
         </div>
 
@@ -61,7 +62,7 @@ const SocialHandlesSection = () => {
 
         <div className="text-center">
           <div className="inline-flex items-center space-x-4 bg-white/10 backdrop-blur-sm rounded-full px-8 py-4 border border-white/20">
-            <span className="text-white font-medium">Verbunden bleiben:</span>
+            <span className="text-white font-medium">{t('social:stayConnected', 'Verbunden bleiben')}:</span>
             <div className="flex space-x-3">
               {socialLinks.slice(0, 3).map((social, index) => (
                 <a

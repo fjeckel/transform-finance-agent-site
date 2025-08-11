@@ -1,8 +1,10 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
+  const { t } = useTranslation(['footer', 'navigation']);
   return (
     <footer className="bg-black text-white py-12">
       <div className="max-w-6xl mx-auto px-4">
@@ -12,27 +14,26 @@ const Footer = () => {
             <span className="font-bold text-lg">Finance Transformers</span>
           </div>
             <p className="text-gray-400 leading-relaxed">
-              Transformation des Finanzwesens durch provokante Thought Leadership, 
-              praktische Einblicke und mutige Gespräche.
+              {t('footer:brand.description')}
             </p>
           </div>
           
           <div>
-            <h3 className="font-bold text-lg mb-4 uppercase tracking-wide">Schnellzugriff</h3>
+            <h3 className="font-bold text-lg mb-4 uppercase tracking-wide">{t('footer:quickLinks.title')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/" className="text-gray-400 hover:text-[#13B87B] transition-colors">
-                  Home
+                  {t('navigation:menu.home')}
                 </Link>
               </li>
               <li>
                 <Link to="/about" className="text-gray-400 hover:text-[#13B87B] transition-colors">
-                  Über Uns
+                  {t('navigation:menu.aboutUs')}
                 </Link>
               </li>
               <li>
                 <Link to="/episodes" className="text-gray-400 hover:text-[#13B87B] transition-colors">
-                  Episoden
+                  {t('navigation:menu.episodes')}
                 </Link>
               </li>
               <li>
@@ -44,7 +45,7 @@ const Footer = () => {
           </div>
           
           <div>
-            <h3 className="font-bold text-lg mb-4 uppercase tracking-wide">Kontakt</h3>
+            <h3 className="font-bold text-lg mb-4 uppercase tracking-wide">{t('footer:contact.title')}</h3>
             <ul className="space-y-2 text-gray-400">
               <li>contact@financetransformers.ai</li>
               <li>
@@ -64,14 +65,14 @@ const Footer = () => {
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2024 Finance Transformers. Alle Rechte vorbehalten.
+              {t('footer:copyright')}
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link
                 to="/legal"
                 className="text-gray-400 hover:text-[#13B87B] transition-colors text-sm"
               >
-                Impressum &amp; Rechtliches
+                {t('footer:legal.imprintAndLegal')}
               </Link>
             </div>
           </div>
