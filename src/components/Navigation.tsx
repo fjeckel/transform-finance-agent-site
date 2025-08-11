@@ -80,9 +80,9 @@ const Navigation = () => {
             <div className="flex items-center justify-between">
               {/* Logo/Brand */}
               <div className="flex items-center">
-                <div className="text-xl font-bold text-foreground font-cooper">
+                <Link to="/" className="text-xl font-bold text-foreground font-cooper hover:text-[#13B87B] transition-colors">
                   Finance Transformers
-                </div>
+                </Link>
               </div>
               
               {/* Menu Items */}
@@ -161,9 +161,9 @@ const Navigation = () => {
         <div className={`bg-background/95 backdrop-blur-sm shadow-lg border-b border-border/50 transition-all duration-300 ${isScrolled ? 'py-2' : 'py-4'}`}>
           <div className="flex justify-between items-center px-4">
             <div className="flex items-center">
-              <div className="text-lg font-bold text-foreground font-cooper">
+              <Link to="/" className="text-lg font-bold text-foreground font-cooper hover:text-[#13B87B] transition-colors">
                 Finance Transformers
-              </div>
+              </Link>
             </div>
             <div className="flex items-center space-x-2">
               <LanguageSwitcher />

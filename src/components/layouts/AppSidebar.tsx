@@ -136,7 +136,9 @@ export function AppSidebar() {
     <Sidebar variant="inset" className="hidden md:flex">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-4 py-2">
-          <span className="font-semibold text-lg">Finance Transformers</span>
+          <Link to="/" className="font-semibold text-lg hover:text-[#13B87B] transition-colors">
+            Finance Transformers
+          </Link>
         </div>
       </SidebarHeader>
 
