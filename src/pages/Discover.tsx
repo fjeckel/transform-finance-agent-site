@@ -369,6 +369,32 @@ export default function Discover() {
         </div>
       </section>
 
+      {/* YouTube Shorts Section */}
+      <section className="py-8">
+        <div className="max-w-7xl mx-auto px-6">
+          <Card className="p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold font-cooper mb-2">WTF?! Finance Shorts</h2>
+                <p className="text-muted-foreground">
+                  Kurze, knackige Finance-Insights in unter 60 Sekunden
+                </p>
+              </div>
+              <a 
+                href="https://www.youtube.com/@WTFFinanceTransformers" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-sm text-[#13B87B] hover:text-[#0FA66A] font-medium flex items-center gap-2"
+              >
+                <Globe className="h-4 w-4" />
+                YouTube Channel
+              </a>
+            </div>
+            <YouTubeVideosSection />
+          </Card>
+        </div>
+      </section>
+
       {/* Content Browser Section */}
       <section id="content-section" className="py-16">
         <div className="max-w-7xl mx-auto px-6">
@@ -437,29 +463,6 @@ export default function Discover() {
                   )}
                 </div>
 
-                {/* YouTube Shorts Section */}
-                <div className="mt-12">
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h3 className="text-xl font-bold font-cooper mb-2">WTF?! Finance Shorts</h3>
-                      <p className="text-muted-foreground text-sm">
-                        Kurze, knackige Finance-Insights in unter 60 Sekunden
-                      </p>
-                    </div>
-                    <a 
-                      href="https://www.youtube.com/@WTFFinanceTransformers" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-sm text-[#13B87B] hover:text-[#0FA66A] font-medium flex items-center gap-2"
-                    >
-                      <Globe className="h-4 w-4" />
-                      YouTube Channel
-                    </a>
-                  </div>
-
-                  {/* YouTube Videos Grid with Lazy Loading */}
-                  <YouTubeVideosSection />
-                </div>
               </TabsContent>
 
               {/* Insights Tab */}
@@ -821,28 +824,39 @@ function InsightCard({ insight }: { insight: any }) {
 // YouTube Videos Section Component with Lazy Loading
 function YouTubeVideosSection() {
   const { videos, loading, error, refreshVideos } = useYouTubeVideos(true, 6); // Only shorts, limit to 6
-  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
 
   // Debug logging
   console.log('YouTubeVideosSection render:', {
     videosCount: videos.length,
     loading,
     error,
-    videos: videos.map(v => ({ id: v.id, title: v.title }))
+    firstVideo: videos[0] || null,
+    videosSample: videos.slice(0, 2).map(v => ({ 
+      id: v.id, 
+      title: v.title, 
+      thumbnail: v.thumbnail, 
+      videoId: v.videoId,
+      isShort: v.isShort
+    }))
   });
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Card key={i} className="overflow-hidden">
-            <div className="aspect-video bg-muted animate-pulse" />
-            <CardContent className="p-4">
-              <div className="h-4 bg-muted animate-pulse rounded mb-2" />
-              <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
-            </CardContent>
-          </Card>
-        ))}
+      <div className="overflow-x-auto pb-4">
+        <div className="flex gap-4 min-w-max">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="w-80 flex-shrink-0">
+              <Card className="overflow-hidden">
+                <div className="aspect-video bg-muted animate-pulse" />
+                <CardContent className="p-4">
+                  <div className="h-4 bg-muted animate-pulse rounded mb-2" />
+                  <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+                </CardContent>
+              </Card>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -866,97 +880,113 @@ function YouTubeVideosSection() {
 
   return (
     <>
-      {/* Video Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {videos.map((video) => (
-          <YouTubeVideoCard 
-            key={video.id} 
-            video={video} 
-            onPlay={() => setSelectedVideo(video.videoId)}
-          />
-        ))}
+      {/* Horizontal Scrollable Video Carousel */}
+      <div className="overflow-x-auto pb-4">
+        <div className="flex gap-4 min-w-max">
+          {videos.map((video) => (
+            <div key={video.id} className="w-80 flex-shrink-0">
+              <YouTubeVideoCard 
+                video={video} 
+                isPlaying={playingVideo === video.videoId}
+                onPlay={() => setPlayingVideo(playingVideo === video.videoId ? null : video.videoId)}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      {/* Scroll indicators */}
+      <div className="flex justify-center mt-2">
+        <p className="text-xs text-muted-foreground">
+          ← Scroll horizontal für mehr Videos →
+        </p>
       </div>
 
-      {/* Video Modal/Lightbox */}
-      {selectedVideo && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
-          onClick={() => setSelectedVideo(null)}
-        >
-          <div 
-            className="relative w-full max-w-4xl aspect-video bg-black rounded-lg overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setSelectedVideo(null)}
-              className="absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-sm text-white p-2 rounded-full hover:bg-white/30 transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            <iframe
-              src={`https://www.youtube-nocookie.com/embed/${selectedVideo}?autoplay=1&rel=0`}
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="w-full h-full"
-              loading="lazy"
-            />
-          </div>
-        </div>
-      )}
     </>
   );
 }
 
 // YouTube Video Card Component with Lazy Loading
 
-function YouTubeVideoCard({ video, onPlay }: { video: YouTubeVideo; onPlay: () => void }) {
+function YouTubeVideoCard({ video, isPlaying, onPlay }: { 
+  video: YouTubeVideo; 
+  isPlaying: boolean;
+  onPlay: () => void;
+}) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <Card 
-      className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group"
-      onClick={onPlay}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group">
       <div className="relative aspect-video bg-muted">
-        {/* Lazy loaded thumbnail */}
-        <img
-          src={video.thumbnail}
-          alt={video.title}
-          className={`w-full h-full object-cover transition-opacity duration-300 ${
-            imageLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          loading="lazy"
-          onLoad={() => setImageLoaded(true)}
-        />
-        
-        {/* Loading placeholder */}
-        {!imageLoaded && (
-          <div className="absolute inset-0 bg-muted animate-pulse" />
+        {isPlaying ? (
+          // Show embedded YouTube player
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${video.videoId}?autoplay=1&rel=0&modestbranding=1`}
+            title={video.title}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="w-full h-full"
+          />
+        ) : (
+          // Show thumbnail with play button
+          <>
+            <img
+              src={video.thumbnail}
+              alt={video.title}
+              className="w-full h-full object-cover"
+              onLoad={() => {
+                setImageLoaded(true);
+                console.log('✅ Thumbnail loaded:', video.title, video.thumbnail);
+              }}
+              onError={(e) => {
+                console.error('❌ Thumbnail failed to load:', { 
+                  video: video.title, 
+                  thumbnailUrl: video.thumbnail,
+                  videoId: video.videoId
+                });
+                // Try fallback thumbnail
+                const img = e.target as HTMLImageElement;
+                if (img.src.includes('mqdefault')) {
+                  console.log('Trying default.jpg fallback...');
+                  img.src = `https://img.youtube.com/vi/${video.videoId}/default.jpg`;
+                }
+              }}
+            />
+            
+            {/* Loading placeholder */}
+            {!imageLoaded && (
+              <div className="absolute inset-0 bg-muted animate-pulse" />
+            )}
+
+            {/* Clickable play button overlay */}
+            <div 
+              className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-300 cursor-pointer ${
+                isHovered ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+              }`}
+              onClick={onPlay}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+            >
+              <div className="bg-[#13B87B] rounded-full p-4 transform transition-transform group-hover:scale-110">
+                <PlayCircle className="h-8 w-8 text-white" />
+              </div>
+            </div>
+
+            {/* Duration badge */}
+            <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+              {video.duration}
+            </div>
+
+            {/* Shorts badge */}
+            {video.isShort && (
+              <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded font-bold">
+                SHORTS
+              </div>
+            )}
+          </>
         )}
-
-        {/* Play button overlay */}
-        <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-300 ${
-          isHovered ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-        }`}>
-          <div className="bg-[#13B87B] rounded-full p-4 transform transition-transform group-hover:scale-110">
-            <PlayCircle className="h-8 w-8 text-white" />
-          </div>
-        </div>
-
-        {/* Duration badge */}
-        <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
-          {video.duration}
-        </div>
-
-        {/* Shorts badge */}
-        <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded font-bold">
-          SHORTS
-        </div>
       </div>
 
       <CardContent className="p-4">

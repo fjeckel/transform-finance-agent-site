@@ -45,6 +45,11 @@ export const useYouTubeVideos = (shortsOnly: boolean = false, limit: number = 20
 
       console.log('Calling youtube-videos edge function with params:', params.toString());
 
+      // Temporarily skip edge function and go directly to database
+      console.log('Skipping edge function, using direct database query');
+      await fetchFromDatabase();
+      return;
+
       const { data, error: functionError } = await supabase.functions.invoke('youtube-videos', {
         body: { 
           action: 'list',
@@ -100,7 +105,7 @@ export const useYouTubeVideos = (shortsOnly: boolean = false, limit: number = 20
         video_id: video.video_id,
         title: video.title,
         description: video.description,
-        thumbnail: video.thumbnail_url,
+        thumbnail: `https://img.youtube.com/vi/${video.video_id}/mqdefault.jpg`, // Use mqdefault - more reliable than hqdefault
         videoId: video.video_id,
         duration: video.duration,
         views: formatViewCount(video.view_count),
