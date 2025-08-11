@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import Hero from '@/components/Hero';
-import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
 import DynamicSection from '@/components/DynamicSection';
 import { useMainPageSections } from '@/hooks/useMainPageSections';
@@ -56,9 +55,6 @@ const Index = () => {
             )}
           </>
         )}
-
-        {/* Footer */}
-        <Footer />
       </div>
     </div>
   );
