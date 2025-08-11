@@ -20,9 +20,26 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-lg mb-4 uppercase tracking-wide">Schnellzugriff</h3>
             <ul className="space-y-2">
-              <li><a href="#wtf" className="text-gray-400 hover:text-[#13B87B] transition-colors">WTF Podcast</a></li>
-              <li><a href="#finance-transformers" className="text-gray-400 hover:text-[#13B87B] transition-colors">Finance Transformers</a></li>
-              <li><a href="#social" className="text-gray-400 hover:text-[#13B87B] transition-colors">Social Media</a></li>
+              <li>
+                <Link to="/" className="text-gray-400 hover:text-[#13B87B] transition-colors">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link to="/about" className="text-gray-400 hover:text-[#13B87B] transition-colors">
+                  Über Uns
+                </Link>
+              </li>
+              <li>
+                <Link to="/episodes" className="text-gray-400 hover:text-[#13B87B] transition-colors">
+                  Episoden
+                </Link>
+              </li>
+              <li>
+                <Link to="/insights" className="text-gray-400 hover:text-[#13B87B] transition-colors">
+                  Insights
+                </Link>
+              </li>
             </ul>
           </div>
           
