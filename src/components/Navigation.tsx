@@ -29,6 +29,12 @@ const Navigation = () => {
 
   const navItems = [
     { 
+      label: 'Home', 
+      href: '/', 
+      type: 'route', 
+      isActive: location.pathname === '/'
+    },
+    { 
       label: 'Über Uns', 
       href: '/about', 
       type: 'route', 

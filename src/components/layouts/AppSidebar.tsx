@@ -10,7 +10,8 @@ import {
   LogIn,
   ChevronRight,
   MoreHorizontal,
-  Search
+  Search,
+  Info
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -47,8 +48,14 @@ export function AppSidebar() {
 
   const mainNavItems = [
     {
-      title: 'Über Uns',
+      title: 'Home',
       icon: Home,
+      url: '/',
+      isActive: location.pathname === '/',
+    },
+    {
+      title: 'Über Uns',
+      icon: Info,
       url: '/about',
       isActive: location.pathname === '/about',
     },
