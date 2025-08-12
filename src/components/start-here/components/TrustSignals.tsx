@@ -41,7 +41,7 @@ export const TrustSignals: React.FC<TrustSignalsProps> = ({
         Vertraut von Finance-Führungskräften bei:
       </p>
       
-      <div className="flex flex-wrap items-center justify-center gap-8 opacity-60 hover:opacity-80 transition-opacity duration-300">
+      <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 opacity-60 hover:opacity-80 transition-opacity duration-300">
         {companies.map((company, index) => (
           <div
             key={company.name}

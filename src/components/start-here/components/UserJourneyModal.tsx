@@ -426,7 +426,7 @@ export const UserJourneyModal: React.FC<UserJourneyModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[95vh] w-[95vw] sm:w-full overflow-y-auto">
         <DialogHeader className="relative">
           <Button
             variant="ghost"

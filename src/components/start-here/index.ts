@@ -36,3 +36,6 @@ export { useContentRecommendations } from './hooks/useContentRecommendations';
 // Services
 export { startHereEmailService } from './services/emailService';
 export type { EmailSubscriptionData, EmailSubscriptionResult } from './services/emailService';
+
+// Utils
+export { startHereFeatureManager, useStartHereFeatures } from './utils/featureFlags';

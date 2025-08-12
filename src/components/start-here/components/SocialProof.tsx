@@ -91,7 +91,7 @@ export const SocialProof: React.FC<SocialProofProps> = ({
       </Card>
 
       {/* Statistics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
         <Card 
           className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-1"
           onClick={() => handleStatClick('transformation_success')}

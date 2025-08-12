@@ -114,7 +114,7 @@ export const PathCard: React.FC<PathCardProps> = ({
             </Badge>
           </div>
         </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-gray-800 transition-colors">
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 group-hover:text-gray-800 transition-colors">
           {path.title}
         </h3>
         <p className="text-gray-600 text-sm leading-relaxed">
@@ -172,7 +172,7 @@ export const PathCard: React.FC<PathCardProps> = ({
 
         {/* CTA Button */}
         <Button
-          className="w-full font-semibold transition-all duration-200 group-hover:shadow-md"
+          className="w-full h-12 font-semibold transition-all duration-200 group-hover:shadow-md"
           style={{
             background: path.gradient,
             transform: isHovered ? 'translateY(-1px)' : 'translateY(0)',

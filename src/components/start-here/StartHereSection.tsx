@@ -11,6 +11,7 @@ import { UserJourneyModal } from './components/UserJourneyModal';
 import { PathSelectionGrid } from './components/PathSelectionGrid';
 import { TrustSignals } from './components/TrustSignals';
 import { SocialProof } from './components/SocialProof';
+import { useStartHereFeatures } from './utils/featureFlags';
 
 interface StartHereSectionProps {
   className?: string;
@@ -25,6 +26,8 @@ export const StartHereSection: React.FC<StartHereSectionProps> = ({
   const [selectedPathId, setSelectedPathId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   
+  const { isEnabled, getVariant } = useStartHereFeatures();
+  
   const {
     trackSectionViewed,
     trackPathSelected,
@@ -35,6 +38,12 @@ export const StartHereSection: React.FC<StartHereSectionProps> = ({
   useEffect(() => {
     setMounted(true);
     trackSectionViewed(variant);
+    
+    // Development analytics validation
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🏁 Start Here Section: Analytics initialized');
+      console.log('📊 Section viewed tracked:', { variant });
+    }
   }, [trackSectionViewed, variant]);
 
   const handlePathSelection = (pathId: string) => {
@@ -53,22 +62,22 @@ export const StartHereSection: React.FC<StartHereSectionProps> = ({
     trackJourneyStarted('personalized', 'section_cta');
   };
 
-  if (!mounted) return null;
+  if (!mounted || !isEnabled('startHereSection')) return null;
 
   return (
     <>
-      <section className={`py-16 bg-gradient-to-br from-slate-50 via-white to-blue-50 ${className}`}>
+      <section className={`py-12 sm:py-16 bg-gradient-to-br from-slate-50 via-white to-blue-50 ${className}`}>
         <div className="container mx-auto px-4">
           {/* Header */}
           <div className="text-center mb-12">
             <Badge className="mb-4 text-sm font-medium">
               Dein personalisierter Lernpfad
             </Badge>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               Wo möchtest du 
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> starten</span>?
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+            <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-8">
               Finance Transformation muss nicht kompliziert sein. Wähle deinen Weg 
               basierend auf deiner Rolle, Erfahrung und den aktuellen Herausforderungen.
             </p>
@@ -109,7 +118,7 @@ export const StartHereSection: React.FC<StartHereSectionProps> = ({
               <Button 
                 onClick={handleGetStartedClick}
                 size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-4 h-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 Persönlichen Pfad finden
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -129,7 +138,7 @@ export const StartHereSection: React.FC<StartHereSectionProps> = ({
           </div>
 
           {/* Quick Stats */}
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
             <div className="text-center p-6">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-3">
                 <CheckCircle className="h-6 w-6 text-green-600" />
@@ -158,16 +167,18 @@ export const StartHereSection: React.FC<StartHereSectionProps> = ({
       </section>
 
       {/* User Journey Modal */}
-      <UserJourneyModal
-        isOpen={isJourneyModalOpen}
-        onClose={() => setIsJourneyModalOpen(false)}
-        selectedPathId={selectedPathId}
-        onComplete={(pathId, preferences) => {
-          // TODO: Handle journey completion
-          console.log('Journey completed:', { pathId, preferences });
-          setIsJourneyModalOpen(false);
-        }}
-      />
+      {isEnabled('userJourneyModal') && (
+        <UserJourneyModal
+          isOpen={isJourneyModalOpen}
+          onClose={() => setIsJourneyModalOpen(false)}
+          selectedPathId={selectedPathId}
+          onComplete={(pathId, preferences) => {
+            // TODO: Handle journey completion
+            console.log('Journey completed:', { pathId, preferences });
+            setIsJourneyModalOpen(false);
+          }}
+        />
+      )}
     </>
   );
 };
