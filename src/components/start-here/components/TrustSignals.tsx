@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 
 interface Company {
   name: string;
@@ -53,11 +52,9 @@ export const TrustSignals: React.FC<TrustSignalsProps> = ({
           >
             {company.logo ? (
               <div className="relative">
-                <Image
+                <img
                   src={company.logo}
                   alt={`${company.name} Logo`}
-                  width={120}
-                  height={40}
                   className="h-8 w-auto grayscale group-hover:grayscale-0 transition-all duration-300"
                 />
               </div>

@@ -31,10 +31,10 @@ export const learningPaths: LearningPath[] = [
     popularity: 85,
     recommendedContent: [
       {
-        id: 'episode_65',
+        id: 'episode_basics_intro',
         type: 'episode',
-        title: 'Finance Transformation 101 - Was steckt wirklich dahinter?',
-        slug: 'finance-transformation-101',
+        title: 'Finance Transformation verstehen',
+        slug: 'finance-transformation-basics-intro',
         estimatedTime: '25 min',
         difficulty: 'beginner',
         priority: 1,
@@ -44,7 +44,7 @@ export const learningPaths: LearningPath[] = [
       {
         id: 'framework_basics',
         type: 'insight',
-        title: '5-Schritte Finance Transformation Assessment',
+        title: 'Finance Transformation Assessment',
         slug: 'transformation-assessment-framework',
         estimatedTime: '15 min',
         difficulty: 'beginner',
@@ -53,10 +53,10 @@ export const learningPaths: LearningPath[] = [
         tags: ['Assessment', 'Framework', 'Selbstbewertung']
       },
       {
-        id: 'episode_58',
+        id: 'episode_quick_wins',
         type: 'episode',
-        title: 'Quick Wins identifizieren - Die Low-Hanging-Fruits der Finance',
-        slug: 'finance-quick-wins',
+        title: 'Quick Wins in der Finance identifizieren',
+        slug: 'finance-quick-wins-guide',
         estimatedTime: '22 min',
         difficulty: 'beginner',
         priority: 3,
@@ -114,10 +114,10 @@ export const learningPaths: LearningPath[] = [
     popularity: 92,
     recommendedContent: [
       {
-        id: 'episode_72',
+        id: 'episode_leadership_interview',
         type: 'episode',
-        title: 'CFO Interview: Wie moderne Unternehmen die Finance digitalisieren',
-        slug: 'cfo-interview-digitalization',
+        title: 'Finance Leadership in der Transformation',
+        slug: 'finance-leadership-transformation',
         estimatedTime: '35 min',
         difficulty: 'intermediate',
         priority: 1,
@@ -126,20 +126,20 @@ export const learningPaths: LearningPath[] = [
       },
       {
         id: 'leadership_playbook',
-        type: 'memo',
-        title: '90-Tage Transformation Leadership Playbook',
-        slug: 'transformation-leadership-playbook',
-        estimatedTime: '45 min',
+        type: 'insight',
+        title: 'Transformation Leadership Framework',
+        slug: 'transformation-leadership-framework',
+        estimatedTime: '30 min',
         difficulty: 'intermediate',
         priority: 2,
-        description: 'Schritt-für-Schritt Anleitung für die ersten 90 Tage',
-        tags: ['Playbook', 'Leadership', '90-Tage-Plan']
+        description: 'Bewährte Führungsstrategien für Finance Transformationen',
+        tags: ['Framework', 'Leadership', 'Strategie']
       },
       {
-        id: 'episode_69',
+        id: 'episode_stakeholder',
         type: 'episode',
-        title: 'Stakeholder Management in Finance Transformations',
-        slug: 'stakeholder-management-finance',
+        title: 'Stakeholder Management Masterclass',
+        slug: 'stakeholder-management-masterclass',
         estimatedTime: '28 min',
         difficulty: 'intermediate',
         priority: 3,
@@ -198,24 +198,35 @@ export const learningPaths: LearningPath[] = [
       {
         id: 'episode_ai_automation',
         type: 'episode',
-        title: 'AI in Finance: Praktische Anwendungsfälle und Implementierung',
-        slug: 'ai-finance-implementation',
+        title: 'AI und Automation in der Finance',
+        slug: 'ai-automation-finance-advanced',
         estimatedTime: '40 min',
         difficulty: 'advanced',
         priority: 1,
-        description: 'Konkrete AI-Anwendungen für Finance-Bereiche',
+        description: 'Konkrete AI-Anwendungen und Automatisierungsstrategien',
         tags: ['AI', 'Automation', 'Technologie']
       },
       {
         id: 'advanced_analytics_guide',
         type: 'insight',
-        title: 'Advanced Analytics Framework für Finance',
-        slug: 'advanced-analytics-framework',
-        estimatedTime: '30 min',
+        title: 'Advanced Analytics für Finance Profis',
+        slug: 'advanced-analytics-finance-guide',
+        estimatedTime: '35 min',
         difficulty: 'advanced',
         priority: 2,
-        description: 'Datenanalyse-Methoden für komplexe Finance-Fragen',
-        tags: ['Analytics', 'Data Science', 'Framework']
+        description: 'Fortgeschrittene Datenanalyse-Methoden und Tools',
+        tags: ['Analytics', 'Data Science', 'Advanced']
+      },
+      {
+        id: 'episode_tech_integration',
+        type: 'episode',
+        title: 'Complex Tech Integration Strategies',
+        slug: 'complex-tech-integration-finance',
+        estimatedTime: '32 min',
+        difficulty: 'advanced',
+        priority: 3,
+        description: 'Komplexe Technologie-Integration erfolgreich meistern',
+        tags: ['Integration', 'Technology', 'Strategy']
       }
     ],
     nextSteps: [

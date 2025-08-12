@@ -31,3 +31,8 @@ export { journeySteps, getRecommendedPathFromResponses } from './data/journeySte
 
 // Hooks
 export { useStartHereAnalytics } from './hooks/useStartHereAnalytics';
+export { useContentRecommendations } from './hooks/useContentRecommendations';
+
+// Services
+export { startHereEmailService } from './services/emailService';
+export type { EmailSubscriptionData, EmailSubscriptionResult } from './services/emailService';

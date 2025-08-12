@@ -13,6 +13,8 @@ import { journeySteps, getRecommendedPathFromResponses } from '../data/journeySt
 import { learningPaths } from '../data/learningPaths';
 import { useStartHereAnalytics } from '../hooks/useStartHereAnalytics';
 import { UserPathPreferences, UserJourneyStep } from '../types/userProfile';
+import { startHereEmailService } from '../services/emailService';
+import { toast } from '@/hooks/use-toast';
 
 interface UserJourneyModalProps {
   isOpen: boolean;
@@ -120,38 +122,90 @@ export const UserJourneyModal: React.FC<UserJourneyModalProps> = ({
   const handleEmailCapture = useCallback(async () => {
     if (!email || !recommendedPath) return;
 
+    // Validate email format
+    if (!startHereEmailService.validateEmail(email)) {
+      toast({
+        title: 'Ungültige E-Mail-Adresse',
+        description: 'Bitte gib eine gültige E-Mail-Adresse ein.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
-      // Track email capture
-      trackEmailCaptured(recommendedPath, 'journey_completion', email);
-
       // Build preferences object
-      const preferences: Partial<UserPathPreferences> = {
+      const preferences = {
         selectedPath: recommendedPath,
-        goals: responses.goals_definition || [],
-        experienceLevel: responses.experience_level || 'beginner',
         role: responses.role_identification || 'other',
         companySize: responses.company_context,
-        timeCommitment: responses.time_commitment || 'moderate',
-        learningStyle: responses.learning_preferences || 'mixed',
-        primaryChallenges: responses.primary_challenges || [],
-        sessionId: `session_${Date.now()}`,
-        emailCaptured: true,
-        newsletterSubscribed: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        experienceLevel: responses.experience_level || 'beginner',
+        goals: responses.goals_definition || [],
+        primaryChallenges: responses.primary_challenges || []
       };
 
-      // Complete the journey
-      onComplete(recommendedPath, preferences);
+      // Subscribe to newsletter with Start Here context
+      const currentSessionId = sessionId.current;
+      const subscriptionResult = await startHereEmailService.subscribeToNewsletter({
+        email,
+        pathId: recommendedPath,
+        source: 'journey_completion',
+        preferences,
+        sessionId: currentSessionId,
+        timestamp: new Date().toISOString()
+      });
+
+      if (subscriptionResult.success) {
+        // Show success message
+        toast({
+          title: 'Erfolgreich angemeldet!',
+          description: subscriptionResult.message,
+          variant: 'default'
+        });
+
+        // Track email capture
+        trackEmailCaptured(recommendedPath, 'journey_completion', email);
+
+        // Build UserPathPreferences for completion callback
+        const userPreferences: Partial<UserPathPreferences> = {
+          selectedPath: recommendedPath,
+          goals: responses.goals_definition || [],
+          experienceLevel: responses.experience_level || 'beginner',
+          role: responses.role_identification || 'other',
+          companySize: responses.company_context,
+          timeCommitment: responses.time_commitment || 'moderate',
+          learningStyle: responses.learning_preferences || 'mixed',
+          primaryChallenges: responses.primary_challenges || [],
+          sessionId: currentSessionId,
+          emailCaptured: true,
+          newsletterSubscribed: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        // Complete the journey
+        onComplete(recommendedPath, userPreferences);
+      } else {
+        // Show error message
+        toast({
+          title: 'Anmeldung fehlgeschlagen',
+          description: subscriptionResult.message,
+          variant: 'destructive'
+        });
+      }
       
     } catch (error) {
       console.error('Error completing journey:', error);
+      toast({
+        title: 'Ein Fehler ist aufgetreten',
+        description: 'Bitte versuche es später erneut.',
+        variant: 'destructive'
+      });
     } finally {
       setIsSubmitting(false);
     }
-  }, [email, recommendedPath, responses, trackEmailCaptured, onComplete]);
+  }, [email, recommendedPath, responses, trackEmailCaptured, onComplete, sessionId]);
 
   const renderStepContent = () => {
     if (!currentStepData) return null;

@@ -7,6 +7,7 @@ import { useMainPageSections } from '@/hooks/useMainPageSections';
 import { Skeleton } from '@/components/ui/skeleton';
 import TimTeuscherSection from '@/components/TimTeuscherSection';
 import FabianJeckelSection from '@/components/FabianJeckelSection';
+import { StartHereSection } from '@/components/start-here';
 
 const Index = () => {
   const { data: sections, isLoading } = useMainPageSections();
@@ -30,6 +31,9 @@ const Index = () => {
       <div>
         {/* Hero Section */}
         <Hero />
+
+        {/* Start Here Section - Personalized Learning Paths */}
+        <StartHereSection />
 
         {/* Dynamic Sections */}
         {isLoading ? (
