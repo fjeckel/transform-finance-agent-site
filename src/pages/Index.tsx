@@ -33,6 +33,9 @@ const Index = () => {
         <Hero />
 
         {/* Start Here Section - Personalized Learning Paths */}
+        <div style={{ backgroundColor: 'red', padding: '20px', color: 'white', textAlign: 'center' }}>
+          DEBUG: START HERE SECTION SHOULD BE HERE
+        </div>
         <StartHereSection />
 
         {/* Dynamic Sections */}

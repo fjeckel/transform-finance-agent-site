@@ -62,7 +62,15 @@ export const StartHereSection: React.FC<StartHereSectionProps> = ({
     trackJourneyStarted('personalized', 'section_cta');
   };
 
-  if (!mounted || !isEnabled('startHereSection')) return null;
+  // Temporarily disable feature flag check for debugging
+  if (!mounted) return null;
+  
+  // Debug logging
+  console.log('🏁 StartHereSection rendering:', { 
+    mounted, 
+    featureEnabled: isEnabled('startHereSection'),
+    variant: getVariant('startHereSection')
+  });
 
   return (
     <>
