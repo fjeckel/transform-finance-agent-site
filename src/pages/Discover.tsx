@@ -18,13 +18,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import SEOHead from '@/components/SEOHead';
-import { useEpisodes } from '@/hooks/useEpisodes';
+import { useLocalizedEpisodes } from '@/hooks/useMultilingualEpisodes';
 import { useInsights } from '@/hooks/useInsights';
 import { usePdfs } from '@/hooks/usePdfs';
 import { useYouTubeVideos, type YouTubeVideo } from '@/hooks/useYouTubeVideos';
 import { SafeHtmlRenderer } from '@/lib/content-security';
 import { useGlobalSearch } from '@/hooks/useGlobalSearch';
 import { SimplePDFCard } from '@/components/purchase/SimplePurchaseButton';
+import { useTranslation } from 'react-i18next';
 
 // Content categories/tags
 const CONTENT_TAGS = [
@@ -63,7 +64,8 @@ export default function Discover() {
   const [sortOption, setSortOption] = useState<'date_desc' | 'date_asc' | 'title_asc' | 'title_desc'>('date_desc');
   const [displayCount, setDisplayCount] = useState<number>(9);
   
-  const { episodes, loading: episodesLoading } = useEpisodes();
+  const { i18n } = useTranslation();
+  const { data: episodes = [], isLoading: episodesLoading } = useLocalizedEpisodes(i18n.language);
   const { data: insightsData, isLoading: insightsLoading } = useInsights();
   const { pdfs, loading: pdfsLoading } = usePdfs();
   const { searchQuery: globalSearchQuery } = useGlobalSearch();

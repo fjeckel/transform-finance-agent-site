@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useEpisodes } from '@/hooks/useEpisodes';
+import { useLocalizedEpisodes } from '@/hooks/useMultilingualEpisodes';
 import { usePdfs } from '@/hooks/usePdfs';
 import { SimplePDFCard } from '@/components/purchase/SimplePurchaseButton';
 import { Input } from '@/components/ui/input';
@@ -23,8 +23,8 @@ import { useGlobalSearch } from '@/hooks/useGlobalSearch';
 import { useTranslation } from 'react-i18next';
 
 const Episodes = () => {
-  const { t } = useTranslation(['episodes', 'common', 'navigation']);
-  const { episodes, loading: episodesLoading, error: episodesError } = useEpisodes();
+  const { t, i18n } = useTranslation(['episodes', 'common', 'navigation']);
+  const { data: episodes = [], isLoading: episodesLoading, error: episodesError } = useLocalizedEpisodes(i18n.language);
   const { pdfs, loading: pdfsLoading, error: pdfsError, incrementDownloadCount } = usePdfs();
   const location = useLocation();
   const { searchQuery: globalSearchQuery } = useGlobalSearch();

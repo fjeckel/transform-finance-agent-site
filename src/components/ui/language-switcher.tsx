@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { useTranslationStats } from '@/hooks/useTranslationStats';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Language {
   code: string;
@@ -37,6 +38,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
 }) => {
   const { i18n } = useTranslation();
   const { data: translationStats, isLoading } = useTranslationStats();
+  const queryClient = useQueryClient();
 
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
 
@@ -62,6 +64,16 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     
     // Update URL without page reload
     window.history.pushState({}, '', newPath);
+    
+    // Invalidate all localized content queries to refresh data in new language
+    queryClient.invalidateQueries({ 
+      predicate: (query) => {
+        return query.queryKey.includes('localized-episodes') || 
+               query.queryKey.includes('localized-episode') ||
+               query.queryKey.includes('localized-insights') ||
+               query.queryKey.includes('localized-content');
+      }
+    });
     
     // Dispatch custom event for other components to react to language changes
     window.dispatchEvent(new CustomEvent('languageChanged', { 

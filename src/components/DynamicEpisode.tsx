@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useEpisodeBySlug } from '@/hooks/useEpisodeBySlug';
+import { useLocalizedEpisodeBySlug } from '@/hooks/useMultilingualEpisodes';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { toast } from '@/hooks/use-toast';
 import SEOHead from '@/components/SEOHead';
@@ -14,9 +14,9 @@ import { useTranslation } from 'react-i18next';
 import { TranslationStatusIndicator } from '@/components/ui/translation-status';
 
 const DynamicEpisode = () => {
-  const { t } = useTranslation(['episodes', 'common', 'translation']);
+  const { t, i18n } = useTranslation(['episodes', 'common', 'translation']);
   const { slug } = useParams<{ slug: string }>();
-  const { data: episode, isLoading, error } = useEpisodeBySlug(slug || '');
+  const { data: episode, isLoading, error } = useLocalizedEpisodeBySlug(slug || '', i18n.language);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
   const [showNotesSection, setShowNotesSection] = useState(true);
