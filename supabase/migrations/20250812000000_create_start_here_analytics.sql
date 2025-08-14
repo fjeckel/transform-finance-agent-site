@@ -118,7 +118,9 @@ CREATE TRIGGER update_start_here_preferences_updated_at_trigger
     EXECUTE FUNCTION update_start_here_preferences_updated_at();
 
 -- Create a view for analytics aggregation (useful for dashboards)
-CREATE OR REPLACE VIEW start_here_analytics_summary AS
+-- SECURITY INVOKER ensures the view respects RLS policies
+CREATE OR REPLACE VIEW start_here_analytics_summary 
+WITH (security_invoker = true) AS
 SELECT 
     event_type,
     path_id,
