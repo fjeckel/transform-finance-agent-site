@@ -42,7 +42,8 @@ export const UserJourneyModal: React.FC<UserJourneyModalProps> = ({
     trackStepSkipped,
     trackJourneyCompleted,
     trackJourneyAbandoned,
-    trackEmailCaptured
+    trackEmailCaptured,
+    sessionId
   } = useStartHereAnalytics();
 
   const currentStepData = journeySteps[currentStep];
@@ -146,7 +147,7 @@ export const UserJourneyModal: React.FC<UserJourneyModalProps> = ({
       };
 
       // Subscribe to newsletter with Start Here context
-      const currentSessionId = sessionId.current;
+      const currentSessionId = sessionId;
       const subscriptionResult = await startHereEmailService.subscribeToNewsletter({
         email,
         pathId: recommendedPath,
