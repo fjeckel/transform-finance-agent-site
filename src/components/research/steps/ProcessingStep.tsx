@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Play, Pause, Square, RefreshCw, AlertTriangle, CheckCircle, Clock, MessageCircle, Info } from "lucide-react";
+import { Play, Pause, Square, RefreshCw, AlertTriangle, CheckCircle, Clock, MessageCircle, Info, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
