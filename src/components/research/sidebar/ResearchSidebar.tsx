@@ -133,11 +133,37 @@ export const ResearchSidebar: React.FC<ResearchSidebarProps> = ({
   if (error) {
     return (
       <div className={cn('bg-white border-r border-gray-200 flex flex-col', className)}>
-        <div className="p-4 text-center text-red-600">
-          <p className="text-sm">Failed to load sessions</p>
-          <Button size="sm" variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
+        <div className="p-6 text-center">
+          <div className="mb-4">
+            <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+              <Settings className="w-8 h-8 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              AI Research System Setup Required
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              The AI Research tables need to be set up in your database to enable the chat history feature.
+            </p>
+          </div>
+          
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 text-left">
+            <h4 className="text-sm font-medium text-blue-900 mb-2">Quick Setup Instructions:</h4>
+            <ol className="text-xs text-blue-800 space-y-1">
+              <li>1. Go to <a href="https://supabase.com/dashboard/project/aumijfxmeclxweojrefa/sql" target="_blank" rel="noopener noreferrer" className="underline">Supabase SQL Editor</a></li>
+              <li>2. Copy and paste <code className="bg-blue-100 px-1 rounded">COMPLETE_AI_RESEARCH_SETUP.sql</code></li>
+              <li>3. Execute the SQL to create all tables</li>
+              <li>4. Refresh this page</li>
+            </ol>
+          </div>
+          
+          <div className="space-y-2">
+            <Button size="sm" variant="outline" onClick={() => window.location.reload()}>
+              Check Again
+            </Button>
+            <div className="text-xs text-gray-500">
+              This is a one-time setup. All data will be preserved.
+            </div>
+          </div>
         </div>
       </div>
     );
