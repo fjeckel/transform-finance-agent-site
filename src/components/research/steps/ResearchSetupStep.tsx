@@ -525,7 +525,7 @@ Make the prompt comprehensive but focused, ensuring it will generate professiona
         {isValidTopic && (
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600">
-              Estimated cost: <span className="font-semibold text-gray-900">${costEstimate.total.toFixed(3)}</span>
+              Estimated cost: <span className="font-semibold text-gray-900">${costEstimate.expectedCost.toFixed(3)}</span>
             </p>
           </div>
         )}

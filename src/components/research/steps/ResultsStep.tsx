@@ -389,92 +389,145 @@ Please provide a comprehensive research analysis incorporating this additional i
         </div>
 
         {/* Detailed Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Claude Metrics</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span>Content Length:</span>
-                <span>{claudeResult.content.split(' ').length} words</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Processing Time:</span>
-                <span>{formatTime(claudeResult.metadata.processingTime)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Cost:</span>
-                <span>${claudeResult.metadata.cost.toFixed(4)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Tokens Used:</span>
-                <span>{claudeResult.metadata.tokensUsed.toLocaleString()}</span>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {claudeResult && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Claude Metrics</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span>Content Length:</span>
+                  <span>{claudeResult.content.split(' ').length} words</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Processing Time:</span>
+                  <span>{formatTime(claudeResult.metadata.processingTime)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Cost:</span>
+                  <span>${claudeResult.metadata.cost.toFixed(4)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Tokens Used:</span>
+                  <span>{claudeResult.metadata.tokensUsed.toLocaleString()}</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">OpenAI Metrics</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span>Content Length:</span>
-                <span>{openaiResult.content.split(' ').length} words</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Processing Time:</span>
-                <span>{formatTime(openaiResult.metadata.processingTime)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Cost:</span>
-                <span>${openaiResult.metadata.cost.toFixed(4)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Tokens Used:</span>
-                <span>{openaiResult.metadata.tokensUsed.toLocaleString()}</span>
-              </div>
-            </CardContent>
-          </Card>
+          {openaiResult && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">OpenAI Metrics</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span>Content Length:</span>
+                  <span>{openaiResult.content.split(' ').length} words</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Processing Time:</span>
+                  <span>{formatTime(openaiResult.metadata.processingTime)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Cost:</span>
+                  <span>${openaiResult.metadata.cost.toFixed(4)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Tokens Used:</span>
+                  <span>{openaiResult.metadata.tokensUsed.toLocaleString()}</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {grokResult && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Grok Metrics</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span>Content Length:</span>
+                  <span>{grokResult.content.split(' ').length} words</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Processing Time:</span>
+                  <span>{formatTime(grokResult.metadata.processingTime)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Cost:</span>
+                  <span>${grokResult.metadata.cost.toFixed(4)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Tokens Used:</span>
+                  <span>{grokResult.metadata.tokensUsed.toLocaleString()}</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Side-by-side on Desktop */}
         {!isMobile && (
-          <div className="grid grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  🤖 Claude Response
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[400px]">
-                  <div className="prose prose-sm max-w-none">
-                    <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
-                      {claudeResult.content}
-                    </pre>
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+          <div className={`grid gap-4 ${availableResults.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            {claudeResult && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    🤖 Claude Response
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[400px]">
+                    <div className="prose prose-sm max-w-none">
+                      <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
+                        {claudeResult.content}
+                      </pre>
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            )}
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  ⚡ OpenAI Response
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[400px]">
-                  <div className="prose prose-sm max-w-none">
-                    <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
-                      {openaiResult.content}
-                    </pre>
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+            {openaiResult && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    ⚡ OpenAI Response
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[400px]">
+                    <div className="prose prose-sm max-w-none">
+                      <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
+                        {openaiResult.content}
+                      </pre>
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            )}
+
+            {grokResult && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    🚀 Grok Response
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[400px]">
+                    <div className="prose prose-sm max-w-none">
+                      <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
+                        {grokResult.content}
+                      </pre>
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
 
@@ -487,7 +540,7 @@ Please provide a comprehensive research analysis incorporating this additional i
                 Compare both responses to get comprehensive insights
               </p>
               <p className="text-sm">
-                Each AI model brings unique perspectives and analysis styles to your research topic.
+                Each AI model (Claude, OpenAI, and Grok) brings unique perspectives and analysis styles to your research topic.
               </p>
             </div>
           </AlertDescription>
@@ -590,7 +643,7 @@ Please provide a comprehensive research analysis incorporating this additional i
 
       {/* Results Tabs */}
       <Tabs defaultValue="compare" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className={`grid w-full ${[claudeResult, openaiResult, grokResult].filter(Boolean).length === 3 ? 'grid-cols-4' : 'grid-cols-3'}`}>
           {claudeResult && (
             <TabsTrigger value="claude">
               🤖 Claude Results
@@ -830,7 +883,7 @@ Example: Focus on B2B SaaS companies in North America with 50-500 employees, ana
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Your Analysis is Ready</h3>
               <p className="text-sm text-gray-600 mb-4">
-                Both AI models have completed their analysis. Add clarifications above to unlock more targeted insights, 
+                All AI models have completed their analysis. Add clarifications above to unlock more targeted insights, 
                 or continue with the current results.
               </p>
               <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
@@ -841,6 +894,10 @@ Example: Focus on B2B SaaS companies in North America with 50-500 employees, ana
                 <div className="flex items-center gap-1">
                   <CheckCircle className="w-4 h-4" />
                   OpenAI Analysis Ready
+                </div>
+                <div className="flex items-center gap-1">
+                  <CheckCircle className="w-4 h-4" />
+                  Grok Analysis Ready
                 </div>
               </div>
             </div>
@@ -943,7 +1000,7 @@ Example: Focus on B2B SaaS companies in North America with 50-500 employees, ana
             <div className="space-y-3">
               <p className="text-sm text-gray-700">
                 Your AI research comparison has been completed successfully! 
-                Both Claude and OpenAI have analyzed your topic and provided comprehensive insights.
+                Claude, OpenAI, and Grok have analyzed your topic and provided comprehensive insights.
               </p>
               
               <div className="flex flex-wrap gap-2">

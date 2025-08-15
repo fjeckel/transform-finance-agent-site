@@ -55,8 +55,17 @@ const ProcessingStep: React.FC<ProcessingStepProps> = ({
     timestamp: new Date()
   });
 
+  const [grokProgress, setGrokProgress] = React.useState<ProcessingProgress>({
+    provider: 'grok',
+    stage: 'initializing',
+    percentage: 0,
+    message: 'Preparing request...',
+    timestamp: new Date()
+  });
+
   const [claudeStatus, setClaudeStatus] = React.useState<AIResultStatus>('pending');
   const [openaiStatus, setOpenaiStatus] = React.useState<AIResultStatus>('pending');
+  const [grokStatus, setGrokStatus] = React.useState<AIResultStatus>('pending');
   const [processingTime, setProcessingTime] = React.useState<number>(0);
   const [error, setError] = React.useState<ResearchError | null>(null);
 
@@ -219,7 +228,8 @@ Use professional consulting language, include specific examples, and ensure all 
       }, 3000); // Update every 3 seconds
 
       // Call the appropriate edge function
-      const functionName = provider === 'claude' ? 'ai-research-claude' : 'ai-research-openai';
+      const functionName = provider === 'claude' ? 'ai-research-claude' : 
+                          provider === 'openai' ? 'ai-research-openai' : 'ai-research-grok';
       
       let response;
       try {
@@ -306,7 +316,8 @@ Use professional consulting language, include specific examples, and ensure all 
           content: result.content,
           classification,
           metadata: {
-            model: provider === 'claude' ? 'claude-3-5-sonnet' : 'gpt-4-turbo',
+            model: provider === 'claude' ? 'claude-3-5-sonnet' : 
+                   provider === 'openai' ? 'gpt-4-turbo' : 'grok-4-0709',
             tokensUsed: result.tokensUsed || 0,
             cost: result.cost || 0,
             processingTime: result.processingTime || (Date.now() - (startTimeRef.current?.getTime() || 0)),
@@ -344,10 +355,11 @@ Use professional consulting language, include specific examples, and ensure all 
   }, [session?.topic, session?.systemPrompt, session?.optimizedPrompt]);
 
   // AI-powered comparison analysis function
-  const generateComparisonAnalysis = async (claudeResult: AIResult, openaiResult: AIResult) => {
-    console.log('Generating AI comparison analysis...');
+  const generateComparisonAnalysis = async (results: AIResult[]) => {
+    console.log(`Generating AI comparison analysis for ${results.length} providers...`);
     
-    const comparisonSystemPrompt = `You are an expert research analysis evaluator. Your task is to provide a comprehensive comparison and synthesis of two AI-generated research reports on the same topic.
+    const providerNames = results.map(r => r.provider.charAt(0).toUpperCase() + r.provider.slice(1)).join(', ');
+    const comparisonSystemPrompt = `You are an expert research analysis evaluator. Your task is to provide a comprehensive comparison and synthesis of ${results.length} AI-generated research reports on the same topic.
 
 ANALYSIS FRAMEWORK:
 1. **Content Quality Assessment**: Evaluate depth, accuracy, comprehensiveness, and professional quality
@@ -359,7 +371,7 @@ ANALYSIS FRAMEWORK:
 
 COMPARISON OUTPUT STRUCTURE:
 ## Executive Assessment
-- Overall quality comparison (scores out of 10)
+- Overall quality comparison (scores out of 10 for each provider)
 - Best-in-class elements from each analysis
 - Combined strategic value proposition
 
@@ -373,27 +385,32 @@ COMPARISON OUTPUT STRUCTURE:
 ## Synthesis & Integration
 - **Complementary Strengths**: How the analyses reinforce each other
 - **Conflicting Views**: Areas of disagreement and possible resolution
-- **Enhanced Recommendations**: Improved insights combining both perspectives
-- **Implementation Priorities**: Unified action plan leveraging best of both
+- **Enhanced Recommendations**: Improved insights combining all perspectives
+- **Implementation Priorities**: Unified action plan leveraging best of all
 
 ## Final Recommendation
 - Which analysis is stronger overall and why
-- How to best utilize both analyses together
+- How to best utilize all analyses together
 - Key takeaways for decision makers
 
 Provide specific examples and concrete comparisons. Be objective but decisive in your assessment.`;
 
-    const userPrompt = `Please analyze and compare these two research reports on the same topic:
+    // Build dynamic user prompt for all available results
+    let userPrompt = `Please analyze and compare these ${results.length} research reports on the same topic:
 
 **RESEARCH TOPIC**: ${session?.topic || session?.optimizedPrompt}
 
-**CLAUDE ANALYSIS** (${claudeResult.metadata.tokensUsed} tokens, $${claudeResult.metadata.cost.toFixed(4)}):
-${claudeResult.content}
+`;
 
-**OPENAI ANALYSIS** (${openaiResult.metadata.tokensUsed} tokens, $${openaiResult.metadata.cost.toFixed(4)}):
-${openaiResult.content}
+    results.forEach((result) => {
+      const providerName = result.provider.toUpperCase();
+      userPrompt += `**${providerName} ANALYSIS** (${result.metadata.tokensUsed} tokens, $${result.metadata.cost.toFixed(4)}):
+${result.content}
 
-Please provide a comprehensive comparison and synthesis following the framework above.`;
+`;
+    });
+
+    userPrompt += `Please provide a comprehensive comparison and synthesis following the framework above.`;
 
     try {
       const { data: { session: authSession } } = await supabase.auth.getSession();
@@ -643,25 +660,28 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
     }, 100);
 
     try {
-      // Process both providers in parallel with real AI calls
-      const [claudeResult, openaiResult] = await Promise.allSettled([
+      // Process all three providers in parallel with real AI calls
+      const [claudeResult, openaiResult, grokResult] = await Promise.allSettled([
         executeAIResearch('claude', setClaudeProgress, setClaudeStatus),
-        executeAIResearch('openai', setOpenaiProgress, setOpenaiStatus)
+        executeAIResearch('openai', setOpenaiProgress, setOpenaiStatus),
+        executeAIResearch('grok', setGrokProgress, setGrokStatus)
       ]);
 
       // Debug Promise.allSettled results
       console.log('Claude Promise.allSettled result:', claudeResult);
       console.log('OpenAI Promise.allSettled result:', openaiResult);
+      console.log('Grok Promise.allSettled result:', grokResult);
       
       const results = {
         claude: claudeResult.status === 'fulfilled' && claudeResult.value ? claudeResult.value : undefined,
-        openai: openaiResult.status === 'fulfilled' && openaiResult.value ? openaiResult.value : undefined
+        openai: openaiResult.status === 'fulfilled' && openaiResult.value ? openaiResult.value : undefined,
+        grok: grokResult.status === 'fulfilled' && grokResult.value ? grokResult.value : undefined
       };
       
       // Check if we have at least one result
-      if (!results.claude && !results.openai) {
-        console.error('No results from either AI provider');
-        throw new Error('No results from either AI provider - processing may have been cancelled');
+      if (!results.claude && !results.openai && !results.grok) {
+        console.error('No results from any AI provider');
+        throw new Error('No results from any AI provider - processing may have been cancelled');
       }
       
       // Additional debugging for rejected promises
@@ -671,20 +691,25 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
       if (openaiResult.status === 'rejected') {
         console.error('OpenAI research failed:', openaiResult.reason);
       }
+      if (grokResult.status === 'rejected') {
+        console.error('Grok research failed:', grokResult.reason);
+      }
 
-      const totalCost = (results.claude?.metadata.cost || 0) + (results.openai?.metadata.cost || 0);
+      const totalCost = (results.claude?.metadata.cost || 0) + (results.openai?.metadata.cost || 0) + (results.grok?.metadata.cost || 0);
 
       // Debug logging to identify the issue
       console.log('Processing completed - Results:', results);
       console.log('Claude result:', results.claude);
       console.log('OpenAI result:', results.openai);
 
-      // Generate AI-powered comparison analysis if we have both results
+      // Generate AI-powered comparison analysis if we have at least two results
       let comparisonAnalysis = null;
-      if (results.claude && results.openai) {
-        console.log('Both results available - generating AI comparison analysis...');
+      const availableResults = [results.claude, results.openai, results.grok].filter(Boolean);
+      if (availableResults.length >= 2) {
+        console.log(`${availableResults.length} results available - generating AI comparison analysis...`);
         try {
-          comparisonAnalysis = await generateComparisonAnalysis(results.claude, results.openai);
+          // Pass all available results for comprehensive comparison
+          comparisonAnalysis = await generateComparisonAnalysis(availableResults);
           console.log('Comparison analysis generated:', comparisonAnalysis);
         } catch (compError) {
           console.warn('Failed to generate comparison analysis:', compError);
@@ -695,7 +720,8 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
       // Check if any results need clarification
       const needsClarification = 
         (results.claude?.classification?.type !== 'analysis') ||
-        (results.openai?.classification?.type !== 'analysis');
+        (results.openai?.classification?.type !== 'analysis') ||
+        (results.grok?.classification?.type !== 'analysis');
       
       onSessionUpdate({
         status: 'completed' as ResearchStatus,
@@ -748,6 +774,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
   const handleRetryProcessing = React.useCallback(() => {
     setClaudeStatus('pending');
     setOpenaiStatus('pending');
+    setGrokStatus('pending');
     setError(null);
     setProcessingTime(0);
     handleStartProcessing();
@@ -759,7 +786,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
     return `${minutes}:${(seconds % 60).toString().padStart(2, '0')}`;
   };
 
-  const canProceed = session?.status === 'completed' && session?.results && (session.results.claude || session.results.openai);
+  const canProceed = session?.status === 'completed' && session?.results && (session.results.claude || session.results.openai || session.results.grok);
   
   // Debug canProceed logic
   console.log('ProcessingStep - canProceed evaluation:', {
@@ -767,6 +794,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
     hasResults: !!session?.results,
     hasClaudeResults: !!session?.results?.claude,
     hasOpenAIResults: !!session?.results?.openai,
+    hasGrokResults: !!session?.results?.grok,
     canProceed: canProceed,
     fullResults: session?.results
   });
@@ -788,7 +816,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
           AI Processing
         </h2>
         <p className="text-muted-foreground mb-3">
-          Dual AI analysis in progress - Claude and OpenAI working in parallel
+          Triple AI analysis in progress - Claude, OpenAI, and Grok working in parallel
         </p>
         
         {/* Processing time warning and topic quality check */}
@@ -990,7 +1018,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
                 Analyzing Your Research Topic
               </h3>
               <p className="text-gray-600 mb-4">
-                Claude and OpenAI are generating comprehensive analysis
+                Claude, OpenAI, and Grok are generating comprehensive analysis
               </p>
               <p className="text-sm text-gray-500">
                 This typically takes 15-20 minutes • Elapsed: {formatTime(processingTime)}
@@ -1002,7 +1030,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
 
       {/* Status Summary */}
       {(isProcessing || session?.status === 'completed') && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Claude Status */}
           <Card className="relative">
             <CardHeader className="pb-3">
@@ -1046,6 +1074,28 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
               </p>
             </CardContent>
           </Card>
+
+          {/* Grok Status */}
+          <Card className="relative">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Grok Analysis</CardTitle>
+                <Badge variant={grokStatus === 'completed' ? 'default' : 
+                               grokStatus === 'failed' ? 'destructive' : 'secondary'}>
+                  {grokStatus === 'completed' && <CheckCircle className="w-3 h-3 mr-1" />}
+                  {grokStatus === 'failed' && <AlertTriangle className="w-3 h-3 mr-1" />}
+                  {grokStatus === 'processing' && <Clock className="w-3 h-3 mr-1" />}
+                  {grokStatus}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Progress value={grokProgress.percentage} className="mb-2" />
+              <p className="text-xs text-muted-foreground">
+                {grokProgress.message}
+              </p>
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -1075,7 +1125,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
                 Analysis Complete
               </h3>
               <p className="text-gray-600 mb-4">
-                Both Claude and OpenAI have finished their research
+                All AI models have finished their research analysis
               </p>
             
               <Button 
@@ -1091,7 +1141,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
               </Button>
               
               <div className="mt-4 text-sm text-green-600">
-                Ready to compare Claude vs OpenAI analysis!
+                Ready to compare Claude vs OpenAI vs Grok analysis!
               </div>
             </div>
           </CardContent>
@@ -1108,7 +1158,7 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
                 <div className="bg-blue-50 rounded-lg p-3">
                   <p className="text-2xl font-bold text-blue-600">
                     {session?.results?.claude ? '✓' : '✗'}
@@ -1129,6 +1179,18 @@ This ${providerStyle} covers the key aspects of your research topic, providing a
                   {session?.results?.openai && (
                     <p className="text-xs text-green-600">
                       ${session?.results?.openai?.metadata?.cost?.toFixed(4)}
+                    </p>
+                  )}
+                </div>
+                
+                <div className="bg-purple-50 rounded-lg p-3">
+                  <p className="text-2xl font-bold text-purple-600">
+                    {session?.results?.grok ? '✓' : '✗'}
+                  </p>
+                  <p className="text-sm text-purple-800">Grok Analysis</p>
+                  {session?.results?.grok && (
+                    <p className="text-xs text-purple-600">
+                      ${session?.results?.grok?.metadata?.cost?.toFixed(4)}
                     </p>
                   )}
                 </div>

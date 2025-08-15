@@ -9,6 +9,7 @@ import { Menu, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { researchService } from '@/services/research/researchService';
+import { supabase } from '@/integrations/supabase/client';
 import type { 
   ResearchSession, 
   WizardStep, 
@@ -129,7 +130,7 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
     {
       id: 2,
       title: 'AI Processing',
-      description: 'Claude and OpenAI analyze your research topic',
+      description: 'Claude, OpenAI, and Grok analyze your research topic',
       component: 'ProcessingStep',
       status: currentStep === 2 ? 'current' : currentStep > 2 ? 'completed' : 'pending',
       isClickable: currentStep >= 2 || (currentStep > 2),
@@ -172,47 +173,86 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
     if (currentStep === 1) {
       // Create or update session when moving from setup to processing
       if (!session && step1Topic.trim()) {
-        // Create new session with the topic from step 1
-        const newSession: ResearchSession = {
-          id: 'generated-' + Date.now(),
-          title: `Research: ${step1Topic.slice(0, 50)}...`,
-          topic: step1Topic,
-          status: 'processing',
-          currentStep: 2,
-          totalSteps: 3,
-          parameters: {
-            researchType: 'custom',
-            depth: 'comprehensive',
-            focusAreas: [],
-            outputFormat: 'detailed',
-            outputLength: 'comprehensive',
-            includeSourceData: true,
-            targetAudience: 'executives'
-          },
-          estimatedCost: {
-            minCost: 0.045,
-            maxCost: 0.065,
-            expectedCost: 0.055,
-            currency: 'USD',
-            breakdown: {
-              claude: { minCost: 0.020, maxCost: 0.030, expectedTokens: 3500 },
-              openai: { minCost: 0.025, maxCost: 0.035, expectedTokens: 3500 }
-            },
-            confidence: 85,
-            basedOnSimilarQueries: 150
-          },
-          totalCost: 0,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          userId: 'anonymous',
-          isPublic: false
-        };
-        
-        // Confirm cost before proceeding
-        const costConfirmed = await confirmCost(newSession.estimatedCost);
-        if (!costConfirmed) return;
-        
-        setSession(newSession);
+        try {
+          // Create session directly with the user's topic using the research service
+          const result = await researchService.createSession(
+            generateSessionTitle(step1Topic),
+            step1Topic, // Use the actual user topic as the prompt
+            {
+              researchType: 'custom',
+              depth: 'comprehensive',
+              focusAreas: [],
+              outputFormat: 'detailed',
+              outputLength: 'comprehensive',
+              includeSourceData: true,
+              targetAudience: 'executives'
+            }
+          );
+          
+          if (result.success && result.data) {
+            // Use the session created by the research service
+            const newSession = {
+              ...result.data,
+              status: 'processing' as ResearchStatus,
+              currentStep: 2,
+              totalSteps: 3
+            };
+            
+            // Confirm cost before proceeding
+            const costConfirmed = await confirmCost(newSession.estimatedCost);
+            if (!costConfirmed) return;
+            
+            setSession(newSession);
+            console.log('Session created in database and appears in sidebar:', newSession);
+          } else {
+            // Fallback: create in-memory session if database creation fails
+            const fallbackSession: ResearchSession = {
+              id: 'fallback-' + Date.now(),
+              title: generateSessionTitle(step1Topic),
+              topic: step1Topic,
+              status: 'processing',
+              currentStep: 2,
+              totalSteps: 3,
+              parameters: {
+                researchType: 'custom',
+                depth: 'comprehensive',
+                focusAreas: [],
+                outputFormat: 'detailed',
+                outputLength: 'comprehensive',
+                includeSourceData: true,
+                targetAudience: 'executives'
+              },
+              estimatedCost: {
+                minCost: 0.045,
+                maxCost: 0.065,
+                expectedCost: 0.055,
+                currency: 'USD',
+                breakdown: {
+                  claude: { minCost: 0.020, maxCost: 0.030, expectedTokens: 3500 },
+                  openai: { minCost: 0.025, maxCost: 0.035, expectedTokens: 3500 },
+                  grok: { minCost: 0.020, maxCost: 0.030, expectedTokens: 3500 }
+                },
+                confidence: 85,
+                basedOnSimilarQueries: 150
+              },
+              totalCost: 0,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              userId: 'anonymous',
+              isPublic: false
+            };
+            
+            // Confirm cost before proceeding
+            const costConfirmed = await confirmCost(fallbackSession.estimatedCost);
+            if (!costConfirmed) return;
+            
+            setSession(fallbackSession);
+            console.log('Fallback session created:', fallbackSession);
+          }
+        } catch (error) {
+          console.error('Error creating session:', error);
+          // Don't prevent the user from continuing if session creation fails
+        }
       } else if (session) {
         // Update existing session
         const costConfirmed = await confirmCost(session.estimatedCost);
@@ -230,6 +270,27 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
     }
     
     setCurrentStep(nextStep);
+  };
+
+  // Generate session title from prompt
+  const generateSessionTitle = (prompt: string): string => {
+    if (!prompt?.trim()) return 'Research Session';
+    
+    // Clean up the prompt and create a meaningful title
+    const cleaned = prompt
+      .toLowerCase()
+      .replace(/please|analyze|research|study|examine|investigate/g, '')
+      .replace(/[^\w\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    // Take the first few meaningful words
+    const words = cleaned.split(' ').filter(word => word.length > 2);
+    const title = words.slice(0, 4).join(' ');
+    
+    // Capitalize first letter and limit length
+    const finalTitle = title.charAt(0).toUpperCase() + title.slice(1);
+    return finalTitle.length > 50 ? finalTitle.slice(0, 47) + '...' : finalTitle || 'Research Session';
   };
 
   // Handle previous step
@@ -250,10 +311,80 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
     });
   };
 
+  // Save session updates to database
+  const saveSessionToDatabase = React.useCallback(async (sessionUpdates: Partial<ResearchSession>) => {
+    if (!session?.id) return;
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Prepare updates for database
+      const dbUpdates: any = {
+        updated_at: new Date().toISOString()
+      };
+
+      // Map session updates to database fields
+      if (sessionUpdates.status) {
+        dbUpdates.status = sessionUpdates.status === 'completed' ? 'completed' : 
+                          sessionUpdates.status === 'processing' ? 'in_progress' : 'pending';
+      }
+
+      if (sessionUpdates.topic || sessionUpdates.optimizedPrompt) {
+        dbUpdates.research_prompt = sessionUpdates.optimizedPrompt || sessionUpdates.topic;
+      }
+
+      if (sessionUpdates.totalCost !== undefined) {
+        dbUpdates.actual_cost_usd = sessionUpdates.totalCost;
+      }
+
+      if (sessionUpdates.title) {
+        dbUpdates.title = sessionUpdates.title;
+        dbUpdates.session_title = sessionUpdates.title;
+      }
+
+      // Add conversation metadata for completed sessions
+      if (sessionUpdates.status === 'completed') {
+        dbUpdates.conversation_metadata = {
+          message_count: 1,
+          last_activity: new Date().toISOString(),
+          tags: ['ai-research', 'comparison'],
+          favorite: false,
+          archived: false,
+          total_cost: sessionUpdates.totalCost || 0,
+          provider_usage: {
+            claude: sessionUpdates.results?.claude ? 1 : 0,
+            openai: sessionUpdates.results?.openai ? 1 : 0,
+            grok: sessionUpdates.results?.grok ? 1 : 0
+          }
+        };
+      }
+
+      // Update the session in database
+      const { error } = await supabase
+        .from('research_sessions')
+        .update(dbUpdates)
+        .eq('id', session.id);
+
+      if (error) {
+        console.warn('Failed to save session to database:', error);
+        // Don't throw error as this is not critical for UI functionality
+      } else {
+        console.log('Session saved to database successfully');
+      }
+    } catch (error) {
+      console.warn('Error saving session:', error);
+      // Don't throw error as this is not critical for UI functionality
+    }
+  }, [session?.id]);
+
   // Handle research completion
   const handleResearchComplete = (updatedSession: ResearchSession) => {
     setSession(updatedSession);
     setCurrentStep(3);
+    
+    // Save completed session to database
+    saveSessionToDatabase(updatedSession);
     
     if (onComplete) {
       onComplete(updatedSession);
@@ -409,6 +540,12 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
                 
                 const updated = { ...prev, ...updates, updatedAt: new Date() };
                 console.log('ResearchWizard - Updated session:', updated);
+                
+                // Save important status changes to database
+                if (updates.status || updates.results || updates.totalCost !== undefined) {
+                  saveSessionToDatabase(updated);
+                }
+                
                 return updated;
               });
               
@@ -443,7 +580,15 @@ const ResearchWizard: React.FC<ResearchWizardProps> = ({
             }}
             onSessionUpdate={(updates) => {
               console.log('ResearchWizard - ResultsStep session update:', updates);
-              setSession(prev => prev ? { ...prev, ...updates } : null);
+              setSession(prev => {
+                if (!prev) return null;
+                const updated = { ...prev, ...updates, updatedAt: new Date() };
+                
+                // Save updates to database
+                saveSessionToDatabase(updated);
+                
+                return updated;
+              });
             }}
             onReprocess={() => {
               console.log('ResearchWizard - Reprocessing requested');
