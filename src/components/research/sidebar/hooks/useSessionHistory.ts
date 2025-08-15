@@ -17,7 +17,8 @@ export const useSessionHistory = () => {
       setLoading(true);
       setError(null);
 
-      const { data: sessionsData, error: sessionsError } = await supabase
+      // First, try the new schema with chat history support
+      let { data: sessionsData, error: sessionsError } = await supabase
         .from('research_sessions')
         .select(`
           id,
@@ -39,7 +40,52 @@ export const useSessionHistory = () => {
         .order('updated_at', { ascending: false })
         .limit(100);
 
-      if (sessionsError) throw sessionsError;
+      // If the new schema fails, fall back to the old schema
+      if (sessionsError && sessionsError.code === 'PGRST200') {
+        console.log('New schema not available, falling back to old schema');
+        
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('research_sessions')
+          .select(`
+            id,
+            title,
+            status,
+            research_type,
+            created_at,
+            updated_at,
+            actual_cost_usd,
+            estimated_cost_usd
+          `)
+          .order('updated_at', { ascending: false })
+          .limit(100);
+
+        if (fallbackError) throw fallbackError;
+
+        // Convert old schema to new format
+        sessionsData = (fallbackData || []).map(session => ({
+          id: session.id,
+          session_title: session.title || 'Untitled Research',
+          status: session.status,
+          research_type: session.research_type,
+          created_at: session.created_at,
+          updated_at: session.updated_at,
+          conversation_metadata: {
+            message_count: 1,
+            last_activity: session.updated_at,
+            tags: [],
+            favorite: false,
+            archived: false,
+            total_cost: session.actual_cost_usd || 0,
+            provider_usage: {}
+          },
+          folder_id: null,
+          actual_cost_usd: session.actual_cost_usd,
+          estimated_cost_usd: session.estimated_cost_usd,
+          folder: null
+        }));
+      } else if (sessionsError) {
+        throw sessionsError;
+      }
 
       setSessions(sessionsData || []);
     } catch (err) {
@@ -47,7 +93,7 @@ export const useSessionHistory = () => {
       setError('Failed to load research sessions');
       toast({
         title: 'Error',
-        description: 'Failed to load research sessions',
+        description: 'Failed to load research sessions. The chat history feature may not be fully available yet.',
         variant: 'destructive'
       });
     } finally {
@@ -63,10 +109,19 @@ export const useSessionHistory = () => {
         .select('*')
         .order('sort_order', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        // If folders table doesn't exist, just set empty array
+        if (error.code === '42P01') {
+          console.log('Folders table not available yet, using empty folders list');
+          setFolders([]);
+          return;
+        }
+        throw error;
+      }
       setFolders(data || []);
     } catch (err) {
       console.error('Error loading folders:', err);
+      setFolders([]); // Fallback to empty folders
     }
   }, []);
 
@@ -79,14 +134,26 @@ export const useSessionHistory = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Generate session title from prompt
-      const { data: titleData } = await supabase
-        .rpc('generate_session_title', { prompt_text: prompt });
+      // Try to generate session title from prompt, fallback if function doesn't exist
+      let titleData = 'Research Session';
+      try {
+        const { data: rpcTitleData } = await supabase
+          .rpc('generate_session_title', { prompt_text: prompt });
+        titleData = rpcTitleData || 'Research Session';
+      } catch (rpcError) {
+        // Fallback title generation if RPC function doesn't exist
+        const cleaned = prompt.toLowerCase()
+          .replace(/please|analyze|research|study/g, '')
+          .trim()
+          .slice(0, 40);
+        titleData = cleaned.charAt(0).toUpperCase() + cleaned.slice(1) || 'Research Session';
+      }
 
-      const sessionData = {
+      // First try the new schema
+      let sessionData: any = {
         user_id: user.id,
-        title: titleData || 'Research Session',
-        session_title: titleData || 'Research Session',
+        title: titleData,
+        session_title: titleData,
         research_prompt: prompt,
         research_type: parameters?.researchType || 'custom',
         status: 'pending' as const,
@@ -104,11 +171,35 @@ export const useSessionHistory = () => {
         }
       };
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('research_sessions')
         .insert(sessionData)
         .select()
         .single();
+
+      // If new schema fails, try old schema
+      if (error && error.message?.includes('session_title')) {
+        console.log('New schema not available, using old schema for session creation');
+        sessionData = {
+          user_id: user.id,
+          title: titleData,
+          research_prompt: prompt,
+          research_type: parameters?.researchType || 'custom',
+          status: 'pending' as const,
+          max_tokens: 4000,
+          temperature: 0.3,
+          estimated_cost_usd: 0.05
+        };
+
+        const result = await supabase
+          .from('research_sessions')
+          .insert(sessionData)
+          .select()
+          .single();
+        
+        data = result.data;
+        error = result.error;
+      }
 
       if (error) throw error;
 
@@ -172,12 +263,27 @@ export const useSessionHistory = () => {
     updates: Partial<ResearchSessionSummary>
   ) => {
     try {
+      // Filter out new schema fields if they don't exist
+      const safeUpdates: any = {
+        updated_at: new Date().toISOString()
+      };
+
+      // Map session_title to title for old schema compatibility
+      if (updates.session_title) {
+        safeUpdates.title = updates.session_title;
+        safeUpdates.session_title = updates.session_title;
+      }
+
+      // Only include other fields if they exist in the schema
+      Object.keys(updates).forEach(key => {
+        if (key !== 'session_title' && updates[key as keyof ResearchSessionSummary] !== undefined) {
+          safeUpdates[key] = updates[key as keyof ResearchSessionSummary];
+        }
+      });
+
       const { error } = await supabase
         .from('research_sessions')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
+        .update(safeUpdates)
         .eq('id', sessionId);
 
       if (error) throw error;
@@ -187,11 +293,15 @@ export const useSessionHistory = () => {
         session.id === sessionId ? { ...session, ...updates } : session
       ));
 
-      // Update conversation metadata if needed
+      // Update conversation metadata if function exists
       if (updates.conversation_metadata) {
-        await supabase.rpc('update_session_metadata', {
-          p_session_id: sessionId
-        });
+        try {
+          await supabase.rpc('update_session_metadata', {
+            p_session_id: sessionId
+          });
+        } catch (rpcError) {
+          console.log('update_session_metadata function not available');
+        }
       }
     } catch (err) {
       console.error('Error updating session:', err);
@@ -275,7 +385,17 @@ export const useSessionHistory = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '42P01') {
+          toast({
+            title: 'Feature Not Available',
+            description: 'Folder organization is not available yet. Database migration pending.',
+            variant: 'destructive'
+          });
+          return null;
+        }
+        throw error;
+      }
 
       setFolders(prev => [...prev, data]);
 
