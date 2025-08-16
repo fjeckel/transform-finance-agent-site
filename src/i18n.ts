@@ -265,6 +265,7 @@ const resources = {
         languageMenu: "Sprachmenü",
         themeToggle: "Design umschalten",
       },
+      content: "Inhalte",
     },
     // Episodes namespace - episode-related content
     episodes: {
@@ -1353,6 +1354,7 @@ const resources = {
         languageMenu: "Language Menu",
         themeToggle: "Toggle Theme",
       },
+      content: "Content",
     },
     // Episodes namespace - episode-related content
     episodes: {
@@ -2435,6 +2437,7 @@ const resources = {
         languageMenu: "Menu langue",
         themeToggle: "Changer de thème",
       },
+      content: "Contenu",
     },
 
     // Episodes namespace - episode-related content
